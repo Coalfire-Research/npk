@@ -1,0 +1,20 @@
+#	The keys for Terraform to use when generating the environment.
+access_key = ""
+secret_key = ""
+region = "us-west-2"
+
+###	URLs for extra components.
+# Tesla V100
+p3_driver = "http://us.download.nvidia.com/tesla/410.72/NVIDIA-Linux-x86_64-410.72.run"
+
+# Tesla K80
+p2_driver = "http://us.download.nvidia.com/tesla/410.72/NVIDIA-Linux-x86_64-410.72.run"
+
+# Tesla M60
+g3_driver = "http://us.download.nvidia.com/XFree86/Linux-x86_64/384.66/NVIDIA-Linux-x86_64-384.66.run"
+
+# Hashcat
+hashcat = "https://hashcat.net/files/hashcat-5.0.0.7z"
+
+# EPEL repo RPM
+epel = "https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/epel-release-7-11.noarch.rpm"

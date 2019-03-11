@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+        <meta name="description" content=""/>
+        <meta name="author" content=""/>
+        <title>NPK - Increase your cred yield.</title>
+        <!--favicon-->
+        <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+        <!-- Vector CSS -->
+        <link href="assets/plugins/vectormap/jquery-jvectormap-2.0.2.css" rel="stylesheet" />
+        <!-- simplebar CSS-->
+        <link href="assets/plugins/simplebar/css/simplebar.css" rel="stylesheet"/>
+        <!-- Bootstrap core CSS-->
+        <link href="assets/css/bootstrap.css" rel="stylesheet"/>
+        <!-- animate CSS-->
+        <link href="assets/css/animate.css" rel="stylesheet" type="text/css"/>
+        <!-- Icons CSS-->
+        <link href="assets/css/icons.css" rel="stylesheet" type="text/css"/>
+        <!-- Sidebar CSS-->
+        <link href="assets/css/sidebar-menu.css" rel="stylesheet"/>
+        <!-- Custom Style-->
+        <link href="assets/css/app-style.css" rel="stylesheet"/>
+        <link href="assets/css/npk.css" rel="stylesheet"/>
+
+
+    </head>
+
+
+    <body ng-app="app" ng-controller="npkMainCtrl" class="fixed-left bg-dark">
+         <!-- Begin page -->
+        <div id="wrapper">
+            <div class="left side-menu" ng-include="'views/sidebar.html'" ng-show="showNav"></div>
+            <div class="topbar" ng-include="'views/topbar.html'" ng-show="showNav"></div>
+        
+            <!-- Angular View -->
+            <div ng-view></div>
+        </div>
+        <!-- END wrapper -->
+
+        <!--Dark Modal -->
+        <div class="modal fade" id="ok_modal">
+          <div class="modal-dialog">
+            <div class="modal-content border-dark">
+              <div class="modal-header bg-dark">
+                <h5 class="modal-title text-white"><i class="fa" ng-class="ok_modal.icon"></i>&nbsp;{{ ok_modal.title }}</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                {{ ok_modal.body }}
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-info" data-dismiss="modal" ng-click="ok_modal.onAccept()"><i class="fa fa-check"></i> {{ ok_modal.accept }}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    </body>
+
+    <footer>
+        <script>
+            var resizefunc = [];
+        </script>
+
+        <!-- Bootstrap core JavaScript-->
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/jquery-ui.min.js"></script>
+        <script src="assets/js/popper.min.js"></script>
+        <script src="assets/js/bootstrap.min.js"></script>
+
+        <!-- simplebar js -->
+        <script src="assets/plugins/simplebar/js/simplebar.js"></script>
+        <!-- waves effect js -->
+        <script src="assets/js/waves.js"></script>
+        <!-- sidebar-menu js -->
+        <script src="assets/js/sidebar-menu.js"></script>
+
+        <!-- Vector map JavaScript -->
+        <script src="assets/plugins/vectormap/jquery-jvectormap-2.0.2.min.js"></script>
+        <script src="assets/plugins/vectormap/jquery-jvectormap-world-mill-en.js"></script>
+        <!-- Chart js -->
+        <script src="assets/plugins/Chart.js/Chart.min.js"></script>
+  
+        <!-- Angular -->
+        <script src="angular/angular.min.js"></script>
+        <script src="angular/angular-route.min.js"></script>
+        <script src="angular/angular-sanitize.min.js"></script>
+        <script src="angular/app.js"></script>
+        <script src="angular/npk_config.js"></script>
+        <script src="angular/providers/cognitoProvider.js"></script>
+        <script src="angular/controllers/npkMainCtrl.js"></script>
+        <script src="angular/services/pricingSvc.js"></script>
+        <script src="angular/services/npkDB.js"></script>
+
+        <!-- Moment -->
+        <script src="assets/js/moment.js"></script>
+
+        <!-- AWS -->
+        <script src="assets/js/dictionary-buckets.js"></script>
+        <script src="assets/js/aws-sdk.min.js"></script>
+        <script src="assets/js/sha256.js"></script>
+        <script src="assets/js/hmac-sha256.js"></script>
+        <script src="assets/js/aws-sign-web.js"></script>
+        <script src="assets/js/aws-cognito-sdk.min.js"></script>
+        <script src="assets/js/amazon-cognito-identity.min.js"></script>
+
+        <!-- MD5 (Gravatar) -->
+        <script src="assets/js/md5.js"></script>
+    </footer>
+</html>

@@ -1,0 +1,99 @@
+  <!--Start sidebar-wrapper-->
+   <div id="sidebar-wrapper" data-simplebar="" data-simplebar-auto-hide="true" class="border-right border-secondary-light shadow-none">
+     <div class="brand-logo">
+      <a href="#/">
+       <img src="assets/images/logo-icon.png" class="logo-icon" alt="logo icon">
+       <h5 class="logo-text">N-P-K</h5>
+     </a>
+	 </div>
+	 <ul class="sidebar-menu do-nicescrol">
+      <li class="sidebar-header">Main Nagivation</li>
+      <li>
+        <a href="#/dashboard" class="waves-effect">
+          <i class="icon-home"></i> <span>Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="#/new-campaign" class="waves-effect">
+          <i class="icon-rocket"></i> <span>New Campaign</span>
+        </a>
+      </li>
+      <li>
+        <a href="#/campaign-management" class="waves-effect">
+          <i class="icon-equalizer"></i> <span>Manage Campaigns</span>
+        </a>
+      </li>
+      <li>
+        <a href="#/file-management" class="waves-effect">
+          <i class="icon-docs"></i> <span>File Management</span>
+        </a>
+      </li>
+      <li class="sidebar-header" style="padding-top: 16px;">Other Actions</li>
+      <li>
+        <a href="#/events" class="waves-effect">
+          <i class="icon-calendar"></i> <span>Events</span>
+        </a>
+      </li>
+      <li>
+        <a href="#/user-settings" class="waves-effect">
+          <i class="icon-settings"></i> <span>Settings</span>
+        </a>
+      </li>
+    </ul>
+	 
+   </div>
+   <!--End sidebar-wrapper-->
+
+   <script type="text/javascript">
+             $(function() {
+              "use strict";
+               
+             
+              //sidebar menu js
+              $.sidebarMenu($('.sidebar-menu'));
+
+              // === toggle-menu js
+
+              $(".toggle-menu").on("click", function(e) {
+                      e.preventDefault();
+                      $("#wrapper").toggleClass("toggled");
+                  });    
+                
+                   
+              // === sidebar menu activation js
+
+              $(function() {
+                      for (var i = window.location, o = $(".sidebar-menu a").filter(function() {
+                          return this.href == i;
+                      }).addClass("active").parent().addClass("active"); ;) {
+                          if (!o.is("li")) break;
+                          o = o.parent().addClass("in").parent().addClass("active");
+                      }
+                  }),      
+                   
+              /* Back To Top */
+
+              $(document).ready(function(){ 
+                  $(window).on("scroll", function(){ 
+                      if ($(this).scrollTop() > 300) { 
+                          $('.back-to-top').fadeIn(); 
+                      } else { 
+                          $('.back-to-top').fadeOut(); 
+                      } 
+                  }); 
+                  $('.back-to-top').on("click", function(){ 
+                      $("html, body").animate({ scrollTop: 0 }, 600); 
+                      return false; 
+                  }); 
+              });    
+                   
+              $(function () {
+                $('[data-toggle="popover"]').popover()
+              });
+
+
+              $(function () {
+                $('[data-toggle="tooltip"]').tooltip()
+              });
+            });
+   </script>

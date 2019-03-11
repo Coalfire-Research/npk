@@ -1,0 +1,18 @@
+{
+  "campaign_data_ttl": 604800,
+  "campaign_max_price": 50,
+  "defaultRegion": "us-west-2",
+  "useCustomDNS": false,
+  "route53Zone": "testZone",
+  "dnsNames": {
+    "www": [
+      "dev.npkproject.io"
+    ],
+    "api": [
+      "api.dev.npkproject.io"
+    ]
+  },
+  "awsProfile": "npk",
+  "criticalEventsSMS": "+13035551234",
+  "adminEmail": "demo@npkproject.io"
+}

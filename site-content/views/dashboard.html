@@ -1,0 +1,321 @@
+<div class="clearfix"></div>
+	
+  <div class="content-wrapper">
+    <div class="container-fluid">
+
+      <!--Start Dashboard Content-->
+	  
+      <div class="card bg-transparent shadow-none mt-3 border border-secondary-light">
+	    <div class="card-content">
+		 <div class="row row-group m-0">
+		   <div class="col-12 col-lg-6 col-xl-3 border-secondary-light">
+		     <div class="card-body">
+              <div class="media">
+              <div class="media-body text-left">
+                <h4 class="text-info">{{ active_campaigns }}</h4>
+                <span class="text-light">Active<br>Campaigns</span>
+              </div>
+              <div class="align-self-center w-circle-icon rounded bg-info shadow-info">
+                <i class="icon-clock text-white"></i></div>
+            </div>
+            </div>
+		   </div>
+		   <div class="col-12 col-lg-6 col-xl-3 border-secondary-light">
+		      <div class="card-body">
+              <div class="media">
+               <div class="media-body text-left">
+                <h4 class="text-danger">{{ inactive_campaigns }}</h4>
+                <span class="text-light">Completed<br>Campaigns</span>
+              </div>
+               <div class="align-self-center w-circle-icon rounded bg-danger shadow-danger">
+                <i class="icon-pie-chart text-white"></i></div>
+            </div>
+            </div>
+		   </div>
+		   <div class="col-12 col-lg-6 col-xl-3 border-secondary-light">
+		      <div class="card-body">
+              <div class="media">
+              <div class="media-body text-left">
+                <h4 class="text-success">{{ campaigns.totals.hashes | number }}</h4>
+                <span class="text-light">Hashes<br>Ingested</span>
+              </div>
+              <div class="align-self-center w-circle-icon rounded bg-success shadow-success">
+                <i class="icon-docs text-white"></i></div>
+            </div>
+            </div>
+		   </div>
+		   <div class="col-12 col-lg-6 col-xl-3 border-secondary-light">
+		      <div class="card-body">
+              <div class="media">
+              <div class="media-body text-left">
+                <h4 class="text-warning">{{ campaigns.totals.recovered_hashes / campaigns.totals.hashes * 100 | number:2 }}%</h4>
+                <span class="text-light">Success<br>Rate</span>
+              </div>
+              <div class="align-self-center w-circle-icon rounded bg-warning shadow-warning">
+                <i class="icon-speedometer text-white"></i></div>
+            </div>
+            </div>
+		   </div>
+		 </div><!--End Row-->
+		</div>
+	  </div><!--End Card-->
+
+      <div class="row" ng-show="active_campaigns > 0">
+        <div class="col-lg-12">
+          <div class="card bg-transparent shadow-none border border-secondary-light">
+            <div class="card-header bg-transparent text-white border-secondary-light">
+                      Active Campaigns
+              <div class="card-action">
+              </div>
+            </div>
+             <div class="card-body text-center">
+               <img height="50px" width="50px" src="assets/images/loading.gif" ng-show="(!campaigns_loaded)">
+               <h5 class="card-text text-danger" ng-show="(campaigns_loaded && active_campaigns == 0)">
+                You have no active campaigns
+               </h5>
+               <div class="table-responsive" ng-show="(campaigns_loaded && active_campaigns > 0)">
+                 
+                 <table class="table table-dark table-condensed">
+                  <thead>
+                   <tr>
+                     <th>Date</th>
+                     <th>Hashes</th>
+                     <th>Type</th>
+                     <th>Compute</th>
+                     <th>Duration</th>
+                     <th>Cost</th>
+                     <th>Status</th>
+                     <th>Delete</th>
+                   </tr>
+                   </thead>
+                   <tbody ng-repeat="(id, data) in campaigns | filterObj: {active: true}" on-finish-render>
+                       <tr>
+                        <td><small>{{ data.startTime * 1000 | date:"MMM d @ H:mm" }}</small></td>
+                        <td><small>{{ data.hashes | number }}</small></td>
+                        <td><small>{{ data.hashType }}</small></td>
+                        <td>
+                          <span class="badge gradient-ibiza text-white shadow">
+                            {{ data.instanceType }}
+                          </span>
+                          <small>x{{ data.instanceCount }}</small>
+                        </td>
+                        <td><small>{{ data.durationSeconds / 3600 }} Hours</small></td>
+                        <td><small>${{ data.price | number:2 }}</small></td>
+                        <td><small>{{ data.status }}</small></td>
+                        <td>
+                          <img id="action-{{ id.split(':')[2] }}" src="assets/images/loading.gif" style="height: 10px; width: 25px; display: none;">
+                          <a id="cancel-{{ id.split(':')[2] }}" class="badge badge-warning waves-effect waves-light" ng-click="$parent.npkDB.cancelCampaign(id.split(':')[2])">
+                          <i class="fa fa-trash-o"></i>
+                          <span>
+                            Cancel
+                          </span>
+                        </a>
+                        </td>
+                       </tr>
+
+                       <tr >
+                        <td colspan="8" class="card-body">
+                          <h6 class="card-text text-white" ng-if="objLength(data.nodes) < 1">
+                            No status reports received. Nodes may still be starting.
+                          </h6>
+                          <h6 class="text-white" ng-if="objLength(data.nodes) > 0">Nodes</h6>
+                          <div class="row" style="margin: 0px;">
+                             <div class="col-lg-12">
+                              <div ng-repeat="(nid, node) in data.nodes" ng-if="objLength(data.nodes) > 0" class="text-left">
+                                <div class="row">
+                                  <div class="col-lg-2" style="margin-top: 1px;">
+                                    <p class="text-center" style="line-height: 1">
+                                      <a ng-href="#/campaigns/{{ id }}/nodes/{{ nid }}"><small>{{ nid }}</small></i></a><br />
+                                      <small>{{ node['latest'].status }}</small>
+                                      <small>[{{ node['latest'].recoveredHashes }} / {{ data.hashes }}]</small>
+                                    </p>
+                                  </div>
+                                  <div class="col-lg-10 text-center" style="padding-top: 8px;">
+                                   <div class="progress" style="height: 6px;">
+                                      <div class="progress-bar bg-warning progress-bar-striped" ng-class="{'progress-bar-animated': data.active}" role="progressbar" style="width: {{ ((node.first - data.startTime) / data.durationSeconds) * 100 }}%"></div>
+                                      <div class="progress-bar bg-primary progress-bar-striped" ng-class="{'progress-bar-animated': data.active}" role="progressbar" style="width: {{ ((node.firstRecovery - node.first) / data.durationSeconds) * 100 }}%"></div>
+                                      <div class="progress-bar bg-success progress-bar-striped" ng-class="{'progress-bar-animated': data.active}" role="progressbar" style="width: {{ ((node.last - node.firstRecovery) / data.durationSeconds) * 100 }}%"></div>
+                                      <div class="progress-bar bg-dark progress-bar-striped" ng-if="node.last.status == 'COMPLETED' || (now() - node.last) > 120" ng-class="{'progress-bar-animated': data.active}" role="progressbar" style="width: {{ ((now() - node.last) / data.durationSeconds) * 100 }}%"></div>
+                                   </div>
+                                   <small ng-if="node['latest'].startTime">
+                                    Hashcat: {{ node['latest'].progress | number:2 }}% | 
+                                    Time: {{ ((node.last - data.startTime) / data.durationSeconds) * 100 | number:2 }}% | 
+                                    Price: {{ (data.price / data.targetPrice) * 100 | number:2 }}%
+                                  </small>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-lg-2 card-body card text-warning text-center border border-dark bg-dark" style="margin-right: 10px; height: 60px; padding-top: 5px;" ng-repeat="(gpu, hashrate) in node['latest'].performance track by $index">
+                                    <big>GPU {{ gpu }}</big>
+                                    <small>{{ hashrate | toHs }}</small>
+                                  </div>
+                                </div>
+                             </div>
+                          </div>
+                        </td>
+                       </tr>
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+          </div>
+        </div>
+      </div><!--End Row-->
+
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card bg-transparent shadow-none border border-secondary-light">
+      <div class="card-header bg-transparent text-white border-secondary-light">
+                Inactive Campaigns
+        <div class="card-action">
+         <a ng-href="#/new-campaign" class="badge badge-pill badge-success">
+          <i class="icon-plus text-white"></i> New Campaign
+         </a>
+                 </div>
+                </div>
+             <div class="card-body text-center">
+               <img height="50px" width="50px" src="assets/images/loading.gif" ng-show="(!campaigns_loaded)">
+               <h5 class="card-text text-danger" ng-show="(campaigns_loaded && inactive_campaigns == 0)">
+                You have no inactive campaigns
+               </h5>
+               <div class="table-responsive" ng-show="(campaigns_loaded && inactive_campaigns > 0)">
+                <table class="table table-dark">
+                  <thead>
+                   <tr>
+                     <th>Date</th>
+                     <th>Hashes</th>
+                     <th>Type</th>
+                     <th>Compute</th>
+                     <th>Duration</th>
+                     <th>Cost</th>
+                     <th>Status</th>
+                     <th>Action</th>
+                   </tr>
+                   </thead>
+                   <tbody>
+                     <tr ng-repeat="(id, data) in campaigns | filterObj: {active: false}">
+                      <td><small>{{ data.startTime * 1000 | date:"MMM d @ H:mm" }}</small></td>
+                      <td><small>{{ data.hashes | number }}</small></td>
+                      <td><small>{{ data.hashType }}<small></td>
+                      <td>
+                        <span class="badge gradient-ibiza text-white shadow">
+                          {{ data.instanceType }}
+                        </span>
+                        <small>x{{ data.instanceCount }}</small>
+                      </td>
+                      <td><small>{{ data.durationSeconds / 3600 }} Hours</small></td>
+                      <td><small>${{ data.price | number:2 }}</small></td>
+                      <td><small>{{ data.status }}</small></td>
+                      <td>
+                        <img id="action-{{ id.split(':')[2] }}" src="assets/images/loading.gif" style="height: 10px; width: 25px; display: none;">
+                        <a id="delete-{{ id.split(':')[2] }}"class="badge badge-danger waves-effect waves-light" ng-hide="data.status == 'AVAILABLE'" ng-click="$parent.npkDB.cancelCampaign(id.split(':')[2])">
+                          <i class="fa fa-trash-o"></i>
+                          <span>
+                            Delete
+                          </span>
+                        </a>
+
+                        <a id="start-{{ id.split(':')[2] }}" class="badge badge-success waves-effect waves-light" ng-show="data.status == 'AVAILABLE'" ng-click="executeCampaign(id.split(':')[2])">
+                          <i class="fa fa-sign-in"></i>
+                          <span>
+                            Start
+                          </span>
+                        </a>
+                      </td>
+                     </tr>
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+          </div>
+        </div>
+      </div><!--End Row-->
+
+     
+	  
+       <!--End Dashboard Content-->
+
+    </div>
+    <!-- End container-fluid-->
+    
+  </div><!--End content-wrapper-->
+   <!--Start Back To Top Button-->
+  <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+    <!--End Back To Top Button-->
+	
+	<!--Start footer-->
+	<footer class="footer bg-transparent border-secondary-light">
+      <div class="container">
+        <div class="text-center text-white">
+        </div>
+      </div>
+    </footer>
+	<!--End footer-->
+   
+  </div><!--End wrapper-->
+
+  <div id="messageModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Message from NPK</h5>
+          <button type="button" class="close" data-dismiss="orderErrorModal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div ng-repeat="message in modalMessages.error" class="alert alert-outline-danger" role="alert">
+            <div class="alert-icon">
+              <i class="icon-close"></i>
+            </div>
+            <div class="alert-message">
+              <span>
+                <strong>
+                  Error:
+                </strong>
+                {{ message }}
+              </span>
+            </div>
+          </div>
+          <div ng-repeat="message in modalMessages.warn" class="alert alert-outline-warning" role="alert">
+            <div class="warning-icon">
+              <i class="icon-close"></i>
+            </div>
+            <div class="alert-message">
+              <span>
+                <strong>
+                  Warning:
+                </strong>
+                {{ message }}
+              </span>
+            </div>
+          </div>
+          <div ng-repeat="message in modalMessages.success" class="alert alert-outline-success" role="alert">
+            <div class="alert-icon">
+              <i class="icon-check"></i>
+            </div>
+            <div class="alert-message">
+              <span>
+                <strong>
+                  Success:
+                </strong>
+                {{ message }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            <i class="fa fa-times"></i>
+            Understood
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Index js -->
+  <!-- script src="assets/js/index2.js"></script -->
+  
+</body>
+</html>

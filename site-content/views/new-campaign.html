@@ -1,0 +1,635 @@
+<div class="clearfix"></div>
+	
+  <link href="assets/plugins/jquery-multi-select/multi-select.css" rel="stylesheet" type="text/css">
+  <link href="assets/plugins/dropzone/css/dropzone.css" rel="stylesheet" type="text/css">
+  <link href="assets/plugins/switchery/css/switchery.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css?family=Nanum+Gothic+Coding" rel="stylesheet">
+  <link href="assets/css/ion.rangeSlider.css" rel="stylesheet" />
+  <link href="assets/css/ion.rangeSlider.skinNice.css" rel="stylesheet" />
+
+<div class="content-wrapper">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card bg-transparent shadow-none border border-secondary-light">
+          <div class="card-header bg-transparent text-white border-secondary-light">
+            New Campaign
+            <div class="card-action">
+            </div>
+          </div>
+          <div class="card-body text-center">
+             
+            <!-- Start campaign form -->
+            <form>
+              <div class="row">
+                <div class="col-lg-3" style="margin-top: 20px;">
+                  <div class="card border border-white shadow-none">
+                    <div class="card-header bg-dark text-white">
+                      Hash Type
+                    </div>
+                    <div class="card-body text-center">
+                      <input type="checkbox" id="showAll" class="chk-col-primary filled-in" ng-model="showAll">
+                      <label for="showAll">
+                        Show All
+                      </label>
+                      <select class="form-control" ng-options="value as key for (key, value) in pricingSvc.hashTypes | commonHashTypes: !showAll" ng-model="hashType" ng-change="updateInstances()" style="margin-bottom: 5px;"></select>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-9">
+                  <div class="card border-right-sm border-left-sm border-success shadow-none">
+                    <div class="card-body bg-dark" style="padding: 4px;">
+                      <div class="row">
+                        <div class="col-lg-4">
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'g3')}]" style="margin-bottom: 0px;" id="g3">
+                            <div class="card-header">
+                              <h5 style="margin-bottom: -4px;">{{ idealG3Instance.instanceType }}</h5>
+                              <small>(Tesla M60)</small>
+                            </div>
+                            <div class="card-body text-center">
+                              {{ instances.g3.hashes | toHs }}/GPU<br>
+                              {{ gpus[idealG3Instance.instanceType] }} GPUs<br>
+                              ${{ pricingSvc.spotPrice[idealG3Instance.instanceType].price | number:2 }} /Hr
+                              <hr width="60%" />
+                              {{ (instances.g3.hashes == "-") ? "-" : (instances.g3.hashes / idealG3Instance.price) | toHs }}/$
+                              <hr width="60%" />
+                              <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == idealG3Instance.instanceType)}, {'btn-secondary': (selectedInstance != idealG3Instance.instanceType)}]" ng-click="pickInstance(idealG3Instance)">
+                                Select
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'p2')}]" style="margin-bottom: 0px;" id="p2">
+                            <div class="card-header">
+                              <h5 style="margin-bottom: -4px;">{{ idealP2Instance.instanceType }}</h5>
+                              <small>(Tesla K80)</small>
+                            </div>
+                            <div class="card-body text-center">
+                              {{ instances.p2.hashes | toHs }}/GPU<br>
+                              {{ gpus[idealP2Instance.instanceType] }} GPUs<br>
+                              ${{ pricingSvc.spotPrice[idealP2Instance.instanceType].price | number:2 }} /Hr
+                              <hr width="60%" />
+                              {{ (instances.p2.hashes == "-") ? "-" : (instances.p2.hashes / idealP2Instance.price) | toHs }}/$
+                              <hr width="60%" />
+                              <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == idealP2Instance.instanceType)}, {'btn-secondary': (selectedInstance != idealP2Instance.instanceType)}]" ng-click="pickInstance(idealP2Instance)">
+                                Select
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'p3')}]" style="margin-bottom: 0px;" id="p3">
+                            <div class="card-header">
+                              <h5 style="margin-bottom: -4px;">{{ idealP3Instance.instanceType }}</h5>
+                              <small>(Tesla V100)</small>
+                            </div>
+                            <div class="card-body text-center">
+                              {{ instances.p3.hashes | toHs }}/GPU<br>
+                              {{ gpus[idealP3Instance.instanceType] }} GPUs<br>
+                              ${{ pricingSvc.spotPrice[idealP3Instance.instanceType].price | number:2 }} /Hr
+                              <hr width="60%" />
+                              {{ (instances.p3.hashes == "-") ? "-" : (instances.p3.hashes / idealP3Instance.price) | toHs }}/$
+                              <hr width="60%" />
+                              <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == idealP3Instance.instanceType)}, {'btn-secondary': (selectedInstance != idealP3Instance.instanceType)}]" ng-click="pickInstance(idealP3Instance)">
+                                Select
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="card border border-white shadow-none">
+                    <div class="card-header bg-dark text-white">Target List</div>
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-lg-6">
+                          <div class="form-group" ng-hide="hashes_loading">
+                            <h5 style="text-align: center;">Hashes File</h5>
+                            <select class="form-control" multiple="multiple" id="hashes_select" name="my_multi_select0[]" ng-model="selectedHashes" ng-options="value.Name for (key, value) in hashesFiles.Contents" style="height: 90px;">
+                            </select>
+                          </div>
+                          <div class="bg-dark text-center" ng-show="hashes_loading">
+                            <img height="50px" width="50px" src="assets/images/loading.gif">
+                          </div>
+                        </div>
+                        <div class="col-lg-6" style="padding-top: 34px;">
+                          <input type="file" name="hashfile" onchange="angular.element(this).scope().uploadHashFile()" id="hashfile" hidden="true">
+                          <label for="hashfile" ng-show="upload_ready">
+                            <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1">
+                              <i class="fa fa-upload"></i>
+                              <span>Upload more Hashes</span>
+                            </div>
+                          </label>
+                          <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1" ng-show="uploading_hashes" style="width: 60%; ">
+                            <div class="progress mt-3" style="margin-top: 0px !important;">
+                              <div class="progress-bar bg-secondary" style="width:{{ uploadProgress }}%"></div>
+                            </div>
+                          </div>
+                          <div class="btn btn-lg btn-outline-success waves-effect waves-light m-1" ng-show="upload_finished">
+                            <i class="fa fa-check"></i>
+                            <span>Uploaded Successfully!</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Wordlist Row -->
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="card border border-white shadow-none">
+                    <div class="card-header bg-dark text-white">
+                      Attack Type
+                    </div>
+                    <div class="card-body bg-dark">
+                      <div class="row">
+                        <div class="col-md-9">
+                          <div class="row">
+                            <div class="col-lg-12 text-left" id="wordlistConfig">
+                              <div class="card border border-white shadow-none">
+                                <div class="card-header bg-dark text-white" style="padding: 4px 2px 4px 20px;">
+                                  <div style="margin-top: 8px; width: 400px; display: inline-block;">
+                                    Wordlist Attacks
+                                  </div>
+                                  <div class="btn btn-sm btn-outline-warning waves-effect waves-light m-1 card-action" style="padding: 3px 10px;" ng-click="toggleWordlist();" onClick="window.switchers.use_wordlist.switcher.click();">
+                                    <span style="margin-right: 8px;">
+                                      <i class="fa fa-plus"></i>
+                                      <span>Enable</span>
+                                    </span>
+                                    <input type="checkbox" name="use_wordlist" id="use_wordlist" class="js-switch" data-color="#ff9700" data-size="small" />
+                                  </div>
+                                </div>
+                                <div class="card-body text-center">
+                                  <div class="row">
+                                    <div class="col-lg-6 text-left">
+                                      <div class="form-group text-left" ng-hide="wordlist_loading">
+                                        <h5 style="text-align: center;">Dictionary</h5>
+
+                                        <select multiple="multiple" class="form-control multi-select" id="wordlist_select" name="my_multi_select2[]" ng-model="selectedWordlist" ng-options="value.Name for (key, value) in wordlistFiles.Contents" style="height: 198px;">
+                                        </select>
+                                      </div>
+                                      <div class="bg-dark text-center" ng-show="wordlist_loading">
+                                        <img height="50px" width="50px" src="assets/images/loading.gif">
+                                      </div>
+                                    </div>
+                                    <div class="col-lg-6 text-left">
+                                      <div class="form-group" ng-hide="rules_loading">
+                                        <h5 style="width: 370px; text-align: center;">Rules</h5>
+                                        <select multiple="multiple" class="form-control multi-select" id="rules_select" name="my_multi_select1[]" ng-model="selectedRules" ng-options="value.Name for (key, value) in rulesFiles.Contents">
+                                        </select>
+                                      </div>
+                                      <div class="bg-dark text-center" ng-show="rules_loading">
+                                        <img height="50px" width="50px" src="assets/images/loading.gif">
+                                      </div>
+                                    </div>
+                                    <div class="col-lg-12 text-center" style="margin-top: 0px;">
+                                      <label class="col-form-label">
+                                        Wordlist Keyspace: {{ wordlistAttackStats.total.keyspace | number }}
+                                        <br />
+                                        Will finish {{ wordlistAttackStats.total.requiredDuration | momentns:'fromNow' }}
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <!-- End Wordlist Row -->
+
+                          <!-- Mask Row -->
+                          <div class="row">
+                            <div class="col-lg-12 text-left" id="maskConfig">
+                              <div class="card border border-white shadow-none">
+                                <div class="card-header bg-dark text-white" style="padding: 4px 2px 4px 20px;">
+                                  <div style="margin-top: 8px; width: 400px; display: inline-block;">
+                                    Mask Configuration
+                                  </div>
+                                  <div class="btn btn-sm btn-outline-warning waves-effect waves-light m-1 card-action" style="padding: 3px 10px;" ng-click="toggleMask();" onClick="window.switchers.use_mask.switcher.click();">
+                                    <span style="margin-right: 8px;">
+                                      <i class="fa fa-plus"></i>
+                                      <span>Enable</span>
+                                    </span>
+                                    <input type="checkbox" name="use_mask" id="use_mask" class="js-switch" data-color="#ff9700" data-size="small"/>
+                                  </div>
+                                </div>
+                                <div class="card-body text-center">
+                                  <div class="row">
+                                    <div class="col-lg-12">
+                                      <div class="row" style="font-family: 'Nanum Gothic Coding', monospace;">
+                                        <div class="col-lg-2" style="padding: 0px 3px;">
+                                          <button type="button" class="btn btn-outline-dark waves-effect waves-light m-1" ng-click="extendMask('?l');" style="text-transform: none; width: 100%;">
+                                            <span style="font-weight: bold;">?l</span>
+                                            <span class="text-normal" style="font-family: 'Nanum Gothic Coding', monospace; font-size: 13px;"> a-z </span>
+                                          </button>
+                                        </div>
+                                        <div class="col-lg-2" style="padding: 0px 3px;">
+                                          <button type="button" class="btn btn-outline-dark waves-effect waves-light m-1" ng-click="extendMask('?u');" style="text-transform: none; width: 100%;">
+                                            <span style="font-weight: bold;">?u</span>
+                                            <span class="text-normal" style="font-family: 'Nanum Gothic Coding', monospace; font-size: 13px;"> A-Z </span>
+                                          </button>
+                                        </div>
+                                        <div class="col-lg-2" style="padding: 0px 3px;">
+                                          <button type="button" class="btn btn-outline-dark waves-effect waves-light m-1" ng-click="extendMask('?d');" style="text-transform: none; width: 100%;">
+                                            <span style="font-weight: bold;">?d</span>
+                                            <span class="text-normal" style="font-family: 'Nanum Gothic Coding', monospace; font-size: 13px;"> 0-9 </span>
+                                          </button>
+                                        </div>
+                                        <div class="col-lg-2" style="padding: 0px 3px;">
+                                          <button type="button" class="btn btn-outline-dark waves-effect waves-light m-1" ng-click="extendMask('?s');" style="text-transform: none; width: 100%;">
+                                            <span style="font-weight: bold;">?s</span>
+                                            <span class="text-normal" style="font-family: 'Nanum Gothic Coding', monospace; font-size: 13px;"> symbols </span>
+                                          </button>
+                                        </div>
+                                        <div class="col-lg-2" style="padding: 0px 3px;">
+                                          <button type="button" class="btn btn-outline-dark waves-effect waves-light m-1" ng-click="extendMask('?a');" style="text-transform: none; width: 100%;">
+                                            <span style="font-weight: bold;">?a</span>
+                                            <span class="text-normal" style="font-family: 'Nanum Gothic Coding', monospace; font-size: 13px;"> ascii </span>
+                                          </button>
+                                        </div>
+                                        <div class="col-lg-2" style="padding: 0px 3px;">
+                                          <button type="button" class="btn btn-outline-dark waves-effect waves-light m-1" ng-click="extendMask('?b');" style="text-transform: none; width: 100%;">
+                                            <span style="font-weight: bold;">?b</span>
+                                            <span class="text-normal" style="font-family: 'Nanum Gothic Coding', monospace; font-size: 13px;"> %00-%ff </span>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-lg-12" style="margin-top: 25px;">
+                                      <div class="form-group row">
+                                        <label for="mask" class="col-sm-2 col-form-label">Mask</label>
+                                        <div class="col-sm-10 input-group">
+                                          <input id="mask" type="text" name="mask" class="form-control" ng-model="mask" readonly>
+                                          <span class="input-group-append">
+                                            <button type="button" class="btn btn-outline-secondary" ng-click="reduceMask();">
+                                              <i class="fa fa-step-backward"></i>
+                                              <span>Backspace</span>
+                                            </button>
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-lg-12 text-center" style="margin-top: 0px;">
+                                      <label class="col-form-label">
+                                        Mask Keyspace: {{ maskKeyspace | number }}
+                                        <br />
+                                        Will finish {{ maskDuration | momentns:'fromNow' }}
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <!-- End Mask Row -->
+
+                        </div>
+                        <div class="col-lg-3 text-left">
+                          <div class="card border border-white shadow-none" style="min-height: 250px;">
+                            <div class="card-header bg-dark text-white">
+                              Attack Breakdown
+                            </div>
+                            <div class="card-body text-left" style="font-family: 'Nanum Gothic Coding', monospace;">
+                              <div class="form-group row">
+                                <label class="col-sm-12 col-form-label">Attack Type</label>
+                                <div class="col-sm-12 text-right">
+                                  <small>{{ attackType }} {{ attackTypeDescription[attackType] }}</small>
+                                </div>
+                              </div>
+
+                              <div class="form-group row">
+                                <label class="col-sm-12 col-form-label">Hashlist Key</label>
+                                <div class="col-sm-12 text-right">
+                                  <small>
+                                    <div ng-repeat="(key, value) in selectedHashes">
+                                      {{ value.Key }}
+                                    </div>
+                                  </small>
+                                </div>
+                              </div>
+
+                              <div ng-show="use_wordlist">
+                                <div class="form-group row">
+                                  <label class="col-sm-12 col-form-label">Dictionary Key</label>
+                                  <div class="col-sm-12 text-right">
+                                    <small>
+                                      <div ng-repeat="(key, value) in selectedWordlist">
+                                        {{ value.Key }}
+                                      </div>
+                                    </small>
+                                  </div>
+                                </div>
+
+                                <div class="form-group row">
+                                  <label class="col-sm-12 col-form-label">Rulefile Keys</label>
+                                  <div class="col-sm-12 text-right">
+                                    <small>
+                                      <div ng-repeat="(key, value) in selectedRules">
+                                        {{ value.Key }}
+                                      </div>
+                                    </small>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div ng-show="use_mask">
+                                <div class="form-group row">
+                                  <label class="col-sm-12 col-form-label">Mask</label>
+                                  <div class="col-sm-12 text-right">
+                                    <small>
+                                      {{ mask }}
+                                    </small>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="form-group row">
+                                <label class="col-sm-12 col-form-label">Total Keyspace</label>
+                                <div class="col-sm-12 text-right">
+                                  <small>
+                                    {{ totalKeyspace | number }}
+                                  </small>
+                                </div>
+                              </div>
+
+                              <div class="form-group row">
+                                <label class="col-sm-12 col-form-label">Total Duration</label>
+                                <div class="col-sm-12 text-right">
+                                  <small>
+                                    {{ totalDuration | momentns:'fromNow' }}
+                                  </small>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="card border border-white shadow-none">
+                    <div class="card-header bg-dark text-white">
+                      Resource Allocation
+                    </div>
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-lg-9">
+                          <label for="instance_count">
+                            Instance Count: {{ instanceCount }}
+                          </label>
+                          <input type="text" id="instance_count" value="2" name="instance_count" ng-model="instanceCount" ng-change="updateCoverage()" />
+                          <br />
+                          <label for="instance_duration">
+                            Duration: {{ instanceDuration }}
+                          </label>
+                          <input type="text" id="instance_duration" value="4" name="instance_duration" ng-model="instanceDuration" ng-change="updateCoverage()" />
+                          <br>
+                          <label>
+                            Coverage: {{ totalCoverage | number:4 }}%
+                          </label>
+                          <div class="progress mt-3" style="margin-top: 0px !important;">
+                            <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" style="width: {{ ((totalCoverage < 5) ? totalCoverage : 5) }}%"></div>
+                            <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" style="width: {{ ((totalCoverage < 40) ? totalCoverage - 5 : 35) }}%"></div>
+                            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: {{ ((totalCoverage < 100) ? totalCoverage - 40 : 60) }}%"></div>
+                            <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" style="width: {{ ((totalCoverage < 200) ? totalCoverage - 100 : 100) }}%"></div>
+                            <div class="progress-bar bg-dark progress-bar-striped progress-bar-animated" style="width: {{ (totalCoverage - 200) }}%"></div>
+                          </div>
+                        </div>
+
+                        <div class="col-lg-3 text-center" style="padding-top: 50px;">
+                          <span style="font-size: 72px;">
+                            ${{ totalPrice.toFixed(2).toString().split('.')[0] | number }}
+                          </span>
+                          <span style="font-size: 30px; position: relative; top: -32px; left: -15px;">
+                            <u>
+                              {{ totalPrice.toFixed(2).toString().split('.')[1] }}
+                            </u>
+                          </span>
+                          <br />
+                          <button class="btn btn-lg waves-effect waves-light m-1" ng-click="verifyOrder()" ng-class="totalCoverage < 125 || totalCoverage > 2400 ? 'btn-dark' : 'btn-success'">
+                            <i class="fa fa-crosshairs"></i>
+                            Execute
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+            <!-- End campaign form -->
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="orderModal" class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Review Order</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-lg-12">
+            <h4 class="text-center">
+              Manifest JSON
+            </h4>
+            <pre class="bg-dark text-white">{{ order | prettyJson }}</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-12">
+            <div ng-repeat="message in orderWarnings" class="alert alert-outline-warning" role="alert">
+              <div class="alert-icon">
+                <i class="icon-close"></i>
+              </div>
+              <div class="alert-message">
+                <span>
+                  <strong>
+                    Warning:
+                  </strong>
+                  {{ message }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row text-center">
+          <div class="col-lg-5">
+            <h3>
+              {{ instanceCount }}<br />
+              <small>
+                Instances
+              </small>
+            </h3>
+          </div>
+          <div class="col-lg-2" style="padding-top: 20px;">
+            <h3><small>for</small></h3>
+          </div>
+          <div class="col-lg-5">
+            <h3>
+              {{ instanceDuration }}<br />
+              <small>
+                Hours
+              </small>
+            </h3>
+          </div>
+        </div>
+        <div class="row text-center" style="margin-top: 10px;">
+          <div class="col-lg-6" style="padding-top: 18px;">
+            <h3>{{ totalCoverage | number:2 }}%<br />
+              <small>Test Coverage</small>
+            </h3>
+          </div>
+          <div class="col-lg-6 text-success">
+            <span style="font-size: 65px;">
+              ${{ totalPrice.toFixed(2).toString().split('.')[0] | number }}
+            </span>
+            <span style="font-size: 28px; position: relative; top: -32px; left: -15px;">
+              <u>
+                {{ totalPrice.toFixed(2).toString().split('.')[1] }}
+              </u>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" ng-click="submitOrder()">
+          <i class="fa fa-check"></i>
+          Confirm
+        </button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fa fa-times"></i>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="orderResponseModal" class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Order Submitted</h5>
+        <button type="button" class="close" data-dismiss="orderResultModal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <div class="bg-dark text-center" style="padding: 60px;" ng-show="submittingOrder">
+          <img height="150px" width="150px" src="assets/images/loading.gif">
+        </div>
+
+        <div class="text-center" ng-hide="submittingOrder">
+          <h2 class="text-success">Success</h2>
+          <h5>{{ campaignId }}</h5>
+          Your campaign has been created.<br>
+          Head to the dashboard to monitor its progress.
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" ng-hide="submittingOrder" class="btn btn-success" data-dismiss="modal" onClick="setTimeout(function() {location.href='#/dashboard'}, 100)">
+          <i class="fa fa-thumbs-o-up"></i>
+          Awesome
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="orderErrorModal" class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Order Validation Failed</h5>
+        <button type="button" class="close" data-dismiss="orderErrorModal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <div ng-repeat="message in orderErrors" class="alert alert-outline-danger" role="alert">
+          <div class="alert-icon">
+            <i class="icon-close"></i>
+          </div>
+          <div class="alert-message">
+            <span>
+              <strong>
+                Error:
+              </strong>
+              {{ message }}
+            </span>
+          </div>
+        </div>
+
+        <div ng-repeat="message in orderWarnings" class="alert alert-outline-warning" role="alert">
+          <div class="alert-icon">
+            <i class="icon-close"></i>
+          </div>
+          <div class="alert-message">
+            <span>
+              <strong>
+                Warning:
+              </strong>
+              {{ message }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fa fa-times"></i>
+          Understood
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+  <!--End Back To Top Button-->
+
+<script src="assets/plugins/jquery-multi-select/jquery.multi-select.js"></script>
+<script src="assets/plugins/dropzone/js/dropzone.js"></script>
+<script type="text/javascript">
+  Dropzone.autoDiscover = false;
+</script>
+
+<!-- Range Slider -->
+<script src="assets/js/ion.rangeSlider.min.js"></script>
+
+<!-- Switchery Js-->
+<script src="assets/plugins/switchery/js/switchery.min.js"></script>
+<script>
+  // var elems = Array.prototype.slice.call(document.querySelectorAll('.js-switch'));
+  window.switchers = {};
+  $('.js-switch').each(function() {
+    var e = $(this);
+    window.switchers[e[0].id] = new Switchery(e[0], $(this).data());
+  });
+</script>

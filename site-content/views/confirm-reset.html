@@ -1,0 +1,63 @@
+
+ <!-- Start wrapper-->
+ <div id="wrapper">
+	<div class="card border-primary border-top-sm border-bottom-sm card-authentication1 mx-auto my-5 animated bounceInDown">
+		<div class="card-body">
+		 <div class="card-content p-2">
+		  <div class="card-title text-uppercase text-center pb-2">Confirm Password Reset</div>
+		    <p class="text-center pb-2">Please enter your email address, new password, and verification code.</p>
+		    <form>
+			  <div class="form-group">
+			   <div class="position-relative has-icon-right">
+				  <label for="exampleInputEmailAddress" class="sr-only">Email Address</label>
+				  <input type="text" id="exampleInputEmailAddress" class="form-control form-control-rounded" placeholder="Email Address" ng-model="username">
+				  <div class="form-control-position">
+					  <i class="icon-envelope-open"></i>
+				  </div>
+			   </div>
+			  </div>
+
+			  <div class="form-group">
+			   <div class="position-relative has-icon-right">
+				  <label for="newPassword" class="sr-only">New Password</label>
+				  <input type="password" id="newPassword" class="form-control form-control-rounded" placeholder="New Password" ng-model="newpassword">
+				  <div class="form-control-position">
+					  <i class="icon-key"></i>
+				  </div>
+			   </div>
+			  </div>
+
+			  <div class="form-group">
+			   <div class="position-relative has-icon-right">
+				  <label for="confirmNewPassword" class="sr-only">Confirm New Password</label>
+				  <input type="password" id="confirmNewPassword" class="form-control form-control-rounded" placeholder="Confirm New Password" ng-model="confirmpassword">
+				  <div class="form-control-position">
+					  <i class="icon-key"></i>
+				  </div>
+			   </div>
+			  </div>
+
+			  <div class="form-group">
+			   <div class="position-relative has-icon-right">
+				  <label for="exampleInputVerificationCode" class="sr-only">Verification Code</label>
+				  <input type="text" id="exampleInputVerificationCode" class="form-control form-control-rounded" placeholder="Verification Code" ng-model="verificationcode" ng-enter="confirmReset()">
+				  <div class="form-control-position">
+					  <i class="icon-calculator"></i>
+				  </div>
+			   </div>
+			  </div>
+			 
+			  <button type="button" class="btn btn-primary shadow-primary btn-round btn-block waves-effect waves-light mt-3" ng-click="confirmReset()">Reset Password</button>
+			  <div class="text-center pt-3">
+				<hr>
+				<p class="text-muted">Return to the <a ng-href="#/"> Sign In</a></p>
+			  </div>
+			 </form>
+		   </div>
+		  </div>
+	     </div>
+    
+     <!--Start Back To Top Button-->
+    <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+    <!--End Back To Top Button-->
+	</div><!--wrapper-->

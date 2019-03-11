@@ -1,0 +1,255 @@
+<div class="clearfix"></div>
+	
+  <div class="content-wrapper">
+    <div class="container-fluid">
+
+      <!--Start Dashboard Content-->
+	  
+      <div class="card bg-transparent shadow-none mt-3 border border-secondary-light">
+        <div class="card-header bg-transparent text-white border-secondary-light">
+          [ {{ selected_campaign || "Campaign" }} ] Statistics
+          <div class="card-action">
+          </div>
+        </div>
+        <div class="card-body text-center">
+          <td colspan="8" class="card-body">
+            <h6 class="card-text text-white" ng-if="objLength(data.nodes) < 1">
+              No status reports received. Nodes may have errored out.
+            </h6>
+            <h6 class="text-white" ng-if="objLength(data.nodes) > 0">Nodes</h6>
+            <div class="row" style="margin: 0px;">
+               <div class="col-lg-12">
+                <div ng-repeat="(nid, node) in data.nodes" ng-if="objLength(data.nodes) > 0" class="text-left">
+                  <div class="row">
+                    <div class="col-lg-2" style="margin-top: 1px;">
+                      <p class="text-center text-white" style="line-height: 1">
+                        <small>{{ nid }}</small><br />
+                        <small>{{ node['latest'].status }}</small>
+                        <small>[{{ node['latest'].recoveredHashes }} / {{ data.base.hashes }}]</small>
+                      </p>
+                    </div>
+                    <div class="col-lg-10 text-center" style="padding-top: 8px;">
+                     <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-warning progress-bar-striped" ng-class="{'progress-bar-animated': data.active}" role="progressbar" style="width: {{ ((node.first - data.base.startTime) / data.base.durationSeconds) * 100 }}%"></div>
+                        <div class="progress-bar bg-primary progress-bar-striped" ng-class="{'progress-bar-animated': data.active}" role="progressbar" style="width: {{ ((node.firstRecovery - node.first) / data.base.durationSeconds) * 100 }}%"></div>
+                        <div class="progress-bar bg-success progress-bar-striped" ng-class="{'progress-bar-animated': data.active}" role="progressbar" style="width: {{ ((node.last - node.firstRecovery) / data.base.durationSeconds) * 100 }}%"></div>
+                        <div class="progress-bar bg-dark progress-bar-striped" ng-class="{'progress-bar-animated': data.active}" role="progressbar" style="width: {{ (((data.base.startTime + data.base.durationSeconds) - node.last) / data.base.durationSeconds) * 100 }}%"></div>
+                     </div>
+                     <small ng-if="node['latest'].startTime" class="text-white">
+                      Hashcat: {{ node['latest'].progress | number:2 }}% | 
+                      Time: {{ ((node.last - data.base.startTime) / data.base.durationSeconds) * 100 | number:2 }}% | 
+                      Price: {{ (data.base.price / data.base.targetPrice) * 100 | number:2 }}%
+                    </small>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-2 card-body card text-warning text-center border border-dark bg-dark" style="margin-right: 10px; height: 60px; padding-top: 5px;" ng-repeat="(gpu, hashrate) in node['latest'].performance track by $index">
+                      <big>GPU {{ gpu }}</big>
+                      <small>{{ hashrate | toHs }}</small>
+                    </div>
+                  </div>
+               </div>
+            </div>
+          </td>
+        </div>
+  	  </div><!--End Card-->
+
+      <div class="card bg-transparent shadow-none mt-3 border border-secondary-light">
+        <div class="card-header bg-transparent text-white border-secondary-light">
+          [ {{ selected_campaign || "Campaign" }} ] Order Details
+          <div class="card-action">
+          </div>
+        </div>
+        <div class="card-body text-center">
+          <div class="row" ng-show="manifest.instanceCount">
+            <div class="col-lg-2 col-md-6 col-sm-12">
+              <div class="card bg-white shadow-none mt-3 border border-secondary-dark">
+                <div class="card-header bg-white text-dark text-center">
+                  Instance (x{{ manifest.instanceCount }})
+                </div>
+                <div class="card-body bg-dark text-white text-left">
+                  <h4 class="text-white"><small>Generation:</small> {{ manifest.instanceGeneration }}</h4>
+                  <div class="text-right" style="border-right: 1px solid white; border-bottom: 1px solid white; padding-right: 8px;">
+                    <small>
+                      [ GPU ] <!-- TODO: Make this reference the instance data -->
+                    </small>
+                  </div>
+                  <h5class="text-white"><small>Size:</small> {{ manifest.instanceSize }}</h5>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-12 col-sm-12">
+              <div class="card bg-white shadow-none mt-3 border border-secondary-dark">
+                <div class="card-header bg-white text-dark text-center">
+                  Price
+                </div>
+                <div class="card-body bg-dark text-white text-left">
+                  <h5 class="text-white"><small>Max Price:</small> ${{ manifest.priceTarget | number:2 }}</h5>
+                  <div class="text-right" style="border-right: 1px solid white; border-bottom: 1px solid white; padding-right: 8px;">
+                    <small>
+                      <ng-pluralize count="manifest.instanceCount" when="{'1': '{{ manifest.instanceCount }} Node', 'other': '{{ manifest.instanceCount }} Nodes'}"></ng-pluralize>
+                      x 
+                      <ng-pluralize count="manifest.instanceDuration" when="{'1': '{ manifest.instanceDuration }} Hour', 'other': '{{ manifest.instanceDuration }} Hours'}"></ng-pluralize>
+                      @ ${{ manifest.priceTarget / manifest.instanceCount / manifest.instanceDuration | number}}/hr
+                    </small>
+                  </div>
+                  <h5class="text-white"><small>Region:</small> {{ manifest.region }}</h5><br/><br/>
+                  <h4 class="text-white"><small>Actual Price:</small> ${{ data.base.price | number:2 }}</h4>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-12 col-sm-12">
+              <div class="card bg-white shadow-none mt-3 border border-secondary-dark">
+                <div class="card-header bg-white text-dark text-center">
+                  Attack Details
+                </div>
+                <div class="card-body bg-dark text-white text-left">
+                  <h4 class="text-white"><small>Hash type:</small> {{ manifest.hashType }}</h4> 
+                  <div>
+                    Hashfile:
+                     <small>
+                      {{ manifest.hashFile }}
+                    </small>
+                  </div>
+                  <div>
+                    Wordlist:
+                     <small>
+                      {{ manifest.dictionaryFile }}
+                    </small>
+                  </div>
+                  <div ng-show="manifest.rulesFiles.length > 0">
+                    Rules Files<br/>
+                    <small style="padding-left: 28px;" ng-repeat="file in manifest.rulesFiles">
+                      {{ file }}<br>
+                    </small>
+                  </div>
+                  <div ng-show="manifest.mask">
+                    &nbsp;<br/>
+                    Append Mask<br/>
+                    <small style="padding-left: 28px;">
+                      {{ manifest.mask }}<br>
+                    </small>
+                  </div>
+                  <div style="border-bottom: 1px solid white;">&nbsp;</div>
+                  <h5class="text-white"><small>Region:</small> {{ manifest.region }}</h5>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-12 col-sm-12">
+              <div class="card bg-white shadow-none mt-3 border border-secondary-dark">
+                <div class="card-header bg-white text-dark text-center">
+                  Results
+                </div>
+                <div class="card-body bg-dark text-white text-left">
+                  <h4 class="text-white"><small>Cracked Hashes:</small> {{ data.recovered_hashes }}</h4> 
+                  <div>
+                    Provisioning:
+                     <small>
+                      {{ first | momentfn:'from':(data.base.startTime * 1000):true }}
+                    </small>
+                  </div>
+                  <div ng-hide="firstRecovery < 1">
+                    First Crack:
+                     <small>
+                      {{ firstRecovery | momentfn:'from':(data.base.startTime * 1000):true }}
+                    </small>
+                  </div>
+                  <div ng-hide="firstRecovery < 1">
+                    Finished
+                     <small>
+                      {{ last | momentfn:'from':(data.base.startTime * 1000) }}
+                    </small>
+                  </div>
+                  <div style="border-bottom: 1px solid white;">&nbsp;</div>
+                  <h5class="text-white"><small>Success Rate:</small> {{ data.recovered_hashes / data.base.hashes * 100 | number:2 }}%</h5>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div><!--End Card-->
+
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card bg-transparent shadow-none border border-secondary-light container">
+            <div class="card-header bg-transparent text-white border-secondary-light">
+              All Campaigns
+              <div class="card-action">
+              </div>
+            </div>
+            <div class="card-body text-center">
+              <img height="50px" width="50px" src="assets/images/loading.gif" ng-show="(!campaigns_loaded)">
+              <h5 class="card-text text-danger" ng-show="campaigns_loaded && objLength(campaigns) == 0">
+                You have no campaigns. Maybe <a href="#/new-campaign">start one</a>?
+              </h5>
+              <div class="table-responsive" ng-show="campaigns_loaded && objLength(campaigns) > 0">
+                <table class="table table-dark table-condensed">
+                  <thead>
+                   <tr>
+                     <th>Campaign ID</th>
+                     <th>Date</th>
+                     <th>Compute</th>
+                     <th>Duration</th>
+                     <th>Cost</th>
+                     <th>Status</th>
+                     <th>Actions</th>
+                   </tr>
+                   </thead>
+                   <tbody ng-repeat="(id, data) in campaigns" on-finish-render>
+                     <tr>
+                      <td><small><a href="#/campaign-management/{{ id }}">{{ id }}</a></small></td>
+                      <td><small>{{ data.startTime * 1000 | date:"MMM d @ H:mm" }}</small></td>
+                      <td>
+                        <span class="badge gradient-ibiza text-white shadow">
+                          {{ data.instanceType }}
+                        </span>
+                        <small>x{{ data.instanceCount }}</small>
+                      </td>
+                      <td><small>{{ data.durationSeconds / 3600 }} Hours</small></td>
+                      <td><small>${{ data.price | number:2 }}</small></td>
+                      <td><small>{{ data.status }}</small></td>
+                      <td>
+                        <img id="action-{{ id }}" src="assets/images/loading.gif" style="height: 10px; width: 25px; display: none;">
+                        <a id="cancel-{{ id }}" class="badge waves-effect waves-light" ng-class="[{'badge-danger': data.status == 'COMPLETED'}, {'badge-warning': data.status != 'COMPLETED'}]" ng-click="$parent.npkDB.cancelCampaign(id)">
+                          <i class="fa fa-trash-o"></i>
+                          <span>
+                            {{ (data.status == "COMPLETED") ? "Delete" : "Cancel" }}
+                          </span>
+                        </a>
+                      </td>
+                     </tr>
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+          </div>
+        </div>
+      </div><!--End Row-->
+	  
+       <!--End Dashboard Content-->
+
+    </div>
+    <!-- End container-fluid-->
+    
+    </div><!--End content-wrapper-->
+   <!--Start Back To Top Button-->
+    <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+    <!--End Back To Top Button-->
+	
+	<!--Start footer-->
+	<footer class="footer bg-transparent border-secondary-light">
+      <div class="container">
+        <div class="text-center text-white">
+        </div>
+      </div>
+    </footer>
+	<!--End footer-->
+   
+  </div><!--End wrapper-->
+
+  <!-- Index js -->
+  <!-- script src="assets/js/index2.js"></script -->
+  
+</body>
+</html>

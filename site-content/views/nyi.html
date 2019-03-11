@@ -1,0 +1,36 @@
+<div class="clearfix"></div>
+	
+<div class="content-wrapper">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-12 text-center" style="padding-top: 10%">
+        <h3 class="text-white">She's dead, Jim.</h3>
+        <h5 class="text-white"><small>* Actually, she's just not implemented yet.</small></h5>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+  <!--End Back To Top Button-->
+
+<script src="assets/plugins/jquery-multi-select/jquery.multi-select.js"></script>
+<script src="assets/plugins/dropzone/js/dropzone.js"></script>
+<script type="text/javascript">
+  Dropzone.autoDiscover = false;
+</script>
+
+<!-- Range Slider -->
+<script src="assets/js/ion.rangeSlider.min.js"></script>
+
+<!-- Switchery Js-->
+<script src="assets/plugins/switchery/js/switchery.min.js"></script>
+<script>
+  // var elems = Array.prototype.slice.call(document.querySelectorAll('.js-switch'));
+  window.switchers = {};
+  $('.js-switch').each(function() {
+    var e = $(this);
+    window.switchers[e[0].id] = new Switchery(e[0], $(this).data());
+  });
+</script>

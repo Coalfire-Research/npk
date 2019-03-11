@@ -1,0 +1,17 @@
+
+Session..........: hashcat
+Status...........: Running
+Hash.Type........: MD5
+Hash.Target......: b52731692f35498bba7e4660142129d2
+Time.Started.....: Sun Nov 25 19:18:56 2018 (7 secs)
+Time.Estimated...: Sun Nov 25 19:20:24 2018 (1 min, 21 secs)
+Guess.Mask.......: ?a?a?a?a?a?a [6]
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:  8219.1 MH/s (9.68ms) @ Accel:128 Loops:32 Thr:1024 Vec:1
+Recovered........: 0/1 (0.00%) Digests, 0/1 (0.00%) Salts
+Progress.........: 64429752320/735091890625 (8.76%)
+Rejected.........: 0/64429752320 (0.00%)
+Restore.Point....: 5242880/81450625 (6.44%)
+Restore.Sub.#1...: Salt:0 Amplifier:6528-6560 Iteration:0-32
+Candidates.#1....: X~y}BL -> bG8.f1
+Hardware.Mon.#1..: Temp: 61c Fan: 39% Util: 96% Core:1784MHz Mem:5005MHz Bus:16

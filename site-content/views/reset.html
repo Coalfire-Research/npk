@@ -1,0 +1,64 @@
+
+ <!-- Start wrapper-->
+ <div id="wrapper">
+	<div class="card border-primary border-top-sm border-bottom-sm card-authentication1 mx-auto my-5 animated bounceInDown">
+		<div class="card-body">
+		 <div class="card-content p-2">
+		  <div class="card-title text-uppercase text-center pb-2">Reset Password</div>
+		    <p class="text-center pb-2">Please enter your email address. You will receive a link to create a new password via email.</p>
+		    <form>
+			  <div class="form-group">
+			   <div class="position-relative has-icon-right">
+				  <label for="exampleInputEmailAddress" class="sr-only">Email Address</label>
+				  <input type="text" id="exampleInputEmailAddress" class="form-control form-control-rounded" placeholder="Email Address" ng-enter="resetPassword()" ng-model="username">
+				  <div class="form-control-position">
+					  <i class="icon-envelope-open"></i>
+				  </div>
+			   </div>
+			  </div>
+			 
+			  <button type="button" class="btn btn-primary shadow-primary btn-round btn-block waves-effect waves-light mt-3" ng-click="resetPassword()">Reset Password</button>
+			  <div class="text-center pt-3">
+				<hr>
+				<p class="text-muted">Return to the <a ng-href="#/"> Sign In</a></p>
+			  </div>
+			 </form>
+		   </div>
+		  </div>
+	     </div>
+    
+     <!--Start Back To Top Button-->
+    <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+    <!--End Back To Top Button-->
+	</div><!--wrapper-->
+
+    <!-- Complete Reset Modal -->
+    <div class="modal fade" id="reset_modal">
+      <div class="modal-dialog">
+        <div class="modal-content border-dark">
+          <div class="modal-header bg-dark">
+            <h5 class="modal-title text-white"><i class="fa fa-user-shield"></i>&nbsp;&nbsp;&nbsp;Change Password</h5>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>
+            	Check your email for the verification code, and use it here to select a new password.
+            </p>
+
+            <p>
+            	<small>Enter and confirm a new password</small><br />
+            	<input class="form-control form-control-rounded" id="newpassword" type="password" placeholder="New Password" ng-model="newpassword" />
+            	<input class="form-control form-control-rounded" id="confirmpassword" type="password" placeholder="Confirm Password" ng-model="confirmpassword" /><br/>
+            	<input class="form-control form-control-rounded" id="verificationcode" type="text" placeholder="Verification Code" ng-model="verificationcode" ng-enter="confirmReset()" />
+            </p>
+            
+
+          </div>
+          <div class="modal-footer">
+            <button id="adminCompleteAuth_submit" type="button" class="btn btn-success" ng-click="confirmReset()"><i class="fa fa-check"></i> Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>

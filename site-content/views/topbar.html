@@ -1,0 +1,58 @@
+<!--Start topbar header-->
+<header class="topbar-nav">
+ <nav class="navbar navbar-expand fixed-top bg-dark border-bottom border-secondary-light shadow-none">
+  <ul class="navbar-nav mr-auto align-items-center">
+  </ul>
+     
+  <ul class="navbar-nav align-items-center right-nav-link">
+    <li class="nav-item dropdown-lg">
+      <a class="nav-link dropdown-toggle dropdown-toggle-nocaret waves-effect" data-toggle="dropdown" href="javascript:void();">
+	  <i class="icon-bell"></i><span class="badge badge-primary badge-up" ng-show="notifications.length > 0">{{ notifications | count }}</span></a>
+      <div class="dropdown-menu dropdown-menu-right" style="margin-right: 25px;">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+          You have {{ notifications | count }} notifications
+          </li>
+          <li class="list-group-item" ng-repeat="notification in notifications">
+          <a ng-href="{{ notification.href }}">
+           <div class="media">
+             <i class="icon-people fa-2x mr-3 text-info"></i>
+            <div class="media-body">
+            <h6 class="mt-0 msg-title" style="white-space: normal;">{{ notification.title }}</h6>
+            <p class="msg-info" style="white-space: normal;">{{ notification.message }}</p>
+            </div>
+          </div>
+          </a>
+          </li>
+          <li class="list-group-item"><a ng-href="#/events">See All Events</a></li>
+        </ul>
+      </div>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" data-toggle="dropdown">
+        <span class="user-profile"><img ng-src="https://www.gravatar.com/avatar/{{ gravatar }}" class="img-circle" alt="user avatar"></span>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-right" style="margin-right: 25px;">
+       <li class="dropdown-item user-details">
+        <a>
+           <div class="media">
+             <div class="avatar"><img class="align-self-start mr-3" ng-src="https://www.gravatar.com/avatar/{{ gravatar }}" alt="user avatar"></div>
+            <div class="media-body">
+              <h6 class="mt-2 user-title">Current User:</h6>
+              <p class="user-subtitle">{{ user.email }}</p>
+            </div>
+           </div>
+          </a>
+        </li>
+        <li class="dropdown-divider"></li>
+        <li class="dropdown-item"><a ng-href="#/profile"><i class="icon-wallet mr-2"></i> Account</a></li>
+        <li class="dropdown-divider"></li>
+        <li class="dropdown-item"><a ng-href="#/user-settings"><i class="icon-settings mr-2"></i> Setting</a></li>
+        <li class="dropdown-divider"></li>
+        <li class="dropdown-item"><a ng-href="#/logout"><i class="icon-power mr-2"></i> Logout</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</header>
+<!--End topbar header-->

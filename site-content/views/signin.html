@@ -1,0 +1,88 @@
+ <!-- Start wrapper-->
+ <div id="wrapper">
+	<div class="card border-primary border-top-sm border-bottom-sm card-authentication1 mx-auto my-5 animated bounceInDown">
+		<div class="card-body">
+		 <div class="card-content p-2">
+		 	<div class="text-center">
+		 		<img src="assets/images/logo-icon.png">
+		 	</div>
+		  <div class="card-title text-uppercase text-center py-3">Sign In</div>
+		    <form>
+			  <div class="form-group">
+			   <div class="position-relative has-icon-right">
+				  <label for="exampleInputUsername" class="sr-only">Username</label>
+				  <input type="text" id="exampleInputUsername" class="form-control form-control-rounded" placeholder="Username" autocomplete="username" ng-model="username">
+				  <div class="form-control-position">
+					  <i class="icon-user"></i>
+				  </div>
+			   </div>
+			  </div>
+			  <div class="form-group">
+			   <div class="position-relative has-icon-right">
+				  <label for="exampleInputPassword" class="sr-only">Password</label>
+				  <input type="password" id="exampleInputPassword" class="form-control form-control-rounded" placeholder="Password" autocomplete="current-password" ng-model="password" ng-enter="signIn()">
+				  <div class="form-control-position">
+					  <i class="icon-lock"></i>
+				  </div>
+			   </div>
+			  </div>
+			<div class="form-row mr-0 ml-0">
+			 <div class="form-group col-6">
+			   <div class="demo-checkbox">
+                <input type="checkbox" id="user-checkbox" class="filled-in chk-col-primary" checked="" />
+                <label for="user-checkbox">Remember me</label>
+			  </div>
+			 </div>
+			 <div class="form-group col-6 text-right">
+			  <a ng-href="#/forgot">Reset Password</a>
+			 </div>
+			</div>
+			 <button type="button" class="btn btn-round btn-block waves-effect waves-light" ng-class="[{'btn-secondary': active}, {'btn-primary': !active}]" ng-click="signIn()" ng-disabled="active">
+			 	<img height="15px" width="15px" style="margin-right: 5px;" src="/assets/images/loading.gif" ng-show="active">
+			 	<div ng-hide="active" style="display: inline-block;">Sign In</div>
+			 </button>
+			  <div class="text-center pt-3">
+				
+				<!--<p class="text-muted">Don't have an account? <a ng-href="authentication-signup.html"> Sign Up here</a></p>-->
+			  </div>
+			 </form>
+		   </div>
+		  </div>
+	     </div>
+    
+     <!--Start Back To Top Button-->
+    <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+    <!--End Back To Top Button-->
+	</div><!--wrapper-->
+
+    <!-- Admin Complete Auth Modal -->
+    <div class="modal fade" id="adminCompleteAuth_modal">
+      <div class="modal-dialog">
+        <div class="modal-content border-dark">
+          <div class="modal-header bg-dark">
+            <h5 class="modal-title text-white"><i class="fa fa-user-shield"></i>&nbsp;&nbsp;&nbsp;Change Temporary Password</h5>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>
+            	You are logging in for the first time as an admin-created user. Select a new password before continuing.
+            </p>
+
+            <p>
+            	<small>Enter and confirm a new password</small><br />
+            	<form>
+            		<input class="form-control form-control-rounded" id="newpassword" type="password" autocomplete="new-password" placeholder="New Password" ng-model="newpassword" /><br />
+            		<input class="form-control form-control-rounded" id="confirmpassword" type="password" autocomplete="new-password" placeholder="Confirm Password" ng-model="confirmpassword" ng-enter="adminCompleteAuth()" />
+            	</form>
+            </p>
+            
+
+          </div>
+          <div class="modal-footer">
+            <button id="adminCompleteAuth_submit" type="button" class="btn btn-success" ng-click="adminCompleteAuth()"><i class="fa fa-check"></i> Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>

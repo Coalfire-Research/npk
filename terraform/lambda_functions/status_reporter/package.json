@@ -1,0 +1,16 @@
+{
+  "name": "status_reporter",
+  "version": "1.0.0",
+  "description": "NPK status reporter for API Gateway",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Brad Woodward (brad@bradwoodward.io)",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.418.0",
+    "dynamodb-data-types": "^3.0.1",
+    "uuid": "^3.3.2"
+  }
+}

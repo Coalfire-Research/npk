@@ -1,0 +1,10 @@
+.card.disabled {
+	opacity: 0.5;
+}
+
+.text-normal {
+	color: #636363;
+	font-size: 15px;
+	font-weight: 400;
+	text-transform: none;
+}

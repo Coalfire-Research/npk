@@ -1,8 +1,8 @@
 module.exports = {
-	"www_dns_names": ['${www_dns_name}'],
-	"region": "${region}",
-	"campaign_max_price": ${campaign_max_price},
-	"critical_events_sns_topic": "${critical_events_sns_topic}",
+	"www_dns_names": ['[ ]'],
+	"region": "us-west-2",
+	"campaign_max_price": 50,
+	"critical_events_sns_topic": "arn:aws:sns:us-west-2:933498016512:critical_events",
 	"availabilityZones": {
   "us-east-1": [
     "us-east-1a",

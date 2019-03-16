@@ -32,6 +32,7 @@ local az(region) = {
 					"use2": "${var.dictionary-east-2-id}",
 					"usw1": "${var.dictionary-west-1-id}",
 					"usw2": "${var.dictionary-west-2-id}",
+					"campaign_max_price": "${var.campaign_max_price}",
 					"userdata": "${aws_s3_bucket.user_data.id}",
 					"instanceProfile": "${aws_iam_instance_profile.npk_node.arn}",
 					"iamFleetRole": "${aws_iam_role.npk_fleet_role.arn}"
@@ -90,11 +91,6 @@ local az(region) = {
 				"content": "${data.template_file.userdata_template.rendered}",
 				"filename": "${path.module}/lambda_functions/proxy_api_handler/userdata.sh",
 			}
-		}
-	},
-	"output": {
-		 "npk_config": {
-			"value": "${local_file.npk_config.filename}",
 		}
 	},
 	"az": az

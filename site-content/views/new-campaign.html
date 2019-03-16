@@ -35,6 +35,25 @@
                       <select class="form-control" ng-options="value as key for (key, value) in pricingSvc.hashTypes | commonHashTypes: !showAll" ng-model="hashType" ng-change="updateInstances()" style="margin-bottom: 5px;"></select>
                     </div>
                   </div>
+                  <div class="card border border-white shadow-none">
+                    <div class="card-body text-center">
+                      <b>Force Region</b>
+                      <div class="btn-group m-1">
+                        <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-west-1'}" ng-click="pickForcedRegion('us-west-1')">
+                          West-1
+                        </button>
+                        <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-west-2'}" ng-click="pickForcedRegion('us-west-2')">
+                          West-2
+                        </button>
+                        <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-east-1'}" ng-click="pickForcedRegion('us-east-1')">
+                          East-1
+                        </button>
+                        <button class="btn btn-sm border-secondary btn-secondary waves-effect waves-light">
+                          <s>East-2</s>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div class="col-lg-9">
                   <div class="card border-right-sm border-left-sm border-success shadow-none">
@@ -49,7 +68,8 @@
                             <div class="card-body text-center">
                               {{ instances.g3.hashes | toHs }}/GPU<br>
                               {{ gpus[idealG3Instance.instanceType] }} GPUs<br>
-                              ${{ pricingSvc.spotPrice[idealG3Instance.instanceType].price | number:2 }} /Hr
+                              ${{ pricingSvc.spotPrice[idealG3Instance.instanceType].price | number:2 }} /Hr<br>
+                              <small>{{ idealG3Instance.az }}</small>
                               <hr width="60%" />
                               {{ (instances.g3.hashes == "-") ? "-" : (instances.g3.hashes / idealG3Instance.price) | toHs }}/$
                               <hr width="60%" />
@@ -69,7 +89,8 @@
                             <div class="card-body text-center">
                               {{ instances.p2.hashes | toHs }}/GPU<br>
                               {{ gpus[idealP2Instance.instanceType] }} GPUs<br>
-                              ${{ pricingSvc.spotPrice[idealP2Instance.instanceType].price | number:2 }} /Hr
+                              ${{ pricingSvc.spotPrice[idealP2Instance.instanceType].price | number:2 }} /Hr<br>
+                              <small>{{ idealP2Instance.az }}</small>
                               <hr width="60%" />
                               {{ (instances.p2.hashes == "-") ? "-" : (instances.p2.hashes / idealP2Instance.price) | toHs }}/$
                               <hr width="60%" />
@@ -89,7 +110,8 @@
                             <div class="card-body text-center">
                               {{ instances.p3.hashes | toHs }}/GPU<br>
                               {{ gpus[idealP3Instance.instanceType] }} GPUs<br>
-                              ${{ pricingSvc.spotPrice[idealP3Instance.instanceType].price | number:2 }} /Hr
+                              ${{ pricingSvc.spotPrice[idealP3Instance.instanceType].price | number:2 }} /Hr<br>
+                              <small>{{ idealP3Instance.az }}</small>
                               <hr width="60%" />
                               {{ (instances.p3.hashes == "-") ? "-" : (instances.p3.hashes / idealP3Instance.price) | toHs }}/$
                               <hr width="60%" />

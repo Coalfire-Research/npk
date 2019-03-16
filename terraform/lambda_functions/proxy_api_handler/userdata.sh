@@ -1,16 +1,16 @@
 #! /bin/bash
 cd /root/
 
-APIGATEWAY=${apigateway}
+APIGATEWAY=rc9vbh8dlk.execute-api.us-west-2.amazonaws.com
 echo $APIGATEWAY > /root/apigateway
 
 declare -A BUCKETS
-BUCKETS[us-east-1]=${use1}
-BUCKETS[us-east-2]=${use2}
-BUCKETS[us-west-1]=${usw1}
-BUCKETS[us-west-2]=${usw2}
+BUCKETS[us-east-1]=npk-dictionary-east-1-20181029005812833000000004
+BUCKETS[us-east-2]=npk-dictionary-east-2-20181029005812776500000003
+BUCKETS[us-west-1]=npk-dictionary-west-1-20181029005812746900000001
+BUCKETS[us-west-2]=npk-dictionary-west-2-20181029005812750900000002
 
-USERDATA=${userdata}
+USERDATA=npk-user-data-20190314165032881400000010
 
 INSTANCE_ID=`wget -qO- http://169.254.169.254/latest/meta-data/instance-id`
 REGION=`wget -qO- http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/.$//'`
@@ -20,7 +20,7 @@ aws ec2 describe-tags --region $REGION --filter "Name=resource-id,Values=$INSTAN
 
 echo $ManifestPath > /root/manifestpath
 
-BUCKET=$${BUCKETS[$REGION]}
+BUCKET=${BUCKETS[$REGION]}
 
 mkdir /potfiles
 
@@ -69,7 +69,7 @@ jq -r '.dictionaryFile' manifest.json | xargs -L1 -I'{}' rm ./npk-{}
 jq -r '.rulesFiles[]' manifest.json | xargs -L1 -I'{}' rm ./npk-{}
 
 # Link the output file to potfiles
-ln -s /var/log/cloud-init-output.log /potfiles/$${INSTANCE_ID}-output.log
+ln -s /var/log/cloud-init-output.log /potfiles/${INSTANCE_ID}-output.log
 
 # Create the crontab to sync s3
 echo "* * * * * root aws s3 sync s3://$USERDATA/$ManifestPath/potfiles/ /potfiles/" >> /etc/crontab

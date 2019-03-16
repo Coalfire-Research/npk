@@ -26,25 +26,18 @@
 				  </div>
 			   </div>
 			  </div>
-			<div class="form-row mr-0 ml-0">
-			 <div class="form-group col-6">
-			   <div class="demo-checkbox">
-                <input type="checkbox" id="user-checkbox" class="filled-in chk-col-primary" checked="" />
-                <label for="user-checkbox">Remember me</label>
-			  </div>
-			 </div>
-			 <div class="form-group col-6 text-right">
-			  <a ng-href="#/forgot">Reset Password</a>
-			 </div>
-			</div>
+			
 			 <button type="button" class="btn btn-round btn-block waves-effect waves-light" ng-class="[{'btn-secondary': active}, {'btn-primary': !active}]" ng-click="signIn()" ng-disabled="active">
 			 	<img height="15px" width="15px" style="margin-right: 5px;" src="/assets/images/loading.gif" ng-show="active">
 			 	<div ng-hide="active" style="display: inline-block;">Sign In</div>
 			 </button>
-			  <div class="text-center pt-3">
-				
-				<!--<p class="text-muted">Don't have an account? <a ng-href="authentication-signup.html"> Sign Up here</a></p>-->
-			  </div>
+			 <div class="form-row mr-0 ml-0">
+			 <div class="col-12 text-center">
+			 	&nbsp;<br />
+			 	<hr>
+			  <small><a ng-href="#/forgot">Reset Password</a></small>
+			 </div>
+			</div>
 			 </form>
 		   </div>
 		  </div>

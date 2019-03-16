@@ -49,6 +49,7 @@
                     </div>
                   </div>
                </div>
+               <small class="ml-2 text-white">{{ data.base.spotRequestStatus.Message }} [{{ data.base.spotRequestStatus.Code }}]</small>
             </div>
           </td>
         </div>
@@ -56,7 +57,7 @@
 
       <div class="card bg-transparent shadow-none mt-3 border border-secondary-light">
         <div class="card-header bg-transparent text-white border-secondary-light">
-          [ {{ selected_campaign || "Campaign" }} ] Order Details
+          Order Details:
           <div class="card-action">
           </div>
         </div>
@@ -117,17 +118,16 @@
                       {{ manifest.dictionaryFile }}
                     </small>
                   </div>
+                  <div ng-show="manifest.mask">
+                    Append Mask:
+                    <small>
+                      {{ manifest.mask }}
+                    </small>
+                  </div>
                   <div ng-show="manifest.rulesFiles.length > 0">
                     Rules Files<br/>
                     <small style="padding-left: 28px;" ng-repeat="file in manifest.rulesFiles">
                       {{ file }}<br>
-                    </small>
-                  </div>
-                  <div ng-show="manifest.mask">
-                    &nbsp;<br/>
-                    Append Mask<br/>
-                    <small style="padding-left: 28px;">
-                      {{ manifest.mask }}<br>
                     </small>
                   </div>
                   <div style="border-bottom: 1px solid white;">&nbsp;</div>

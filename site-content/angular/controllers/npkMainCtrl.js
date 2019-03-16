@@ -251,7 +251,7 @@ angular
 
       $scope.signIn = function() {
         $scope.active = true;
-        $scope.$parent.cognitoSvc.authenticateUser($scope.username, $scope.password).then((data) => {
+        return $scope.$parent.cognitoSvc.authenticateUser($scope.username, $scope.password).then((data) => {
           // console.log("Successfully logged in: " + JSON.stringify(data));
           $scope.$parent.cognitoSvc.init();
           $scope.$parent.cognitoSvc.onReady.then(() => {
@@ -305,9 +305,9 @@ angular
         $("#adminCompleteAuth_submit").prop('disabled', true);
 
         $scope.$parent.cognitoSvc.completeAdminChallenge($scope.confirmpassword).then((data) => {
-          console.log(data);
-          $('#adminCompleteAuth').modal('hide');
-          location.href = '#/logout';
+          $('#adminCompleteAuth_modal').modal('hide');
+          $scope.password = $scope.newpassword;
+          $scope.signIn();
         }).catch((e) => {
           console.log(e);
         });
@@ -321,7 +321,7 @@ angular
         }).catch((e) => {
           $scope.$parent.ok_modal.set('fa-exclamation-triangle',
               'Error Resetting Password',
-              "The following error occured while attempting a password reset: " + JSON.stringify(e),
+              e.message,
               "OK")
             .show();
         });
@@ -345,7 +345,9 @@ angular
         $("#adminCompleteAuth_submit").prop('disabled', true);
 
         $scope.$parent.cognitoSvc.resetPassword($scope.username, $scope.verificationcode, $scope.confirmpassword).then((data) => {
-          console.log(data);
+          $('#adminCompleteAuth').effect('hide');
+          $scope.username = $scope.confirmpassword;
+          $scope.signIn();
         }).catch((e) => {
           $scope.$parent.ok_modal.set(
               'fa-exclamation-triangle',
@@ -546,6 +548,25 @@ angular
           $('#messageModal').modal('show');
           
           // location.href = location.href.split('#')[0];
+        }).fail(function(xhr, a, b) {
+
+          data = xhr.responseText;
+
+          try {
+            data = JSON.parse(data);
+          } catch (e) {
+            data = {msg: "Error parsing response JSON.", success: false};
+          }
+
+          if (data.success == false) {
+            $scope.modalMessages.error = [data.msg];
+          } else {
+            $scope.modalMessages.success = [data.msg];
+          }
+
+          $scope.$digest();
+
+          $('#messageModal').modal('show');
         });
       };
 
@@ -581,6 +602,7 @@ angular
     $scope.idealInstance = 'none';
     $scope.selectedInstance = 'none';
     $scope.selectedRegion = false;
+    $scope.forceRegion = false;
 
     $scope.rulesFiles = {Contents: [{Key: 0, Name: 'Select an Instance'}]};
     $scope.wordlistFiles = {Contents: [{Key: 0, Name: 'Select an Instance'}]};
@@ -615,12 +637,19 @@ angular
 
     $scope.instances = {};
 
+    $scope.pickForcedRegion = function(region) {
+      $scope.forceRegion = ($scope.forceRegion == region) ? false : region;
+      $scope.selectedInstance = 'none';
+
+      $scope.processInstancePrices();
+    };
+
     $scope.getLowestPrice = function(list) {
 
       var promises = [];
 
       Object.keys(list).forEach(function(e) {
-        promises.push($scope.pricingSvc.getSpotPriceHistory(e));
+        promises.push($scope.pricingSvc.getSpotPriceHistory(e, $scope.forceRegion));
       });
 
       return Promise.all(promises).then((data) => {
@@ -633,6 +662,10 @@ angular
 
         Object.keys(data).forEach(function(i) {
           if (data[i].price == null) {
+            return false;
+          }
+
+          if ($scope.forceRegion !== false && data[i].price == null) {
             return false;
           }
 
@@ -1220,14 +1253,7 @@ angular
       });
     }
 
-    $scope.onReady = function() {
-      $scope.$parent.startApp();
-      $scope.updateInstances();
-
-      $scope.toggleMask();
-      $scope.toggleWordlist();
-
-      // These are all "type": <gpu count>
+    $scope.processInstancePrices = function() {
       $scope.cheapest_g3 = $scope.getLowestPrice({
         // "g3s.xlarge": 1,
         "g3.4xlarge": 1,
@@ -1274,6 +1300,16 @@ angular
       }).catch((err) => {
         throw Error(err);
       });
+    }
+
+    $scope.onReady = function() {
+      $scope.$parent.startApp();
+      $scope.updateInstances();
+
+      $scope.toggleMask();
+      $scope.toggleWordlist();
+
+      $scope.processInstancePrices();
 
       $scope.getHashFiles();
 

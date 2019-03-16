@@ -72,7 +72,12 @@ echo "[*] Creating dynamic templates"
 # Inject the dynamic template content into the template
 cat templates/api_handler_variables-fresh.tpl > templates/api_handler_variables.tpl
 cat template-inject_api_handler.json >> templates/api_handler_variables.tpl
+cat templates/npk_settings-fresh.tpl > templates/npk_settings.tpl
+cat template-inject_api_handler.json | jq -r 'to_entries | map( {(.key) : (.value | keys)}) | add' >> templates/npk_settings.tpl
+
 echo -n "}" >> templates/api_handler_variables.tpl
+echo -n "}" >> templates/npk_settings.tpl
 
 terraform init
-terraform apply
+terraform apply -auto-approve
+terraform apply -auto-approve	# Yes, userdata.sh is an unresolvable cyclical dependency. I am ashamed.

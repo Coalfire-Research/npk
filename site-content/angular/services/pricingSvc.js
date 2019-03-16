@@ -33,25 +33,57 @@ angular
 			}),
 
 			spotPrice: {},
-
-			getSpotPriceHistory: function (instanceType) {
+			spotPriceHistory: {
+				"us-west-1": {},
+				"us-west-2": {},
+				"us-east-1": {},
+				"us-east-2": {}
+			},
+			getSpotPriceHistory: function (instanceType, forceRegion) {
 				var self = this;
 
+				/*
 				if (typeof self.spotPrice[instanceType] != "undefined") {
 					return self.spotPrice[instanceType];
 				}
+				*/
 
-				var regions = [
-					self.ec2w1,
-					self.ec2w2,
-					self.ec2e1,
-					// self.ec2e2 Disabled while the AMI is unavailable.
-				];
+				var regions = [];
+				switch (forceRegion) {
+					case "us-west-1":
+						regions.push(self.ec2w1);
+					break;
 
+					case "us-west-2":
+						regions.push(self.ec2w2);
+					break;
+
+					case "us-east-1":
+						regions.push(self.ec2e1);
+					break;
+
+					case "us-east-2":
+						// regions.push(self.ec2e2);
+						alert('us-east-2 is currently not supported by NVidia');
+					break;
+
+					default:
+						regions = [
+							self.ec2w1,
+							self.ec2w2,
+							self.ec2e1,
+							//self.ec2e2
+						];
+					break;
+				}
+				
 				var promises = [];
 
 				regions.forEach(function (e) {
 					promises.push(new Promise(function(resolve, reject) {
+						if (typeof self.spotPriceHistory[e.config.region][instanceType] != "undefined") {
+							resolve(self.spotPriceHistory[e.config.region][instanceType]);
+						}
 						e.describeSpotPriceHistory({
 							StartTime: Math.round(Date.now() / 1000),
 							EndTime: Math.round(Date.now() / 1000),
@@ -63,10 +95,10 @@ angular
 							]
 						}, function (err, data) {
 							if (err) {
-								// console.trace(new Error(err));
 								reject(err);
 							}
 
+							self.spotPriceHistory[e.config.region][instanceType] = data;
 							resolve(data);
 						});
 					}));
@@ -92,7 +124,7 @@ angular
 						});
 					});
 
-					this.spotPrice[instanceType] = results;
+					self.spotPrice[instanceType] = results;
 					return results;
 
 				}).catch((err) => {

@@ -107,8 +107,8 @@ local regionKeys = std.objectFields(settings.regions);
 		"resource": cognito_iam_roles
 	},
 	'cognito.tf.json': {
-		"resource": cognito.resource(settings.useCustomDNS, settings.dnsNames.www),
-		"output": cognito.output
+		"resource": cognito.resource(settings),
+		"output": cognito.output(settings)
 	},
 	'data.tf.json': {
 		"data": {
@@ -138,6 +138,23 @@ local regionKeys = std.objectFields(settings.regions);
 	'keepers.tf.json': {
 		"resource": keepers.resource(settings.adminEmail),
 		"output": keepers.output	
+	},
+	'keys.tf.json': {
+		"resource": {
+			"tls_private_key": {
+				"ssh": {
+					"algorithm": "RSA",
+					"rsa_bits": 4096
+				}
+			},
+			"aws_key_pair": {
+				[region]: {
+					"provider": "aws." + region,
+					"key_name": "npk-key",
+					"public_key": "${tls_private_key.ssh.public_key_openssh}"
+				} for region in regionKeys
+			}
+		}
 	},
 	'lambda_functions.tf.json': lambda_functions,
 	'lambda_iam_roles.tf.json': lambda_iam_roles,
@@ -261,6 +278,8 @@ local regionKeys = std.objectFields(settings.regions);
 			},
 			"aws_sns_topic_subscription": {
 				"critical_events_sms": {
+					"depends_on": ["aws_cloudfront_distribution.npk"],
+
 					"topic_arn": "${aws_sns_topic.critical_events.arn}",
 					"protocol": "sms",
 					"endpoint": settings.criticalEventsSMS
@@ -291,8 +310,7 @@ local regionKeys = std.objectFields(settings.regions);
 	},
 	'templates.tf.json': {
 		"data": templates.data(settings),
-		"resource": templates.resource,
-		"output": templates.output
+		"resource": templates.resource
 	},
 	'template-inject_api_handler.json': {
 		[regionKeys[i]]: templates.az(settings.regions[regionKeys[i]])

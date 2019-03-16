@@ -144,7 +144,7 @@ var getCredentials = function() {
 				accessKey: aws.config.credentials.accessKeyId,
 				secretKey: aws.config.credentials.secretAccessKey,
 				sessionToken: aws.config.credentials.sessionToken,
-				region: region
+				region: "us-west-2"
 			});
 
 			setTimeout(getCredentials, 600);

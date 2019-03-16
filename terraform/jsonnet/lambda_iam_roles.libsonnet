@@ -103,6 +103,7 @@
 						"ec2:CancelSpotFleetRequests",
 						"ec2:DescribeImages",
 						"ec2:DescribeSpotFleetRequests",
+						"ec2:DescribeSpotPriceHistory",
 						"ec2:RequestSpotFleet"
 					],
 					"resources": ["*"]
@@ -181,6 +182,7 @@
 						"ec2:CancelSpotFleetRequests",
 						"ec2:DescribeTags",
 						"ec2:DescribeInstances",
+						"ec2:DescribeInstanceStatus",
 						"ec2:DescribeSpotFleetRequests",
 						"ec2:DescribeSpotFleetRequestHistory",
 						"ec2:DescribeSpotFleetInstances",

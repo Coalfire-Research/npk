@@ -31,7 +31,12 @@ local domain_name(name, arn) = {
 		},
 		"aws_api_gateway_deployment": {
 			"npk": {
-				"depends_on": ["aws_api_gateway_integration.npk_proxy"],
+				"depends_on": [
+					"aws_api_gateway_integration.npk_proxy",
+					"aws_api_gateway_integration.npk_status_report",
+					"aws_api_gateway_integration.options_integration",
+					"aws_api_gateway_integration.options_integration_status_report"
+				],
 				"rest_api_id": "${aws_api_gateway_rest_api.npk.id}",
 				"stage_name": "v1"
 			}

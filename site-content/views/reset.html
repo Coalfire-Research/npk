@@ -17,10 +17,10 @@
 			   </div>
 			  </div>
 			 
-			  <button type="button" class="btn btn-primary shadow-primary btn-round btn-block waves-effect waves-light mt-3" ng-click="resetPassword()">Reset Password</button>
+			  <button type="button" class="btn btn-primary btn-round btn-block waves-effect waves-light mt-3" ng-click="resetPassword()">Reset Password</button>
 			  <div class="text-center pt-3">
 				<hr>
-				<p class="text-muted">Return to the <a ng-href="#/"> Sign In</a></p>
+				<p class="text-muted"><small>Return to <a ng-href="#/"> Sign In</a></small></p>
 			  </div>
 			 </form>
 		   </div>
@@ -49,8 +49,9 @@
 
             <p>
             	<small>Enter and confirm a new password</small><br />
-            	<input class="form-control form-control-rounded" id="newpassword" type="password" placeholder="New Password" ng-model="newpassword" />
-            	<input class="form-control form-control-rounded" id="confirmpassword" type="password" placeholder="Confirm Password" ng-model="confirmpassword" /><br/>
+            	<input class="mb-1 form-control form-control-rounded" id="newpassword" type="password" placeholder="New Password" ng-model="newpassword" />
+            	<input class="mb-1 form-control form-control-rounded" id="confirmpassword" type="password" placeholder="Confirm Password" ng-model="confirmpassword" />
+              <hr />
             	<input class="form-control form-control-rounded" id="verificationcode" type="text" placeholder="Verification Code" ng-model="verificationcode" ng-enter="confirmReset()" />
             </p>
             

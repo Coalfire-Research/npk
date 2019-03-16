@@ -1,4 +1,6 @@
 /*jshint esversion: 6 */
+/*jshint node: true */
+
 "use strict";
 
 var cb = "";
@@ -27,7 +29,7 @@ Object.prototype.require = function (elements) {
 			result = self[e].require(elements[e]);
 		}
 	});
-}
+};
 
 var calculateSpotCosts = function(region, spotInstance) {
 	var prices = knownSpotPrices[region + ':' + spotInstance.LaunchSpecification.InstanceType][spotInstance.LaunchedAvailabilityZone];
@@ -58,11 +60,11 @@ var calculateSpotCosts = function(region, spotInstance) {
 
 	console.log("Instance " + spotInstance.InstanceId + " up for " + accSeconds + " seconds; estimated cost $" + accCost.toFixed(4));
 
-	var actualDuration = (new Date().getTime()) - (new Date(spotInstance.CreateTime).getTime())
+	var actualDuration = (new Date().getTime()) - (new Date(spotInstance.CreateTime).getTime());
 	// console.log("^-- This should not exceed " + (actualDuration / 1000).toFixed(0));
 
 	return accCost;
-}
+};
 
 var knownSpotPrices = {};
 var getSpotPriceHistory = function(region, instanceType) {
@@ -103,9 +105,9 @@ var getSpotPriceHistory = function(region, instanceType) {
 			});
 
 			return success(knownSpotPrices[ec2.config.region + ":" + instanceType]);
-		})
+		});
 	});
-}
+};
 
 var knownSpotFleetRequests = {};
 var listSpotFleetRequests = function(region) {
@@ -125,7 +127,7 @@ var listSpotFleetRequests = function(region) {
 			return success(data.SpotFleetRequestConfigs);
 		});
 	});
-}
+};
 
 var getSpotFleetInstances = function(region, spotFleetRequestId) {
 	var ec2 = new aws.EC2({region: region});
@@ -143,7 +145,7 @@ var getSpotFleetInstances = function(region, spotFleetRequestId) {
 			return success(data.ActiveInstances);
 		});
 	});
-}
+};
 
 // This is better than describeSpotFleetInstances.ActiveInstances, but isn't perfect.
 var getInstancesFromSpotFleetHistory = function(region, spotFleetRequestId) {
@@ -170,8 +172,9 @@ var getInstancesFromSpotFleetHistory = function(region, spotFleetRequestId) {
 			return success(Object.keys(knownInstances));
 		});
 	});
-}
+};
 
+var spotRequestsByFleetRequest = {};
 var knownSpotInstanceRequests = {};
 var listSpotInstanceRequests = function(region) {
 	var ec2 = new aws.EC2({region: region});
@@ -185,12 +188,14 @@ var listSpotInstanceRequests = function(region) {
 			data.SpotInstanceRequests.forEach(function(e) {
 				knownSpotInstanceRequests[e.InstanceId] = e;
 				knownSpotInstanceRequests[e.InstanceId].Region = region;
+
+				spotRequestsByFleetRequest[e.Tags[0].Value] = e.Status;
 			});
 
 			return success(data.SpotInstanceRequests);
 		});
 	});
-}
+};
 
 var terminateSpotFleet = function(region, spotFleetRequestId) {
 	var ec2 = new aws.EC2({region: region});
@@ -209,7 +214,7 @@ var terminateSpotFleet = function(region, spotFleetRequestId) {
 			return success(data);
 		});
 	});
-}
+};
 
 function editCampaignViaRequestId(spotFleetRequestId, values) {
 	return new Promise((success, failure) => {
@@ -226,10 +231,10 @@ function editCampaignViaRequestId(spotFleetRequestId, values) {
 			}
 
 			if (data.Items.length < 1) {
-				return success(null)
+				return success(null);
 			}
 
-			var data = ddbTypes.unwrap(data.Items[0]);
+			data = ddbTypes.unwrap(data.Items[0]);
 			console.log("Found campaign " + data.keyid.split(':').slice(1));
 
 			editCampaign(data.userid, data.keyid.split(':').slice(1), values).then((updates) => {
@@ -247,7 +252,7 @@ function editCampaign(entity, campaign, values) {
 			values[e] = {
 				Action: "PUT",
 				Value: values[e]
-			}
+			};
 		});
 
 		var ddbParams = {
@@ -263,7 +268,7 @@ function editCampaign(entity, campaign, values) {
 
 		db.updateItem(ddbParams, function (err, data) {
 			if (err) {
-				return failure(respond(500, "Error updating table: " + err, false));
+				return failure(err);
 			}
 
 			return success(true);
@@ -281,7 +286,7 @@ var criticalAlert = function(message) {
 			TopicArn: settings.critical_events_sns_topic
 		}, function (err, data) {
 			if (err) {
-				console.log('CRITICAL ALERT FAILURE: ' + err)
+				console.log('CRITICAL ALERT FAILURE: ' + err);
 				return failure(err);
 			}
 
@@ -289,35 +294,11 @@ var criticalAlert = function(message) {
 			return success(data);
 		});
 	});
-}
+};
 
 var evaluateAllSpotInstances = function() {
 
-	var availabilityZones = {
-		"us-east-1": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f",
-		],
-		"us-east-2": [
-			"us-east-2a",
-			"us-east-2b",
-			"us-east-2c",
-		],
-		"us-west-1": [
-			"us-west-1a",
-			// TODO: is fubar. "us-west-1b",
-			"us-west-1c",
-		],
-		"us-west-2": [
-			"us-west-2a",
-			"us-west-2b",
-			"us-west-2c",
-		],
-	}
+	var availabilityZones = settings.availabilityZones;
 
 	var promises = [];
 	Object.keys(availabilityZones).forEach(function(region) {
@@ -336,8 +317,15 @@ var evaluateAllSpotInstances = function() {
 			} else {
 				var status = (knownSpotFleetRequests[e].SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING";
 
+				var spotStatus = { Code: "", Message: ""};
+				if (typeof spotRequestsByFleetRequest[e] != "undefined") {
+					spotStatus = spotRequestsByFleetRequest[e];
+					delete spotStatus.UpdateTime;
+				}
+				
 				cancellationPromises.push(editCampaignViaRequestId(e, {
 					active: false,
+					spotRequestStatus: spotStatus,
 					status: status
 				}).then((data) => {
 
@@ -369,13 +357,13 @@ var evaluateAllSpotInstances = function() {
 				knownSpotFleetRequests[e].Tags = {};
 				knownSpotFleetRequests[e].SpotFleetRequestConfig.LaunchSpecifications[0].TagSpecifications.forEach(function(l) {
 					l.Tags.forEach(function(t) {
-						knownSpotFleetRequests[e].Tags[t.Key] = t.Value
+						knownSpotFleetRequests[e].Tags[t.Key] = t.Value;
 					});
 				});
 
-				//knownSpotFleetRequests[e].ActiveInstances.forEach(function(i) {
 				knownSpotFleetRequests[e].AllInstanceIds.forEach(function(i) {
 					//var instanceCost = calculateSpotCosts(knownSpotFleetRequests[e].Region, knownSpotInstanceRequests[i.InstanceId]);
+					console.log(knownSpotInstanceRequests[i]);
 					var instanceCost = calculateSpotCosts(knownSpotFleetRequests[e].Region, knownSpotInstanceRequests[i]);
 					totalCosts += instanceCost;
 
@@ -392,10 +380,14 @@ var evaluateAllSpotInstances = function() {
 
 				knownSpotFleetRequests[e].TotalCosts = totalCosts;
 
+				var spotStatus = spotRequestsByFleetRequest[e];
+				delete spotStatus.UpdateTime;
+
 				console.log("Debug: Writing live status for campaign " + e);
 				var writeParams = {
 					active: true,
 					price: totalCosts,
+					spotRequestStatus: spotStatus,
 					status: "RUNNING"
 				};
 
@@ -439,7 +431,7 @@ var evaluateAllSpotInstances = function() {
 			});
 		});
 	});
-}
+};
 
 exports.main = function(event, context, callback) {
 

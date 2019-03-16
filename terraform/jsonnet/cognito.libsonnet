@@ -1,5 +1,5 @@
 {
-	resource(useCustomDNS, www): {
+	resource(settings): {
 		"aws_cognito_user_pool": {
 			"npk": {
 				"name": "NPK",
@@ -18,8 +18,8 @@
 						"email_subject": "NPK Invitation",
 						"email_message": "You've been invited to join an NPK deployment at https://${aws_cloudfront_distribution.npk.domain_name}. Use {username} and {####} to log in.",
 						"sms_message": "NPK user created. Use {username} and {####} to log in."
-					} + if useCustomDNS then {
-						"email_message": "You've been invited to join an NPK deployment at https://" + www[0] + ". Use {username} and {####} to log in."
+					} + if settings.useCustomDNS then {
+						"email_message": "You've been invited to join an NPK deployment at https://" + settings.dnsNames.www[0] + ". Use {username} and {####} to log in."
 					} else { }
 				},
 				"auto_verified_attributes": ["email"],
@@ -44,21 +44,16 @@
 				},
 				"provisioner": {
 					"local-exec": {
-						"command": "aws cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --temporary-password ${random_string.admin_password.result}",
-						"environment": {
-							"AWS_ACCESS_KEY_ID": "${var.access_key}",
-							"AWS_SECRET_ACCESS_KEY": "${var.secret_key}",
-							"AWS_DEFAULT_REGION": "${var.region}"
-						},
+						"command": "aws --region " + settings.defaultRegion + " --profile " + settings.awsProfile + " cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --user-attributes '[{\"Name\": \"email\", \"Value\": \"${random_string.admin_password.keepers.admin_email}\"}, {\"Name\": \"email_verified\", \"Value\": \"true\"}]' --temporary-password ${random_string.admin_password.result}",
 						"on_failure": "continue"
 					}
 				}
 			}
 		}
 	},
-	"output": {
+	output(settings): {
 		"admin_create_user_command": {
-			"value": "aws cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --temporary-password ${random_string.admin_password.result}"
+			"value": "aws --region " + settings.defaultRegion + " --profile " + settings.awsProfile + " cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --user-attributes '[{\"Name\": \"email\", \"Value\": \"${random_string.admin_password.keepers.admin_email}\"}, {\"Name\": \"email_verified\", \"Value\": \"true\"}]' --temporary-password ${random_string.admin_password.result}"
 		}
 	}
 }

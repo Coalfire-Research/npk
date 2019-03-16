@@ -177,8 +177,7 @@ angular
                      "Pool": self.userPool
                   }).forgotPassword({
                      onFailure: function(err) {
-                        //return failure(err);
-                        return success(err);
+                        return failure(err);
                      },
 
                      inputVerificationCode: function() {
@@ -201,6 +200,10 @@ angular
                      },
 
                      onFailure: function(err) {
+                        if (err == {}) {
+                           return success(true);
+                        }
+
                         return failure(err);
                      }
                   });

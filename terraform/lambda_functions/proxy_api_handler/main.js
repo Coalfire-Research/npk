@@ -34,10 +34,6 @@ var allowed_regions = [
 ];
 
 var allowed_intances = [
-	// TODO: Remove this entry before Prod:
-	"t3.nano",
-	"f1.2xlarge",
-
 	"g3s.xlarge",
 	"g3.4xlarge",
 	"g3.8xlarge",
@@ -233,6 +229,60 @@ function deleteCampaign(entity, campaign) {
 	});
 }
 
+function getObjectAverage(what) {
+	var sum = 0;
+	var count = 0;
+
+	Object.keys(what).forEach(function(e) {
+		sum += Number(what[e]);
+		count++;
+	});
+
+	console.log(sum, count);
+
+	return sum / count;
+}
+
+var knownInstanceAZs = {};
+function getInstanceAZs(region, instanceType) {
+
+	return new Promise((success, failure) => {
+
+		if (typeof knownInstanceAZs[instanceType] == "undefined") {
+			knownInstanceAZs[instanceType] = {};
+		}
+
+		if (typeof knownInstanceAZs[instanceType][region] != "undefined") {
+			return success(knownInstanceAZs[instanceType][region]);
+		}
+
+		var ec2 = new aws.EC2({region: region});
+		ec2.describeSpotPriceHistory({
+			EndTime: Math.round(Date.now() / 1000),
+			ProductDescriptions: [
+				"Linux/UNIX (Amazon VPC)"
+			],
+			InstanceTypes: [
+				instanceType
+			],
+			StartTime: Math.round(Date.now() / 1000)
+		}, function (err, data) {
+			if (err) {
+				return failure(respond(500, "Error obtaining spot price: " + err, false));
+			}
+
+			var zones = [];
+			data.SpotPriceHistory.forEach(function(e) {
+				zones[e.AvailabilityZone] = e.SpotPrice;
+			});
+
+			knownInstanceAZs[instanceType][region] = zones;
+
+			return success(zones);
+		});
+	});
+}
+
 function getNVidiaImage(region) {
 	console.log("Debug: Retrieving NVidia images.");
 
@@ -275,7 +325,7 @@ function getNVidiaImage(region) {
 	/* Doing a hackery hardcoded workaround for now.
 	var map = {
 		"us-east-1": "ami-0a569854f46c69795",
-		// "us-east-2": "", I guess us-east-2 doesn't have the AMI? Fuck me, right?
+		// "us-east-2": "", I guess us-east-2 doesn't have the AMI?
 		"us-west-1": "ami-0910dc69af49c661a",
 		"us-west-2": "ami-064baf3a92b9390b9"
 	};
@@ -627,11 +677,31 @@ function executeCampaign(entity, campaignId) {
 			}
 		});
 
-		return getNVidiaImage(manifest.region);
+		try {
+			var expires = /Expires=([\d]+)&/.exec(manifest.hashFileUrl)[1];
+		} catch (e) {
+			return respond(400, "Invalid hashFileUrl.", false);
+		}
+
+		var duration = expires - (new Date().getTime() / 1000);
+		if (duration < 900) {
+			return respond(400, "hashFileUrl must be valid for at least 900 seconds, got " + Math.floor(duration), false);
+		}
+
+		return Promise.all([
+			getInstanceAZs(manifest.region, manifest.instanceType).then((data) => { return null }),
+			getNVidiaImage(manifest.region)
+		]);
 
 	}).then(function(data) {
 
-		image = data;
+		console.log(data);
+
+		data.forEach(function(e) {
+			if (e != null) {
+				image = e;
+			}
+		});
 
 		// Calculate the necessary volume size
 		var volumeSize = Math.ceil(manifest.wordlistSize / 1073741824) + 1;
@@ -645,8 +715,7 @@ function executeCampaign(entity, campaignId) {
 				Arn: variables.instanceProfile
 			},
 			ImageId: image.ImageId,
-			// ImageId: "ami-01e24be29428c15b2", // Amazon Linux AMI
-			// KeyName: "Yubikey", // TODO: Remove this before prod.
+			KeyName: "npk-key",
 			InstanceType: manifest.instanceType,
 			BlockDeviceMappings: [{
 				DeviceName: '/dev/xvdb',
@@ -658,10 +727,9 @@ function executeCampaign(entity, campaignId) {
 				}
 			}],
 			NetworkInterfaces: [{
-				//AssociatePublicIpAddress: false, // TODO
 				AssociatePublicIpAddress: true,
 				DeviceIndex: 0,
-				SubnetId: ""
+				// SubnetId: ""
 			}],
 			Placement: {
 				AvailabilityZone: ""
@@ -670,7 +738,7 @@ function executeCampaign(entity, campaignId) {
 				ResourceType: "instance",
 				Tags: [{
 					Key: "MaxCost",
-					Value: manifest.priceTarget.toString()
+					Value: ((manifest.priceTarget < variables.campaign_max_price) ? manifest.priceTarget : variables.campaign_max_price).toString()
 				}, {
 					Key: "ManifestPath",
 					Value: entity + '/campaigns/' + campaignId
@@ -679,14 +747,18 @@ function executeCampaign(entity, campaignId) {
 			UserData: fs.readFileSync(__dirname + '/userdata.sh', 'base64')
 		};
 
-		// Populate the subnet/placement appropriately.
-		Object.keys(variables.availabilityZones[manifest.region]).forEach(function(e) {
+		Object.keys(knownInstanceAZs[manifest.instanceType][manifest.region]).forEach(function(e) {
 			var az = JSON.parse(JSON.stringify(launchSpecificationTemplate)); 	// Have to deep-copy to avoid referential overrides.
 			az.Placement.AvailabilityZone = e;
 			az.NetworkInterfaces[0].SubnetId = variables.availabilityZones[manifest.region][e];
 
 			launchSpecifications.push(az);
 		});
+
+		var spotPrice = getObjectAverage(knownInstanceAZs[manifest.instanceType][manifest.region]);
+		var maxDuration = (Number(manifest.instanceDuration) < variables.campaign_max_price / spotPrice) ? Number(manifest.instanceDuration) : variables.campaign_max_price / spotPrice;
+
+		console.log(spotPrice, maxDuration, variables.campaign_max_price);
 
 		var spotFleetParams = {
 			SpotFleetRequestConfig: {
@@ -700,7 +772,7 @@ function executeCampaign(entity, campaignId) {
 				TerminateInstancesWithExpiration: true,
 				Type: "request",
 				ValidFrom: (new Date().getTime() / 1000),
-				ValidUntil: (new Date().getTime() / 1000) + (manifest.instanceDuration * 3600)
+				ValidUntil: (new Date().getTime() / 1000) + (maxDuration * 3600)
 			}
 		};
 

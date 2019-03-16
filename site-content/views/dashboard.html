@@ -116,7 +116,8 @@
                        <tr >
                         <td colspan="8" class="card-body">
                           <h6 class="card-text text-white" ng-if="objLength(data.nodes) < 1">
-                            No status reports received. Nodes may still be starting.
+                            No status reports received. Nodes may still be starting.<br />
+                            <small ng-if="data.spotRequestStatus">Spot request status: {{ data.spotRequestStatus.Message }} [{{ data.spotRequestStatus.Code }}]</small>
                           </h6>
                           <h6 class="text-white" ng-if="objLength(data.nodes) > 0">Nodes</h6>
                           <div class="row" style="margin: 0px;">

@@ -2,15 +2,15 @@ window.aws_region = "us-west-2";
 
 angular.module('app')
 	.constant('COGNITO_CONFIG', {
-		"UserPoolId": "us-west-2_88LUVcE9O",
-		"ClientId": "38uhcq8sjfod7b86vqmk0ao7fb"
+		"UserPoolId": "us-west-2_FGkZ2IbF1",
+		"ClientId": "4jdhd3gafl5asg8od0p6oicd5v"
 	})
 	.constant('COGNITO_CREDENTIALS', {
-		"IdentityPoolId": "us-west-2:fec93a8e-63d8-4942-91e0-d954f3520aab",
+		"IdentityPoolId": "us-west-2:b3280cc1-56c4-4034-b5e5-ddf9cf4c2e06",
 		"Logins": {
-			'cognito-idp.us-west-2.amazonaws.com/us-west-2_88LUVcE9O': ""
+			'cognito-idp.us-west-2.amazonaws.com/us-west-2_FGkZ2IbF1': ""
 		}
 	})
-	.constant('USERDATA_BUCKET', "npk-user-data-20190314165032881400000010")
-	.constant('APIGATEWAY_URL', "rc9vbh8dlk.execute-api.us-west-2.amazonaws.com")
+	.constant('USERDATA_BUCKET', "npk-user-data-20190317161841875700000010")
+	.constant('APIGATEWAY_URL', "api.dev.npkproject.io")
 	;

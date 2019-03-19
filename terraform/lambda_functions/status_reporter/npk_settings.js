@@ -1,8 +1,8 @@
 module.exports = {
-	"www_dns_names": ['[ ]'],
+	"www_dns_names": ['["dev.npkproject.io"]'],
 	"region": "us-west-2",
 	"campaign_max_price": 50,
-	"critical_events_sns_topic": "arn:aws:sns:us-west-2:933498016512:critical_events",
+	"critical_events_sns_topic": "arn:aws:sns:us-west-2:892205115566:critical_events",
 	"availabilityZones": {
   "us-east-1": [
     "us-east-1a",
@@ -18,7 +18,7 @@ module.exports = {
     "us-east-2c"
   ],
   "us-west-1": [
-    "us-west-1b",
+    "us-west-1a",
     "us-west-1c"
   ],
   "us-west-2": [

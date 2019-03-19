@@ -1,4 +1,4 @@
-local settings = import 'generated-settings.jsonnet';
+local npksettings = import 'generated-settings.jsonnet';
 local provider = import 'jsonnet/provider.libsonnet';
 local vpc = import 'jsonnet/vpc.libsonnet';
 local subnet = import 'jsonnet/subnet.libsonnet';
@@ -22,6 +22,10 @@ local templates = import 'jsonnet/templates.libsonnet';
 local variables = import 'jsonnet/variables.libsonnet';
 local templates = import 'jsonnet/templates.libsonnet';
 local null_resources = import 'jsonnet/null_resources.libsonnet';
+
+local settings = npksettings + {
+	"defaultRegion": "us-west-2"
+};
 
 local defaultResource = {
 	"tags": {

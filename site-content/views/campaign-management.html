@@ -6,12 +6,12 @@
       <!--Start Dashboard Content-->
 	  
       <div class="card bg-transparent shadow-none mt-3 border border-secondary-light">
-        <div class="card-header bg-transparent text-white border-secondary-light">
+        <div ng-if="selected_campaign" class="card-header bg-transparent text-white border-secondary-light">
           [ {{ selected_campaign || "Campaign" }} ] Statistics
           <div class="card-action">
           </div>
         </div>
-        <div class="card-body text-center">
+        <div ng-if="selected_campaign" class="card-body text-center">
           <td colspan="8" class="card-body">
             <h6 class="card-text text-white" ng-if="objLength(data.nodes) < 1">
               No status reports received. Nodes may have errored out.
@@ -56,12 +56,12 @@
   	  </div><!--End Card-->
 
       <div class="card bg-transparent shadow-none mt-3 border border-secondary-light">
-        <div class="card-header bg-transparent text-white border-secondary-light">
+        <div ng-if="selected_campaign" class="card-header bg-transparent text-white border-secondary-light">
           Order Details:
           <div class="card-action">
           </div>
         </div>
-        <div class="card-body text-center">
+        <div ng-if="selected_campaign" class="card-body text-center">
           <div class="row" ng-show="manifest.instanceCount">
             <div class="col-lg-2 col-md-6 col-sm-12">
               <div class="card bg-white shadow-none mt-3 border border-secondary-dark">

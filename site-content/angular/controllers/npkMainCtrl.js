@@ -916,7 +916,7 @@ angular
     $scope.totalDuration = 0;
     $scope.updateTotalKeyspace = function() {
       $scope.totalKeyspace = (($scope.use_mask) ? $scope.maskKeyspace : 1) * (($scope.use_wordlist) ? $scope.wordlistAttackStats.total.keyspace : 1);
-      $scope.totalDuration = $scope.totalKeyspace / (($scope.selectedInstance != "none") ? ($scope.gpus[$scope.selectedInstance] * $scope.instances[$scope.selectedInstanceGeneration].hashes) : 1);
+      $scope.totalDuration = $scope.totalKeyspace / (($scope.selectedInstance != "none") ? ($scope.gpus[$scope.selectedInstance] * ($scope.instances[$scope.selectedInstanceGeneration].hashes /4)) : 1);
 
       $scope.updateCoverage();
 

@@ -211,98 +211,104 @@ var sendFinished = function (completed) {
 var outputBuffer = "";
 var readOutput = function(output) {
 
-	outputBuffer += output;
-	if (outputBuffer.length < 200 || outputBuffer.slice(-4) != "\r\n\r\n") {
+	// Wrap in a try/catch to make failures non-fatal.
+	try {
 		outputBuffer += output;
-		return false;
-	}
-
-	console.log("Found status report in output");
-
-	output = outputBuffer;
-	outputBuffer = "";
-	// console.log(output.slice(-1));
-	var lines = output.split("\n");
-
-	var speed = 0;
-	output = {};
-	var gpuKeys = {};
-	lines.forEach(function(e) {
-		if (e.indexOf('.: ') < 0) {
-			return true;
+		if (outputBuffer.length < 200 || outputBuffer.slice(-4) != "\r\n\r\n") {
+			outputBuffer += output;
+			return false;
 		}
 
-		var fields = (e.split('.: '));
+		console.log("Found status report in output");
 
-		var label = fields[0].replace(/\.*$/, '');
-		var value = fields[1].trim();
+		output = outputBuffer;
+		outputBuffer = "";
+		// console.log(output.slice(-1));
+		var lines = output.split("\n");
 
-		//Handle 'speed' entries here, since there's no better way.
-		if (/Speed.#\d/.test(label)) {
-			gpuKeys[label.slice(7)] = true;
-			var number = parseFloat(value.split(' ')[0]);
-			var multiplier = value.split(' ')[1].toLowerCase();
-
-			switch (multiplier) {
-				case "h/s":
-					number *= 1;
-				break;
-
-				case "kh/s":
-					number *= 1000;
-				break;
-
-				case "mh/s":
-					number *= 1000000;
-				break;
-
-				case "gh/s":
-					number *= 1000000000;
-				break;
-
-				default:
-					number *= 1;
-				break;
+		var speed = 0;
+		output = {};
+		var gpuKeys = {};
+		lines.forEach(function(e) {
+			if (e.indexOf('.: ') < 0) {
+				return true;
 			}
 
-			output[label + '.Hz'] = number;
-			speed += number;
-		}
+			var fields = (e.split('.: '));
 
-		output[label] = value;
-	});
+			var label = fields[0].replace(/\.*$/, '');
+			var value = fields[1].trim();
+
+			//Handle 'speed' entries here, since there's no better way.
+			if (/Speed.#\d/.test(label)) {
+				gpuKeys[label.slice(7)] = true;
+				var number = parseFloat(value.split(' ')[0]);
+				var multiplier = value.split(' ')[1].toLowerCase();
+
+				switch (multiplier) {
+					case "h/s":
+						number *= 1;
+					break;
+
+					case "kh/s":
+						number *= 1000;
+					break;
+
+					case "mh/s":
+						number *= 1000000;
+					break;
+
+					case "gh/s":
+						number *= 1000000000;
+					break;
+
+					default:
+						number *= 1;
+					break;
+				}
+
+				output[label + '.Hz'] = number;
+				speed += number;
+			}
+
+			output[label] = value;
+		});
 
 
-	output.startTime = (Date.parse(output['Time.Started']) / 1000).toFixed(0);
-	output.estimatedEndTime = (Date.parse(output['Time.Estimated']) / 1000).toFixed(0);
+		output.startTime = (Date.parse(output['Time.Started']) / 1000).toFixed(0);
+		output.estimatedEndTime = (Date.parse(output['Time.Estimated']) / 1000).toFixed(0);
 
-	output.hashRate = speed;
+		output.hashRate = speed;
 
-	var progress = output.Progress.split(' ')[0].split('/');
-	output.progress = (progress[0] / progress[1] * 100).toFixed(6);
+		var progress = output.Progress.split(' ')[0].split('/');
+		output.progress = (progress[0] / progress[1] * 100).toFixed(6);
 
-	var recovered = output.Recovered.split(' ')[0].split('/');
-	output.recoveredHashes = recovered[0];
-	output.recoveredPercentage = (recovered[0] / recovered[1] * 100).toFixed(6);
+		var recovered = output.Recovered.split(' ')[0].split('/');
+		output.recoveredHashes = recovered[0];
+		output.recoveredPercentage = (recovered[0] / recovered[1] * 100).toFixed(6);
 
-	var rejected = output.Rejected.split(' ')[0].split('/');
-	output.rejectedPercentage = (rejected[0] / rejected[1] * 100).toFixed(6);
+		var rejected = output.Rejected.split(' ')[0].split('/');
+		output.rejectedPercentage = (rejected[0] / rejected[1] * 100).toFixed(6);
 
-	output.performance = {};
-	Object.keys(gpuKeys).forEach(function(i) {
-		output.performance[Object.keys(output.performance).length] = output['Speed.#' + i + ".Hz"];
-	});
+		output.performance = {};
+		Object.keys(gpuKeys).forEach(function(i) {
+			output.performance[Object.keys(output.performance).length] = output['Speed.#' + i + ".Hz"];
+		});
 
-	return sendStatusUpdate({
-		startTime: output.startTime,
-		estimatedEndTime: output.estimatedEndTime,
-		hashRate: output.hashRate,
-		progress: output.progress,
-		recoveredHashes: output.recoveredHashes,
-		recoveredPercentage: output.recoveredPercentage,
-		rejectedPercentage: output.rejectedPercentage,
-		performance: output.performance,
-	});
+		return sendStatusUpdate({
+			startTime: output.startTime,
+			estimatedEndTime: output.estimatedEndTime,
+			hashRate: output.hashRate,
+			progress: output.progress,
+			recoveredHashes: output.recoveredHashes,
+			recoveredPercentage: output.recoveredPercentage,
+			rejectedPercentage: output.rejectedPercentage,
+			performance: output.performance,
+		});
+	} catch(e) {
+
+		console.log("Caught error: " + e);
+	}
 };
 
 getCredentials().then((data) => {

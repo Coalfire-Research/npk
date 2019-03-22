@@ -16,6 +16,11 @@ if [[ ! -f $(which aws) ]]; then
 	echo "Error: Must have AWSCLI installed.";
 fi
 
+if [[ ! -f $(which npm) ]]; then
+	ERR=1;
+	echo "Error: Must have NPM installed.";
+fi
+
 if [[ "$ERR" == "1" ]]; then
 	echo -e "\nInstall missing components, then try again.\n"
 	exit 1

@@ -10,7 +10,7 @@ NPK is a distributed hash-cracking platform built entirely of serverless compone
 
 Lets face it - even the beastliest cracking rig spends a lot of time at idle. You sink a ton of money up front on hardware, then have the electricity bill to deal with. NPK lets you leverage extremely powerful hash cracking with the 'pay-as-you-go' benefits of AWS. For example, you can crank out as much as 1.2TH/s of NTLM for a mere $14.70/hr. NPK was also designed to fit easily within the free tier while you're not using it! Without the free tier, it'll still cost less than 25 CENTS per MONTH to have online!
 
-If you'd like to see it in action, check out the video here: https://dev.npkproject.io/NPK-Demo.mp4
+If you'd like to see it in action, check out the video here: https://www.youtube.com/watch?v=BrBPOhxkgzc
 
 ## Features
 

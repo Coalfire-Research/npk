@@ -1,7 +1,7 @@
 #! /bin/bash
 cd /root/
 
-APIGATEWAY=api.dev.npkproject.io
+APIGATEWAY=sq9rzmqkpk.execute-api.us-west-2.amazonaws.com
 echo $APIGATEWAY > /root/apigateway
 
 declare -A BUCKETS
@@ -10,7 +10,7 @@ BUCKETS[us-east-2]=npk-dictionary-east-2-20181029005812776500000003
 BUCKETS[us-west-1]=npk-dictionary-west-1-20181029005812746900000001
 BUCKETS[us-west-2]=npk-dictionary-west-2-20181029005812750900000002
 
-USERDATA=npk-user-data-20190317161841875700000010
+USERDATA=npk-user-data-2019032216493250680000000f
 
 INSTANCE_ID=`wget -qO- http://169.254.169.254/latest/meta-data/instance-id`
 REGION=`wget -qO- http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/.$//'`

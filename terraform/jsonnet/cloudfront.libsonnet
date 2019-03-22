@@ -1,6 +1,6 @@
 
 {
-	resource(useCustomDNS, www): {
+	resource(settings): {
 		"aws_cloudfront_origin_access_identity": {
 			"npk": {
 				"comment": "OAI for NPK",
@@ -42,20 +42,27 @@
 					"default_ttl": 0,
 				},
 				"price_class": "PriceClass_100",
-				"restrictions": {
-					"geo_restriction": {
-						"restriction_type": "whitelist",
-						"locations"       : ["US"],
-					}
-				},
 				"tags": {
 					"Project": "NPK",
 				},
 				"viewer_certificate": {
 					"cloudfront_default_certificate": true,
 				}
-			} + if useCustomDNS then {
-				"aliases": [i for i in www],
+			} + if std.objectHas(settings, "georestrictions") && std.length(settings.georestrictions) > 0 then {
+				"restrictions": {
+					"geo_restriction": {
+						"restriction_type": "whitelist",
+						"locations"       : settings.georestrictions,
+					}
+				}
+			} else {
+				"restrictions": {
+					"geo_restriction": {
+						"restriction_type": "none",
+					}
+				}
+			} + if settings.useCustomDNS then {
+				"aliases": [i for i in settings.dnsNames.www],
 				"viewer_certificate": {
 					"cloudfront_default_certificate": false,
 					"acm_certificate_arn": "${aws_acm_certificate.www-0.arn}",

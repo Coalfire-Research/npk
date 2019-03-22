@@ -52,43 +52,6 @@ angular
       $scope.$location = $location;
       $scope.notifications = [];
 
-      $scope.notifications.push({
-        href: "#/campaigns/1",
-        title: "Campaign Completed",
-        message: "The 'Hackers' campaign has completed successfully."
-      });
-
-      $scope.npkSvc = {
-        campaigns: {
-          active: [],
-          inactive: [{
-            campaignId: '1234-12345-123412345123-1234',
-            startTime: 1288323623006,
-            hashCount: 1215,
-            friendlyType: "NTLM",
-            instanceType: "p3.16xlarge",
-            instanceCount: 3,
-            instanceDuration: 2,
-            finalCost: 43.42,
-            disposition: "Success"
-          },{
-            campaignId: '1234-12345-123412345123-1234',
-            startTime: 1288323623006,
-            hashCount: 1215,
-            friendlyType: "NTLM",
-            instanceType: "p3.16xlarge",
-            instanceCount: 3,
-            instanceDuration: 2,
-            finalCost: 43.42,
-            disposition: "Success"
-          }],
-          totals: {
-            hashes: 1215,
-            successRate: 59.42
-          }
-        }
-      };
-
       /*
       window.isLoggedOn = function() {
         return cognitoSvc.isLoggedOn();

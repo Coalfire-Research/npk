@@ -103,7 +103,7 @@ local regionKeys = std.objectFields(settings.regions);
 		} else {}
 	},
 	'cloudfront.tf.json': {
-		"resource": cloudfront.resource(settings.useCustomDNS, settings.dnsNames.www),
+		"resource": cloudfront.resource(settings),
 		"output": cloudfront.output
 	},
 	'cloudwatch.tf.json': cloudwatch,

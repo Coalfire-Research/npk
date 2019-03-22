@@ -47,6 +47,7 @@ NPK requires that you have the following installed:
 * **terraform** (v0.11)
 * **jq**
 * **jsonnet**
+* **npm**
 
 **ProTip:** To keep things clean and distinct from other things you may have in AWS, it's STRONGLY recommended that you deploy NPK in a fresh account. You can create a new account easily from the 'Organizations' console in AWS. **By 'STRONGLY recommended', I mean 'seriously don't install this next to other stuff'.**
 

@@ -4,7 +4,7 @@ NPK is a distributed hash-cracking platform built entirely of serverless compone
 
 ![Image](/readme-content/dashboard-active.png)
 
-'NPK' is an initialism for the three primary atomic elements in fertilizer (Nitrogen, Phosporus, and Potassium). Add it to your hashes to increase your cred yield!
+'NPK' is an initialism for the three primary atomic elements in fertilizer (Nitrogen, Phosphorus, and Potassium). Add it to your hashes to increase your cred yield!
 
 ## How it works
 

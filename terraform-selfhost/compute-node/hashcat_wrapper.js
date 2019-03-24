@@ -195,7 +195,12 @@ var sendFinished = function (completed) {
 			return failure(false);
 		}
 
-		var recoveredHashes = fs.readFileSync("/potfiles/cracked_hashes-" + instance_id + ".txt", "ascii").trim().split("\n").length || 0;
+		var recoveredHashes;
+		try {
+			recoveredHashes = fs.readFileSync("/potfiles/cracked_hashes-" + instance_id + ".txt", "ascii").trim().split("\n").length || 0;	
+		} catch (e) {
+			recoveredHashes = 0;
+		}
 
 		apiClient.invokeApi(nodeParams, nodeTemplate, "POST", {}, {completed: completed, recoveredHashes: recoveredHashes}).then(function(result) {
 			console.log("Node marked as complete.");
@@ -220,6 +225,7 @@ var readOutput = function(output) {
 		}
 
 		console.log("Found status report in output");
+		console.log(outputBuffer);
 
 		output = outputBuffer;
 		outputBuffer = "";
@@ -305,8 +311,7 @@ var readOutput = function(output) {
 			rejectedPercentage: output.rejectedPercentage,
 			performance: output.performance,
 		});
-	} catch(e) {
-
+	} catch (e) {
 		console.log("Caught error: " + e);
 	}
 };

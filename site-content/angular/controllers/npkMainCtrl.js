@@ -1048,7 +1048,7 @@ angular
         });
       };
 
-      reader.readAsText(file);
+      reader.readAsArrayBuffer(file);
     };
 
     $scope.getHashFiles = function() {

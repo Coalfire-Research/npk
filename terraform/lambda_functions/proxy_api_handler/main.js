@@ -975,8 +975,9 @@ exports.main = function(event, context, callback) {
 	}
 
 	// Try/Catch the whole thing. Cause why not.
-
 	try {
+
+		console.log("Received event: " + JSON.stringify(event));
 
 		event.require({
 			"body": 0,

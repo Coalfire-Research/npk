@@ -8,7 +8,7 @@
 				"role": "${aws_iam_role.lambda_proxy_api_handler.arn}",
 				"handler": "main.main",
 				"source_code_hash": "${data.archive_file.proxy_api_handler.output_base64sha256}",
-				"runtime": "nodejs6.10",
+				"runtime": "nodejs8.10",
 				"timeout": 60,
 
 				"dead_letter_config": {
@@ -22,7 +22,7 @@
 				"role": "${aws_iam_role.lambda_status_reporter.arn}",
 				"handler": "main.main",
 				"source_code_hash": "${data.archive_file.status_reporter.output_base64sha256}",
-				"runtime": "nodejs6.10",
+				"runtime": "nodejs8.10",
 				"timeout": 60,
 
 				"dead_letter_config": {
@@ -36,7 +36,7 @@
 				"role": "${aws_iam_role.lambda_spot_monitor.arn}",
 				"handler": "main.main",
 				"source_code_hash": "${data.archive_file.spot_monitor.output_base64sha256}",
-				"runtime": "nodejs6.10",
+				"runtime": "nodejs8.10",
 				"memory_size": 512,
 				"timeout": 10,
 

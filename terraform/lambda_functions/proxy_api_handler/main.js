@@ -982,9 +982,7 @@ exports.main = function(event, context, callback) {
 		event.require({
 			"body": 0,
 			"isBase64Encoded": 0,
-			"headers": {
-				"origin": 0
-			},
+			"headers": 0,
 			"httpMethod": 0,
 			"pathParameters": {
 				"proxy": 0
@@ -999,8 +997,8 @@ exports.main = function(event, context, callback) {
 			}
 		});
 
-		// Hand off the origin, too.
-		origin = event.headers.origin;
+		// Hand off the origin, too. Fix for weird case
+		origin = event.headers.origin || event.headers.Origin;
 
 		if (event.requestContext.identity.cognitoAuthenticationType != "authenticated") {
 			return respond(401, "Authentication Required", false);

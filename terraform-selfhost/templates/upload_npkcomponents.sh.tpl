@@ -33,8 +33,8 @@ if [ ! -f ${basepath}/components/hashcat.7z ]; then
 	wget -O ${basepath}/components/hashcat.7z ${hashcat}
 fi
 
-if [ ! -f /home/brad/repos/npk/terraform-selfhost/components/maskprocessor.7z ]; then
-	wget -O /home/brad/repos/npk/terraform-selfhost/components/maskprocessor.7z https://github.com/hashcat/maskprocessor/releases/download/v0.73/maskprocessor-0.73.7z
+if [ ! -f ${basepath}/components/maskprocessor.7z ]; then
+	wget -O ${basepath}/components/maskprocessor.7z https://github.com/hashcat/maskprocessor/releases/download/v0.73/maskprocessor-0.73.7z
 fi
 
 if [ ! -f ${basepath}/components/epel.rpm ]; then

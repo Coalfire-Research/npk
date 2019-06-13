@@ -117,6 +117,14 @@
 					"resources": [
 						"${aws_dynamodb_table.campaigns.arn}"
 					]
+				},{
+					"sid": "7",
+					"actions": [
+						"iam:PassRole"
+					],
+					"resources": [
+						"${aws_iam_role.npk_fleet_role.arn}"
+					]
 				}]
 			},
 			"lambda_status_reporter": {

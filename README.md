@@ -69,7 +69,7 @@ aws_secret_access_key = ...
 npk/terraform$ ./deploy.sh
 ```
 
-NPK will use the specified AWS cli profile to fully deploy NPK and provision the first user. If you'd like to change the configuration, simply run `./deploy.sh` again afterward. While it's deploying, pay a visit to https://aws.amazon.com/marketplace/pp?sku=cjsrmewvppzcgw06k8yab9o6s to subscribe and accept the terms of NVidia's AMIs. NPK uses these to ensure compatability with the GPUs. There is no cost associated with this step, but allows NPK to use these AMIs on your behalf.
+NPK will use the specified AWS cli profile to fully deploy NPK and provision the first user. If you'd like to change the configuration, simply run `./deploy.sh` again afterward. While it's deploying, pay a visit to https://aws.amazon.com/marketplace/pp?sku=5rwcw3y2wbhixiw6qoi1gwdxt to subscribe and accept the terms of NVidia's AMIs. NPK uses these to ensure compatability with the GPUs. There is no cost associated with this step, but allows NPK to use these AMIs on your behalf.
 
 Once it's done, you'll receive an email with the URL and credentials to your deployment:
 

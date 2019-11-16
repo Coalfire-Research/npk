@@ -36,7 +36,7 @@ data "aws_iam_policy_document" "cognito_authenticated" {
 		sid = "3"
 
 		actions = [
-			"s3:GetObject",,
+			"s3:GetObject",
 			"s3:ListObjectVersions",
 			"s3:DeleteObject"
 		]

@@ -559,6 +559,7 @@ angular
 
     $scope.hashType = 1000;
     $scope.showAll = false;
+    $scope.showAdvanced = false;
     $scope.disabled = true;
 
     $scope.bestPrice = null;
@@ -599,6 +600,10 @@ angular
     };
 
     $scope.instances = {};
+
+    $scope.toggleAdvancedView = function() {
+      $scope.showAdvanced = $('#use_advanced').prop('checked');
+    }
 
     $scope.pickForcedRegion = function(region) {
       $scope.forceRegion = ($scope.forceRegion == region) ? false : region;
@@ -728,6 +733,18 @@ angular
       $scope.selectedAZ = which.az;
 
       $scope.totalPrice = $scope.pricingSvc.spotPrice[$scope.selectedInstance].price * $scope.instanceCount * $scope.instanceDuration;
+      $scope.updateTotalKeyspace();
+    };
+
+    $scope.pickInstanceFromSpot = function(type) {
+      var spot = $scope.pricingSvc.spotPrice[type];
+      
+      $scope.selectedInstance = type;
+      $scope.selectedInstanceGeneration = type.slice(0, 2);
+      $scope.selectedRegion = spot.cheapestRegion.slice(0, -1);
+      $scope.selectedAZ = spot.cheapestRegion;
+
+      $scope.totalPrice = spot.price * $scope.instanceCount * $scope.instanceDuration;
       $scope.updateTotalKeyspace();
     };
 

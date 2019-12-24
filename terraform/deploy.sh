@@ -21,6 +21,16 @@ if [[ ! -f $(which npm) ]]; then
 	echo "Error: Must have NPM installed.";
 fi
 
+if [[ ! -f $(which terraform) ]]; then
+	ERR=1;
+	echo "Error: Must have Terraform installed.";
+fi
+
+if [[ "$(terraform -v | grep v0.11 | wc -l)" != "1" ]]; then
+	ERR=1;
+	echo "Error: Wrong version of Terraform is installed. NPK requires Terraform v0.11.";
+fi
+
 if [[ "$ERR" == "1" ]]; then
 	echo -e "\nInstall missing components, then try again.\n"
 	exit 1

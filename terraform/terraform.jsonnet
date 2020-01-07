@@ -108,7 +108,8 @@ local regionKeys = std.objectFields(settings.regions);
 	},
 	'cloudwatch.tf.json': cloudwatch,
 	'cognito_iam_roles.tf.json': {
-		"resource": cognito_iam_roles
+		"resource": cognito_iam_roles.resource,
+		"data": cognito_iam_roles.data(settings)
 	},
 	'cognito.tf.json': {
 		"resource": cognito.resource(settings),
@@ -157,11 +158,24 @@ local regionKeys = std.objectFields(settings.regions);
 					"key_name": "npk-key",
 					"public_key": "${tls_private_key.ssh.public_key_openssh}"
 				} for region in regionKeys
+			},
+			"local_file": {
+				"ssh_key": {
+					"sensitive_content": "${tls_private_key.ssh.private_key_pem}",
+					"filename": "${path.module}/npk.pem",
+					"file_permission": "0600"
+				}
 			}
 		}
 	},
-	'lambda_functions.tf.json': lambda_functions,
-	'lambda_iam_roles.tf.json': lambda_iam_roles,
+	'lambda_functions.tf.json': {
+		"resource": lambda_functions.resources(settings),
+		"data": lambda_functions.data
+	},
+	'lambda_iam_roles.tf.json': {
+		"resource": lambda_iam_roles.resource(settings),
+		"data": lambda_iam_roles.data(settings)
+	},
 	'null_resources.tf.json': null_resources.resource(settings),
 	'provider-aws.tf.json': {
 		"provider": [
@@ -321,7 +335,7 @@ local regionKeys = std.objectFields(settings.regions);
 			for i in std.range(0, std.length(regionKeys) - 1)
 	},
 	'variables.tf.json': {
-		"variable": variables.variables + {
+		"variable": variables.variables(settings) + {
 			"access_key": { "default": settings.access_key },
 	    	"secret_key": { "default": settings.secret_key },
 	    	"region": { "default": settings.defaultRegion },

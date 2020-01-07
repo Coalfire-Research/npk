@@ -1,26 +1,24 @@
 #! /bin/bash
 cd /root/
 
-APIGATEWAY=${apigateway}
+export APIGATEWAY=${apigateway}
 echo $APIGATEWAY > /root/apigateway
 
-declare -A BUCKETS
-BUCKETS[us-east-1]=${use1}
-BUCKETS[us-east-2]=${use2}
-BUCKETS[us-west-1]=${usw1}
-BUCKETS[us-west-2]=${usw2}
+export USERDATA=${userdata}
 
-USERDATA=${userdata}
-
-INSTANCE_ID=`wget -qO- http://169.254.169.254/latest/meta-data/instance-id`
-REGION=`wget -qO- http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/.$//'`
+export INSTANCE_ID=`wget -qO- http://169.254.169.254/latest/meta-data/instance-id`
+export REGION=`wget -qO- http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/.$//'`
 aws ec2 describe-tags --region $REGION --filter "Name=resource-id,Values=$INSTANCE_ID" --output=text | sed -r 's/TAGS\t(.*)\t.*\t.*\t(.*)/\1="\2"/' | sed -r 's/aws:ec2spot:fleet-request-id/SpotFleet/' > ec2-tags
 
 . ec2-tags
 
 echo $ManifestPath > /root/manifestpath
 
-BUCKET=$${BUCKETS[$REGION]}
+yum install -y jq
+
+export BUCKET=`echo '${dictionaryBuckets}' | jq -r --arg REGION $REGION '.[$REGION]'`
+
+echo "Using dictionary bucket $BUCKET";
 
 mkdir /potfiles
 
@@ -37,7 +35,7 @@ aws s3 cp s3://$BUCKET/components/maskprocessor.7z .
 aws s3 cp s3://$BUCKET/components/compute-node.zip .
 aws s3 cp s3://$USERDATA/$ManifestPath/manifest.json .
 rpm -Uvh epel.rpm
-yum install -y p7zip p7zip-plugins jq
+yum install -y p7zip p7zip-plugins
 
 # Install nvm
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | /bin/bash

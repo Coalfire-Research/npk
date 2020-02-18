@@ -86,3 +86,5 @@ jsonnet -m . terraform.jsonnet
 terraform init
 terraform apply -auto-approve
 terraform apply -auto-approve
+
+# terraform apply -auto-approve	# Yes, userdata.sh is an unresolvable cyclical dependency. I am ashamed.

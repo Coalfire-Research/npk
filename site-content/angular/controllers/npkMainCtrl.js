@@ -64,10 +64,27 @@ angular
           
           $scope.npkDB.init();
 
-          $scope.user = {
-            email: $scope.cognitoSvc.cognitoUserSession.idToken.payload.email,
-            sub: AWS.config.credentials.identityId
-          };
+          $scope.user = {}
+
+          switch (localStorage.getItem("authType")) {
+            case "Cognito":
+              $scope.user = {
+                email: $scope.cognitoSvc.cognitoUserSession.idToken.payload.email,
+                sub: AWS.config.credentials.identityId
+              }
+
+            break;
+
+            case "SAML":
+              var idToken = JSON.parse(atob(localStorage.getItem("idToken").split('.')[1]))
+
+              $scope.user = {
+                email: idToken.identities[0].userId,
+                sub: AWS.config.credentials.identityId
+              }
+
+            break;
+          }
 
           $scope.gravatar = md5($scope.user.email);
       };
@@ -188,7 +205,7 @@ angular
          });
       });
    }])
-   .controller('logonCtrl', ['$scope', '$routeParams', '$location', function($scope, $routeParams, $location) {
+   .controller('logonCtrl', ['$scope', '$routeParams', '$location', 'SAMLSSO', 'COGNITO_CONFIG', function($scope, $routeParams, $location, SAMLSSO, COGNITO_CONFIG) {
 
       $scope.active = false;
       $scope.username;
@@ -197,9 +214,25 @@ angular
       $scope.confirmpassword;
       $scope.verificationcode;
 
+      $scope.useSamlSSO = SAMLSSO.useSamlSSO;
+      if ($scope.useSamlSSO == true) {
+        $scope.samlSSOURL = "https://" + SAMLSSO.SAMLDomain + "/oauth2/authorize?identity_provider=" + SAMLSSO.SAMLIdp + "&redirect_uri=" + SAMLSSO.SAMLRedirectUrl + "&response_type=CODE&client_id=" + COGNITO_CONFIG.ClientId + "&scope=email%20openid"
+      }
+      
+
       $scope.onReady = function() {
          // console.log("logonCtrl loaded");
          $scope.$parent.startApp();
+         
+         code = $location.$$absUrl.match(/\?code=([a-z0-9\-]{36})/)
+         if (code != null && code.length == 2) {
+          console.log('Got SSO code ' + code[1]);
+          $scope.$parent.ok_modal.set("fa-exclamation-circle", "SAML Code Detected", "Processing SAML SSO Request", "OK", "").show();
+          $scope.handleSamlSSO(code[1]).then((data) => {
+            $location.path('/dashboard');
+            $scope.$apply();
+          })
+         }
       };
 
       $scope.$on('$routeChangeSuccess', function() {
@@ -320,6 +353,18 @@ angular
             .show();
         });
       };
+
+      window.cognitoNPK = $scope.$parent.cognitoSvc;
+
+      $scope.handleSamlSSO = function(code) {
+        return $scope.$parent.cognitoSvc.authorizeViaSaml(code).then((data) => {
+          if (typeof data != "undefined" && data.hasOwnProperty("id_token")) {
+            return $scope.$parent.cognitoSvc.retrieveSamlCredentials(data.id_token);
+          } else {
+            return Promise.reject('SAML SSO response missing idToken');
+          }
+        });
+      }
 
       $scope.signOut = function() {
         $scope.cognitoSvc.cognitoUser.signOut();

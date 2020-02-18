@@ -17,11 +17,20 @@ local az(region) = {
 					"user_pool_id": "${aws_cognito_user_pool.npk.id}",
 					"identity_pool_id": "${aws_cognito_identity_pool.main.id}",
 					"userdata_bucket": "${aws_s3_bucket.user_data.id}",
+					"use_SAML": "${var.useSAML}",
+					"saml_domain": "",
+					"saml_redirect": "",
 					"api_gateway_url": if settings.useCustomDNS then
 							settings.dnsNames.api[0]
 						else
 							"${element(split(\"/\", aws_api_gateway_deployment.npk.invoke_url), 2)}"
-				}
+				} + (if settings.useSAML == true && settings.useCustomDNS == false then {
+					"saml_domain": "${aws_cognito_user_pool_domain.saml.domain}.auth.us-west-2.amazoncognito.com",
+					"saml_redirect": "https://${aws_cloudfront_distribution.npk.domain_name}"
+				} else {}) + (if settings.useSAML == true && settings.useCustomDNS == true then {
+					"saml_domain": "auth." + settings.dnsNames.www[0],
+					"saml_redirect": "https://" + settings.dnsNames.www[0]
+				} else {})
 			},
 			"userdata_template": {
 				"template": "${file(\"${path.module}/templates/userdata.tpl\")}",

@@ -43,7 +43,9 @@ local regionKeys = std.objectFields(settings.regions);
 				["www-" + i]: defaultResource + acm.certificate(settings.dnsNames.www[i]) for i in std.range(0, std.length(settings.dnsNames.www) - 1)
 			} + {
 				["api-" + i]: defaultResource + acm.certificate(settings.dnsNames.api[i]) for i in std.range(0, std.length(settings.dnsNames.api) - 1)
-			}
+			} + if settings.useSAML == true && settings.useCustomDNS == true then {
+				"saml": acm.certificate("auth." + settings.dnsNames.www[0])
+			} else {}
 		} + if std.type(settings.route53Zone) == "string" then {
 			"aws_route53_record": {
 				["acm-validation-www-" + i]: acm.route53_record(
@@ -59,7 +61,14 @@ local regionKeys = std.objectFields(settings.regions);
 					"${aws_acm_certificate.api-" + i + ".domain_validation_options.0.resource_record_value}",
 					settings.route53Zone
 				) for i in std.range(0, std.length(settings.dnsNames.api) - 1)
-			},
+			} + if settings.useSAML == true && settings.useCustomDNS == true then {
+				"saml": acm.route53_record(
+					"${aws_acm_certificate.saml.domain_validation_options.0.resource_record_name}",
+					"${aws_acm_certificate.saml.domain_validation_options.0.resource_record_type}",
+					"${aws_acm_certificate.saml.domain_validation_options.0.resource_record_value}",
+					settings.route53Zone
+				)
+			} else {},
 			"aws_acm_certificate_validation": {
 				["www-" + i]: acm.certificate_validation(
 					"${aws_acm_certificate.www-" + i + ".arn}",
@@ -70,7 +79,12 @@ local regionKeys = std.objectFields(settings.regions);
 					"${aws_acm_certificate.api-" + i + ".arn}",
 					"${aws_route53_record.acm-validation-api-" + i + ".fqdn}"
 				) for i in std.range(0, std.length(settings.dnsNames.api) - 1)
-			}
+			} + if settings.useSAML == true && settings.useCustomDNS == true then {
+				"saml": acm.certificate_validation(
+					"${aws_acm_certificate.saml.arn}",
+					"${aws_route_53_record.acm-vallidation-saml.fqdn}"
+				)
+			} else {}
 		} else {}
 	} + if std.type(settings.route53Zone) != "string" then {
 		"output": {
@@ -340,7 +354,8 @@ local regionKeys = std.objectFields(settings.regions);
 	    	"secret_key": { "default": settings.secret_key },
 	    	"region": { "default": settings.defaultRegion },
 	    	"campaign_data_ttl": { "default": settings.campaign_data_ttl },
-	    	"campaign_max_price": { "default": settings.campaign_max_price }
+	    	"campaign_max_price": { "default": settings.campaign_max_price },
+	    	"useSAML": { "default": settings.useSAML }
 		}
 	},
 	'vpc.tf.json': {

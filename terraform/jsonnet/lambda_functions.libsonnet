@@ -10,7 +10,7 @@
 				"role": "${aws_iam_role.lambda_proxy_api_handler.arn}",
 				"handler": "main.main",
 				"source_code_hash": "${data.archive_file.proxy_api_handler.output_base64sha256}",
-				"runtime": "nodejs8.10",
+				"runtime": "nodejs12.x",
 				"timeout": 60,
 
 				"environment": {

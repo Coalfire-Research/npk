@@ -13,5 +13,7 @@
 	} + {
 		["dictionary-" + regionKeys[i] + "-id"]: {}
 		for i in std.range(0, std.length(regionKeys) - 1)
+		},
+		"useSAML": { }
 	}
 }

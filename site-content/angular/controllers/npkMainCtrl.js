@@ -214,7 +214,7 @@ angular
       $scope.confirmpassword;
       $scope.verificationcode;
 
-      $scope.useSamlSSO = SAMLSSO.useSamlSSO;
+      $scope.useSamlSSO = (SAMLSSO.useSamlSSO == "1");
       if ($scope.useSamlSSO == true) {
         $scope.samlSSOURL = "https://" + SAMLSSO.SAMLDomain + "/oauth2/authorize?identity_provider=" + SAMLSSO.SAMLIdp + "&redirect_uri=" + SAMLSSO.SAMLRedirectUrl + "&response_type=CODE&client_id=" + COGNITO_CONFIG.ClientId + "&scope=email%20openid"
       }

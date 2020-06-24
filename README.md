@@ -97,4 +97,4 @@ npk/terraform$ terraform destroy
 # Support
 We appreciate PRs and Issues posted, we'll do our best to cover them. We also have a discord server up, feel free to pop in and say hi, or ask a question. 
 
-https://discord.gg/A9tfHz
+https://discord.gg/aff6nny

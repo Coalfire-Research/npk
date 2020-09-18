@@ -30,13 +30,13 @@ echo "[*] Preparing to deploy NPK."
 echo "[*] Getting availabilityzones from AWS"
 # Get the availability zones for each region
 echo "[*] - us-east-1"
-aws --profile $(jq -r '.awsProfile' npk-settings.json) ec2 --region us-east-1 describe-availability-zones | jq '{"us-east-1": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > r1.json
+aws --profile $(jq -r '.awsProfile' npk-settings.json) ec2 --region us-east-1 describe-availability-zones --output=json | jq '{"us-east-1": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > r1.json
 echo "[*] - us-east-2"
-aws --profile $(jq -r '.awsProfile' npk-settings.json) ec2 --region us-east-2 describe-availability-zones | jq '{"us-east-2": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > r2.json
+aws --profile $(jq -r '.awsProfile' npk-settings.json) ec2 --region us-east-2 describe-availability-zones --output=json | jq '{"us-east-2": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > r2.json
 echo "[*] - us-west-1"
-aws --profile $(jq -r '.awsProfile' npk-settings.json) ec2 --region us-west-1 describe-availability-zones | jq '{"us-west-1": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > r3.json
+aws --profile $(jq -r '.awsProfile' npk-settings.json) ec2 --region us-west-1 describe-availability-zones --output=json | jq '{"us-west-1": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > r3.json
 echo "[*] - us-west-2"
-aws --profile $(jq -r '.awsProfile' npk-settings.json) ec2 --region us-west-2 describe-availability-zones | jq '{"us-west-2": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > r4.json
+aws --profile $(jq -r '.awsProfile' npk-settings.json) ec2 --region us-west-2 describe-availability-zones --output=json | jq '{"us-west-2": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > r4.json
 
 jq -s '.[0] * .[1] * .[2] * .[3]' r1.json r2.json r3.json r4.json | jq '{"regions": .}' > regions.json
 rm r1.json r2.json r3.json r4.json

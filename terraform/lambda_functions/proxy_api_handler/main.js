@@ -808,7 +808,7 @@ function executeCampaign(entity, campaignId) {
 
 function stopCampaign(entity, campaignId) {
 
-	getCampaign(entity, campaignId).then(function(data) {
+	return getCampaign(entity, campaignId).then(function(data) {
 		if (data.Items.length < 1) {
 			return respond(404, "Campaign " + campaignId + " not found", false);
 		}
@@ -816,58 +816,62 @@ function stopCampaign(entity, campaignId) {
 		var campaign = ddbTypes.unwrap(data.Items[0]);
 		var ec2 = new aws.EC2({region: campaign.region});
 
+		// Can be simplified by calling .promise() on the AwsRequest objects
+		return new Promise((success, failure) => {
 		ec2.describeSpotFleetRequests({
 			SpotFleetRequestIds: [campaign.spotFleetRequestId]
 		}, function(err, fleet) {
 			if (err) {
-				return respond(500, "Error retrieving spot fleet data: " + err, false);
+					return failure(respond(500, "Error retrieving spot fleet data: " + err, false));
 			}
 
 			if (fleet.SpotFleetRequestConfigs.length < 1) {
 				// TODO: Set the campaign to inactive if this result is reliable enough.
-				return respond(404, "Error retrieving spot fleet data: not found.", false);
+					return failure(respond(404, "Error retrieving spot fleet data: not found.", false));
 			}
 
-			var request = fleet.SpotFleetRequestConfigs[0];
+				success(fleet.SpotFleetRequestConfigs[0])
+			})
+		}).then(request => {
 			if (request.SpotFleetRequestState == "active") {
+				return new Promise((success, failure) => {
 				ec2.cancelSpotFleetRequests({
 					SpotFleetRequestIds: [campaign.spotFleetRequestId],
 					TerminateInstances: true
 				}, function(err, response) {
 					if (err) {
-						return respond(500, "Error cancelling spot fleet: " + err, false);
+							return failure(respond(500, "Error cancelling spot fleet: " + err, false));
 					}
 
 					console.log(response);
 
 					if (response.SuccessfulFleetRequests.length < 1) {
-						return respond(500, "Error cancelling spot fleet: " + err, false);
+							return failure(respond(500, "Error cancelling spot fleet: " + err, false));
 					}
 
 					if (response.SuccessfulFleetRequests[0].CurrentSpotFleetRequestState.indexOf('cancelled') < 0) {
-						return respond(400, "Error cancelling spot fleet. Current state: " + response.SuccessfulFleetRequests[0].CurrentSpotFleetRequestState, false);
+							return failure(respond(400, "Error cancelling spot fleet. Current state: " + response.SuccessfulFleetRequests[0].CurrentSpotFleetRequestState, false));
 					}
 
-					editCampaign(entity, campaignId, {
-						active: false
-					}).then(function(data) {
-						return respond(200, "Campaign stoppped.", true);
-					}, function (err) {
-						return respond(500, "Unable to deactivate campaign: " + err, false);
+						success(true)
 					});
-				});
+				})
+				.then(() => {
+					return editCampaign(entity, campaignId, {
+						active: false
+					})
+				})
 			} else {
-				editCampaign(entity, campaignId, {
+				return editCampaign(entity, campaignId, {
 					active: false,
 					status: "CANCELLED"
+				})
+			}
 				}).then(function(data) {
 					return respond(200, "Campaign stoppped.", true);
 				}, function (err) {
 					return respond(500, "Unable to deactivate campaign: " + err, false);
-				});
-			}
-		});
-
+		})
 	}, function (err) {
 		return respond(500, "Error retrieving campaign: " + err, false);
 	});

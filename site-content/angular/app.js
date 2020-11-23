@@ -76,6 +76,7 @@ angular
 				"NetNTLMv2",
 				"WPA/WPA2",
 				"WPA/WPA2 PMK"
+				"Kerberos 5 TGS-REP etype 23"
 			];
 
 			result = {};

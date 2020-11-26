@@ -5,6 +5,22 @@ angular
     		return JSON.stringify(what, null, ' ').trim();
     	};
     })
+    .filter('equals', function() {
+    	return function(items, equals) {
+    		if (typeof items != "object") {
+				return "Equals filter requires object";
+			}
+
+			var answer = false;
+			Object.keys(items).forEach(function (e) {
+				if (items[e] == equals) {
+					answer = e;
+				}
+			});
+
+			return answer;
+    	}
+    })
 	.filter('count', function() {
 		return function(items) {
 			if (items == null) {

@@ -25,7 +25,7 @@ module.exports = {
       "us-east-2c": "${us-east-2c}"
    },
    "us-west-1": {
-      "us-west-1b": "${us-west-1b}",
+      "us-west-1a": "${us-west-1a}",
       "us-west-1c": "${us-west-1c}"
    },
    "us-west-2": {

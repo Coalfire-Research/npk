@@ -7,7 +7,9 @@ var fs 			= require('fs');
 var aws			= require('aws-sdk');
 var uuid		= require('uuid/v4');
 var ddbTypes 	= require('dynamodb-data-types').AttributeValue;
-var settings	= require('./npk_settings');
+var settings = JSON.parse(JSON.stringify(process.env));
+settings.availabilityZones = JSON.parse(settings.availabilityZones);
+
 var cb = "";
 var lambdaEvent = {};
 

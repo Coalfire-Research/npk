@@ -14,5 +14,9 @@
   },
   "awsProfile": "npk",
   "criticalEventsSMS": "+13035551234",
-  "adminEmail": "demo@npkproject.io"
+  "adminEmail": "demo@npkproject.io",
+  "debug_lambda": false
+
+  "useSAML": false,
+  "sAMLMetadataDocument": "/home/self/Documents/CorpSAMLMetadata.xml"
 }

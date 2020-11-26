@@ -15,13 +15,20 @@
           <div class="card-header bg-transparent text-white border-secondary-light">
             New Campaign
             <div class="card-action">
+              <div class="btn btn-sm btn-outline-warning waves-effect waves-light m-1 card-action" style="padding: 3px 10px;" onClick="window.switchers.use_advanced.switcher.click();" ng-click="toggleAdvancedView()">
+                <span style="margin-right: 8px;">
+                  <i class="fa fa-plus"></i>
+                  <span>Advanced View</span>
+                </span>
+                <input type="checkbox" name="use_advanced" id="use_advanced" class="js-switch" data-color="#ff9700" data-size="small" />
+              </div>
             </div>
           </div>
           <div class="card-body text-center">
              
             <!-- Start campaign form -->
             <form>
-              <div class="row">
+              <div class="row" ng-show="!showAdvanced">
                 <div class="col-lg-3" style="margin-top: 20px;">
                   <div class="card border border-white shadow-none">
                     <div class="card-header bg-dark text-white">
@@ -118,6 +125,240 @@
                               <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == idealP3Instance.instanceType)}, {'btn-secondary': (selectedInstance != idealP3Instance.instanceType)}]" ng-click="pickInstance(idealP3Instance)">
                                 Select
                               </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row" ng-show="showAdvanced">
+                <div class="col-lg-3" style="margin-top: 20px;">
+                  <div class="card border border-white shadow-none">
+                    <div class="card-header bg-dark text-white">
+                      Hash Type
+                    </div>
+                    <div class="card-body text-center">
+                      <div class="form-group row">
+                        <label for="mask" class="col-sm-6 col-form-label">Hash Type</label>
+                        <div class="col-sm-6 input-group">
+                          <input id="mask" type="text" name="mask" class="form-control" ng-model="hashType">
+                        </div>
+                      </div>
+                      {{ pricingSvc.hashTypes | equals:hashType }}
+                    </div>
+                  </div>
+                  <div class="card border border-white shadow-none">
+                    <div class="card-body text-center">
+                      <b>Force Region</b>
+                      <div class="btn-group m-1">
+                        <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-west-1'}" ng-click="pickForcedRegion('us-west-1')">
+                          West-1
+                        </button>
+                        <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-west-2'}" ng-click="pickForcedRegion('us-west-2')">
+                          West-2
+                        </button>
+                        <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-east-1'}" ng-click="pickForcedRegion('us-east-1')">
+                          East-1
+                        </button>
+                        <button class="btn btn-sm border-secondary btn-secondary waves-effect waves-light">
+                          <s>East-2</s>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-9">
+                  <div class="card border-right-sm border-left-sm border-success shadow-none">
+                    <div class="card-body bg-dark" style="padding: 4px;">
+                      <div class="row">
+                        <div class="col-lg-4">
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'g3')}]" style="margin-bottom: 0px;" id="g3">
+                            <div class="row">
+                              <div class="col-lg-12">
+                                <div class="card-header bg-dark text-white">
+                                  G3 Instances
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'g3')}]" style="margin-bottom: 0px;" id="g3">
+                            <div class="row">
+                              <div class="col-lg-8">
+                                <div class="card-header">
+                                  <h5 style="margin-bottom: 2px;">4xlarge</h5>
+                                  <small>${{ pricingSvc.spotPrice['g3.4xlarge'].price | number:2 }} /Hr @ {{ pricingSvc.spotPrice['g3.4xlarge'].cheapestRegion }}</small>
+                                  <br>
+                                  {{ (instances.g3.hashes == "-") ? "-" : (instances.g3.hashes / pricingSvc.spotPrice['g3.4xlarge'].price) | toHs }}/$
+                                </div>
+                              </div>
+                              <div class="col-lg-4">
+                                <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == 'g3.4xlarge')}, {'btn-secondary': (selectedInstance != 'g3.4xlarge')}]" style="top: 22px;" ng-click="pickInstanceFromSpot('g3.4xlarge')">
+                                  &lt;
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'g3')}]" style="margin-bottom: 0px;" id="g3">
+                            <div class="row">
+                              <div class="col-lg-8">
+                                <div class="card-header">
+                                  <h5 style="margin-bottom: 2px;">8xlarge</h5>
+                                  <small>${{ pricingSvc.spotPrice['g3.8xlarge'].price | number:2 }} /Hr @ {{ pricingSvc.spotPrice['g3.8xlarge'].cheapestRegion }}</small>
+                                  <br>
+                                  {{ (instances.g3.hashes == "-") ? "-" : (instances.g3.hashes / pricingSvc.spotPrice['g3.8xlarge'].price * 2) | toHs }}/$
+                                </div>
+                              </div>
+                              <div class="col-lg-4">
+                                <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == 'g3.8xlarge')}, {'btn-secondary': (selectedInstance != 'g3.8xlarge')}]" style="top: 22px;" ng-click="pickInstanceFromSpot('g3.8xlarge')">
+                                  &lt;
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'g3')}]" style="margin-bottom: 0px;" id="g3">
+                            <div class="row">
+                              <div class="col-lg-8">
+                                <div class="card-header">
+                                  <h5 style="margin-bottom: 2px;">16xlarge</h5>
+                                  <small>${{ pricingSvc.spotPrice['g3.16xlarge'].price | number:2 }} /Hr @ {{ pricingSvc.spotPrice['g3.16xlarge'].cheapestRegion }}</small>
+                                  <br>
+                                  {{ (instances.g3.hashes == "-") ? "-" : (instances.g3.hashes / pricingSvc.spotPrice['g3.16xlarge'].price * 4) | toHs }}/$
+                                </div>
+                              </div>
+                              <div class="col-lg-4">
+                                <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == 'g3.16xlarge')}, {'btn-secondary': (selectedInstance != 'g3.16xlarge')}]" style="top: 22px;" ng-click="pickInstanceFromSpot('g3.16xlarge')">
+                                  &lt;
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'g3')}]" style="margin-bottom: 0px;" id="g3">
+                            <div class="row">
+                              <div class="col-lg-12">
+                                <div class="card-header bg-dark text-white">
+                                  P2 Instances
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'g3')}]" style="margin-bottom: 0px;" id="g3">
+                            <div class="row">
+                              <div class="col-lg-8">
+                                <div class="card-header">
+                                  <h5 style="margin-bottom: 2px;">xlarge</h5>
+                                  <small>${{ pricingSvc.spotPrice['p2.xlarge'].price | number:2 }} /Hr @ {{ pricingSvc.spotPrice['p2.xlarge'].cheapestRegion }}</small>
+                                  <br>
+                                  {{ (instances.p2.hashes == "-") ? "-" : (instances.p2.hashes / pricingSvc.spotPrice['p2.xlarge'].price) | toHs }}/$
+                                </div>
+                              </div>
+                              <div class="col-lg-4">
+                                <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == 'p2.xlarge')}, {'btn-secondary': (selectedInstance != 'p2.xlarge')}]" style="top: 22px;" ng-click="pickInstanceFromSpot('p2.xlarge')">
+                                  &lt;
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'p2')}]" style="margin-bottom: 0px;" id="p2">
+                            <div class="row">
+                              <div class="col-lg-8">
+                                <div class="card-header">
+                                  <h5 style="margin-bottom: 2px;">8xlarge</h5>
+                                  <small>${{ pricingSvc.spotPrice['p2.8xlarge'].price | number:2 }} /Hr @ {{ pricingSvc.spotPrice['p2.8xlarge'].cheapestRegion }}</small>
+                                  <br>
+                                  {{ (instances.p2.hashes == "-") ? "-" : (instances.p2.hashes / pricingSvc.spotPrice['p2.8xlarge'].price * 8) | toHs }}/$
+                                </div>
+                              </div>
+                              <div class="col-lg-4">
+                                <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == 'p2.8xlarge')}, {'btn-secondary': (selectedInstance != 'p2.8xlarge')}]" style="top: 22px;" ng-click="pickInstanceFromSpot('p2.8xlarge')">
+                                  &lt;
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'p2')}]" style="margin-bottom: 0px;" id="p2">
+                            <div class="row">
+                              <div class="col-lg-8">
+                                <div class="card-header">
+                                  <h5 style="margin-bottom: 2px;">16xlarge</h5>
+                                  <small>${{ pricingSvc.spotPrice['p2.16xlarge'].price | number:2 }} /Hr @ {{ pricingSvc.spotPrice['p2.16xlarge'].cheapestRegion }}</small>
+                                  <br>
+                                  {{ (instances.p2.hashes == "-") ? "-" : (instances.p2.hashes / pricingSvc.spotPrice['p2.16xlarge'].price * 16) | toHs }}/$
+                                </div>
+                              </div>
+                              <div class="col-lg-4">
+                                <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == 'p2.16xlarge')}, {'btn-secondary': (selectedInstance != 'p2.16xlarge')}]" style="top: 22px;" ng-click="pickInstanceFromSpot('p2.16xlarge')">
+                                  &lt;
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm"  style="margin-bottom: 0px;" id="g3">
+                            <div class="row">
+                              <div class="col-lg-12">
+                                <div class="card-header bg-dark text-white" ng-class="[{'text-success': (idealInstance == 'p3')}]">
+                                  P3 Instances
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" style="margin-bottom: 0px;" id="p3">
+                            <div class="row">
+                              <div class="col-lg-8">
+                                <div class="card-header">
+                                  <h5 style="margin-bottom: 2px;">2xlarge</h5>
+                                  <small>${{ pricingSvc.spotPrice['p3.2xlarge'].price | number:2 }} /Hr @ {{ pricingSvc.spotPrice['p3.2xlarge'].cheapestRegion }}</small>
+                                  <br>
+                                  {{ (instances.p3.hashes == "-") ? "-" : (instances.p3.hashes / pricingSvc.spotPrice['p3.2xlarge'].price) | toHs }}/$
+                                </div>
+                              </div>
+                              <div class="col-lg-4">
+                                <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == 'p3.2xlarge')}, {'btn-secondary': (selectedInstance != 'p3.2xlarge')}]" style="top: 22px;" ng-click="pickInstanceFromSpot('p3.2xlarge')">
+                                  &lt;
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" style="margin-bottom: 0px;" id="p3">
+                            <div class="row">
+                              <div class="col-lg-8">
+                                <div class="card-header">
+                                  <h5 style="margin-bottom: 2px;">8xlarge</h5>
+                                  <small>${{ pricingSvc.spotPrice['p3.8xlarge'].price | number:2 }} /Hr @ {{ pricingSvc.spotPrice['p3.8xlarge'].cheapestRegion }}</small>
+                                  <br>
+                                  {{ (instances.p3.hashes == "-") ? "-" : (instances.p3.hashes / pricingSvc.spotPrice['p3.8xlarge'].price * 4) | toHs }}/$
+                                </div>
+                              </div>
+                              <div class="col-lg-4">
+                                <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == 'p3.8xlarge')}, {'btn-secondary': (selectedInstance != 'p3.8xlarge')}]" style="top: 22px;" ng-click="pickInstanceFromSpot('p3.8xlarge')">
+                                  &lt;
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" style="margin-bottom: 0px;" id="p3">
+                            <div class="row">
+                              <div class="col-lg-8">
+                                <div class="card-header">
+                                  <h5 style="margin-bottom: 2px;">16xlarge</h5>
+                                  <small>${{ pricingSvc.spotPrice['p3.16xlarge'].price | number:2 }} /Hr @ {{ pricingSvc.spotPrice['p3.16xlarge'].cheapestRegion }}</small>
+                                  <br>
+                                  {{ (instances.p3.hashes == "-") ? "-" : (instances.p3.hashes / pricingSvc.spotPrice['p3.16xlarge'].price * 8) | toHs }}/$
+                                </div>
+                              </div>
+                              <div class="col-lg-4">
+                                <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == 'p3.16xlarge')}, {'btn-secondary': (selectedInstance != 'p3.16xlarge')}]" style="top: 22px;" ng-click="pickInstanceFromSpot('p3.16xlarge')">
+                                  &lt;
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>

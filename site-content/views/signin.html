@@ -31,6 +31,24 @@
 			 	<img height="15px" width="15px" style="margin-right: 5px;" src="/assets/images/loading.gif" ng-show="active">
 			 	<div ng-hide="active" style="display: inline-block;">Sign In</div>
 			 </button>
+			</form>
+
+
+			 <div ng-show="useSamlSSO" class="text-uppercase text-center py-3">
+				 <hr>
+				 
+			 	SSO Users
+			 
+			 	<a ng-href="{{ samlSSOURL }}" class="text-white">
+	                <button ng-show="useSamlSSO" type="button" class="btn btn-round btn-block waves-effect waves-light btn-secondary">
+					 	<img height="15px" width="15px" style="margin-right: 5px;" src="/assets/images/loading.gif" ng-show="active">
+						<div ng-hide="active" style="display: inline-block;">
+							Sign In with SAML
+						</div>
+					</button>
+				</a>
+			 </div>
+
 			 <div class="form-row mr-0 ml-0">
 			 <div class="col-12 text-center">
 			 	&nbsp;<br />
@@ -38,7 +56,6 @@
 			  <small><a ng-href="#/forgot">Reset Password</a></small>
 			 </div>
 			</div>
-			 </form>
 		   </div>
 		  </div>
 	     </div>

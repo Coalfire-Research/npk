@@ -11,6 +11,12 @@ angular.module('app')
 			'cognito-idp.us-west-2.amazonaws.com/${user_pool_id}': ""
 		}
 	})
+	.constant('SAMLSSO', {
+		"useSamlSSO": "${use_SAML}",
+		"SAMLDomain": "${saml_domain}",
+		"SAMLRedirectUrl": "${saml_redirect}",
+		"SAMLIdp": "NPKSAML"
+	})
 	.constant('USERDATA_BUCKET', "${userdata_bucket}")
 	.constant('APIGATEWAY_URL', "${api_gateway_url}")
 	;

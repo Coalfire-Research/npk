@@ -4,8 +4,11 @@
 "use strict";
 
 var cb = "";
-var aws	= require('aws-sdk');
-var settings = require('./npk_settings');
+var AWSXRay 	= require('aws-xray-sdk');
+var aws			= AWSXRay.captureAWS(require('aws-sdk'));
+var settings = JSON.parse(JSON.stringify(process.env));
+settings.availabilityZones = JSON.parse(settings.availabilityZones);
+
 var ddbTypes 	= require('dynamodb-data-types').AttributeValue;
 
 aws.config.apiVersions = {
@@ -116,7 +119,7 @@ var listSpotFleetRequests = function(region) {
 	return new Promise((success, failure) => {
 		ec2.describeSpotFleetRequests({}, function(err, data) {
 			if (err) {
-				return failure(cb("Failed retrieving spot fleet information."));
+				return failure(cb("Failed retrieving spot fleet information." + err));
 			}
 
 			data.SpotFleetRequestConfigs.forEach(function(e) {
@@ -302,6 +305,7 @@ var evaluateAllSpotInstances = function() {
 
 	var promises = [];
 	Object.keys(availabilityZones).forEach(function(region) {
+		console.log(region);
 		promises.push(listSpotFleetRequests(region));
 		promises.push(listSpotInstanceRequests(region));
 	});

@@ -9,7 +9,8 @@
   "author": "Brad Woodward (brad@bradwoodward.io)",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.363.0",
+    "aws-sdk": "^2.599.0",
+    "aws-xray-sdk": "^2.5.0",
     "dynamodb-data-types": "^3.0.1"
   }
 }

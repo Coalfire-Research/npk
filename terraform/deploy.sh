@@ -21,6 +21,16 @@ if [[ ! -f $(which npm) ]]; then
 	echo "Error: Must have NPM installed.";
 fi
 
+if [[ ! -f $(which terraform) ]]; then
+	ERR=1;
+	echo "Error: Must have Terraform installed.";
+fi
+
+if [[ "$(terraform -v | grep v0.11 | wc -l)" != "1" ]]; then
+	ERR=1;
+	echo "Error: Wrong version of Terraform is installed. NPK requires Terraform v0.11.";
+fi
+
 if [[ "$ERR" == "1" ]]; then
 	echo -e "\nInstall missing components, then try again.\n"
 	exit 1
@@ -73,16 +83,8 @@ echo "[*] Generating Terraform configurations"
 # Generate terraform configs
 jsonnet -m . terraform.jsonnet
 
-echo "[*] Creating dynamic templates"
-# Inject the dynamic template content into the template
-cat templates/api_handler_variables-fresh.tpl > templates/api_handler_variables.tpl
-cat template-inject_api_handler.json >> templates/api_handler_variables.tpl
-cat templates/npk_settings-fresh.tpl > templates/npk_settings.tpl
-cat template-inject_api_handler.json | jq -r 'to_entries | map( {(.key) : (.value | keys)}) | add' >> templates/npk_settings.tpl
-
-echo -n "}" >> templates/api_handler_variables.tpl
-echo -n "}" >> templates/npk_settings.tpl
-
 terraform init
 terraform apply -auto-approve
-terraform apply -auto-approve	# Yes, userdata.sh is an unresolvable cyclical dependency. I am ashamed.
+
+# terraform apply -auto-approve	# Yes, userdata.sh is an unresolvable cyclical dependency. I am ashamed.
+

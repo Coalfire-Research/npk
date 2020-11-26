@@ -4,10 +4,14 @@
 "use strict";
 
 var fs 			= require('fs');
-var aws			= require('aws-sdk');
+var AWSXRay 	= require('aws-xray-sdk');
+var aws			= AWSXRay.captureAWS(require('aws-sdk'));
 var uuid		= require('uuid/v4');
 var ddbTypes 	= require('dynamodb-data-types').AttributeValue;
-var variables	= require('./api_handler_variables');
+var variables	= JSON.parse(JSON.stringify(process.env));
+variables.availabilityZones = JSON.parse(variables.availabilityZones);
+variables.dictionaryBuckets = JSON.parse(variables.dictionaryBuckets);
+
 var cb = "";
 var origin = "";
 
@@ -30,7 +34,7 @@ var allowed_regions = [
 	"us-west-1",
 	"us-west-2",
 	"us-east-1",
-	"us-east-2",
+	"us-east-2"
 ];
 
 var allowed_intances = [
@@ -47,6 +51,10 @@ var allowed_intances = [
 	"p3.8xlarge",
 	"p3.16xlarge"
 ];
+
+process.on('unhandledRejection', error => {
+	console.log('unhandledRejection', error.message);
+});
 
 Object.prototype.require = function (elements) {
 	var self = this;
@@ -120,7 +128,7 @@ function getCampaign(entity, campaign) {
 			TableName: "Campaigns"
 		}, function (err, data) {
 			if (err) {
-				return failure(respond(500, "Unable to retrieve active campaigns.", false));
+				return failure(respond(500, "Unable to retrieve active campaigns. " + err, false));
 			}
 
 			return success(data);
@@ -147,8 +155,6 @@ function editCampaign(entity, campaign, values) {
 			TableName: "Campaigns",
 			AttributeUpdates: values
 		};
-
-		// console.log(JSON.stringify(ddbParams));
 
 		db.updateItem(ddbParams, function (err, data) {
 			if (err) {
@@ -179,8 +185,6 @@ function deleteCampaign(entity, campaign) {
 
 			data.Items.forEach(function(c) {
 				var campaign = ddbTypes.unwrap(c);
-
-				console.log(campaign);
 
 				promises.push(
 					new Promise((success, failure) => {
@@ -237,8 +241,6 @@ function getObjectAverage(what) {
 		sum += Number(what[e]);
 		count++;
 	});
-
-	console.log(sum, count);
 
 	return sum / count;
 }
@@ -463,7 +465,7 @@ function createCampaign(entity, campaign) {
 		});
 
 		s3dict = new aws.S3({region: campaign.region});
-		var bucket = variables.dictionary_buckets[campaign.region];
+		var bucket = variables.dictionaryBuckets[campaign.region];
 
 		// Verify dictionary
 		promises.push(new Promise((success, failure) => {
@@ -806,76 +808,67 @@ function executeCampaign(entity, campaignId) {
 	// return respond(200, "Campaign " + campaignId + " started.", true);
 }
 
-function stopCampaign(entity, campaignId) {
+function stopCampaign(entity, campaign) {
 
-	return getCampaign(entity, campaignId).then(function (data) {
-		if (data.Items.length < 1) {
-			return respond(404, "Campaign " + campaignId + " not found", false);
-		}
+	return new Promise((success, failure) => {
+		var campaignId = campaign.keyid.split(':')[1];
+		var ec2 = new aws.EC2({region: campaign.region});
 
-		var campaign = ddbTypes.unwrap(data.Items[0]);
-		var ec2 = new aws.EC2({
-			region: campaign.region
-		});
+		console.log("Starting EC2 call");
+		ec2.describeSpotFleetRequests({
+			SpotFleetRequestIds: [campaign.spotFleetRequestId]
+		}, function(err, fleet) {
 
-		// Can be simplified by calling .promise() on the AwsRequest objects
-		return new Promise((success, failure) => {
-			ec2.describeSpotFleetRequests({
-				SpotFleetRequestIds: [campaign.spotFleetRequestId]
-			}, function (err, fleet) {
-				if (err) {
-					return failure(respond(500, "Error retrieving spot fleet data: " + err, false));
-				}
+			if (err) {
+				return failure(respond(500, "Error retrieving spot fleet data: " + err, false));
+			}
 
-				if (fleet.SpotFleetRequestConfigs.length < 1) {
-					// TODO: Set the campaign to inactive if this result is reliable enough.
-					return failure(respond(404, "Error retrieving spot fleet data: not found.", false));
-				}
+			if (fleet.SpotFleetRequestConfigs.length < 1) {
+				// TODO: Set the campaign to inactive if this result is reliable enough.
+				return failure(respond(404, "Error retrieving spot fleet data: not found.", false));
+			}
 
 				success(fleet.SpotFleetRequestConfigs[0])
 			})
 		}).then(request => {
 			if (request.SpotFleetRequestState == "active") {
-				return new Promise((success, failure) => {
-						ec2.cancelSpotFleetRequests({
-							SpotFleetRequestIds: [campaign.spotFleetRequestId],
-							TerminateInstances: true
-						}, function (err, response) {
-							if (err) {
-								return failure(respond(500, "Error cancelling spot fleet: " + err, false));
-							}
+				ec2.cancelSpotFleetRequests({
+					SpotFleetRequestIds: [campaign.spotFleetRequestId],
+					TerminateInstances: true
+				}, function(err, response) {
+					if (err) {
+						return failure(respond(500, "Error cancelling spot fleet: " + err, false));
+					}
 
 							console.log(response);
 
-							if (response.SuccessfulFleetRequests.length < 1) {
-								return failure(respond(500, "Error cancelling spot fleet: " + err, false));
-							}
+					if (response.SuccessfulFleetRequests.length < 1) {
+						return failure(respond(500, "Error cancelling spot fleet: " + err, false));
+					}
 
-							if (response.SuccessfulFleetRequests[0].CurrentSpotFleetRequestState.indexOf('cancelled') < 0) {
-								return failure(respond(400, "Error cancelling spot fleet. Current state: " + response.SuccessfulFleetRequests[0].CurrentSpotFleetRequestState, false));
-							}
+					if (response.SuccessfulFleetRequests[0].CurrentSpotFleetRequestState.indexOf('cancelled') < 0) {
+						return failure(respond(400, "Error cancelling spot fleet. Current state: " + response.SuccessfulFleetRequests[0].CurrentSpotFleetRequestState, false));
+					}
 
-							success(true)
-						});
-					})
-					.then(() => {
-						return editCampaign(entity, campaignId, {
-							active: false
-						})
-					})
+					editCampaign(entity, campaignId, {
+						active: false
+					}).then(function(data) {
+						return success(respond(200, "Campaign stoppped.", true));
+					}, function (err) {
+						return failure(respond(500, "Unable to deactivate campaign: " + err, false));
+					});
+				});
 			} else {
 				return editCampaign(entity, campaignId, {
 					active: false,
 					status: "CANCELLED"
-				})
+				}).then(function(data) {
+					return success(respond(200, "Campaign stoppped.", true));
+				}, function (err) {
+					return failure(respond(500, "Unable to deactivate campaign: " + err, false));
+				});
 			}
-		}).then(function (data) {
-			return respond(200, "Campaign stoppped.", true);
-		}, function (err) {
-			return respond(500, "Unable to deactivate campaign: " + err, false);
 		})
-	}, function (err) {
-		return respond(500, "Error retrieving campaign: " + err, false);
 	});
 }
 
@@ -907,17 +900,17 @@ function processHttpRequest(path, method, entity, body) {
 					case "DELETE":
 						return getCampaign(entity, params[1]).then((data) => {
 
-							console.log(data);
-
 							if (data.Items.length < 1) {
 								return respond(404, "Invalid campaign", false);
 							}
 
 							data = ddbTypes.unwrap(data.Items[0]);
 
-							if (data.status == "RUNNING") {
-								return stopCampaign(entity, params[1]);
+							if (data.status == "RUNNING" || data.status == "STARTING") {
+								console.log("Stopping campaign " + params[1]);
+								return stopCampaign(entity, data);
 							} else {
+								console.log("Deleting campaign " + params[1]);
 								return deleteCampaign(entity, params[1]);
 							}
 						});
@@ -938,7 +931,7 @@ function respond(statusCode, body, success) {
 
 
 	// Include terraform dns names as allowed origins, as well as localhost.
-	var allowed_origins = variables.www_dns_names;
+	var allowed_origins = JSON.parse(variables.www_dns_names);
 	allowed_origins.push("https://localhost");
 
 	var headers = {'Content-Type': 'text/plain'};
@@ -957,11 +950,15 @@ function respond(statusCode, body, success) {
 		break;
 	}
 
-	cb(null, {
+	var response = {
 		statusCode: statusCode,
 		headers: headers,
 		body: JSON.stringify(body),
-	});
+	}
+
+	console.log(JSON.stringify(response));
+
+	cb(null, response);
 
 	if (success == true) {
 		return Promise.resolve(body.msg);
@@ -1027,7 +1024,7 @@ exports.main = function(event, context, callback) {
 		return processHttpRequest(event.pathParameters.proxy, event.httpMethod, event.requestContext.identity.cognitoIdentityId, body);
 
 	} catch (e) {
-		console.log(e);
+		console.log("Fail", e);
 		respond(500, "Unknown Error", false);
 	}
 };

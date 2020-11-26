@@ -9,7 +9,11 @@
 						}
 					}],
 
-					"depends_on": ["local_file.npk_config", "aws_s3_bucket.static_site"]
+					"depends_on": ["local_file.npk_config", "aws_s3_bucket.static_site"],
+					"triggers": {
+						"always-trigger": "${timestamp()}"
+					}
+
 				}
 			}
 		}

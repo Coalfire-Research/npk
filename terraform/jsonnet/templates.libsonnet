@@ -17,49 +17,29 @@ local az(region) = {
 					"user_pool_id": "${aws_cognito_user_pool.npk.id}",
 					"identity_pool_id": "${aws_cognito_identity_pool.main.id}",
 					"userdata_bucket": "${aws_s3_bucket.user_data.id}",
+					"use_SAML": "${var.useSAML}",
+					"saml_domain": "",
+					"saml_redirect": "",
 					"api_gateway_url": if settings.useCustomDNS then
 							settings.dnsNames.api[0]
 						else
 							"${element(split(\"/\", aws_api_gateway_deployment.npk.invoke_url), 2)}"
-				}
-			},
-			"api_handler_variables": {
-				"template": "${file(\"${path.module}/templates/api_handler_variables.tpl\")}",
-
-				"vars": {
-					"www_dns_name": std.toString(settings.dnsNames.www),
-					"use1": "${var.dictionary-east-1-id}",
-					"use2": "${var.dictionary-east-2-id}",
-					"usw1": "${var.dictionary-west-1-id}",
-					"usw2": "${var.dictionary-west-2-id}",
-					"campaign_max_price": "${var.campaign_max_price}",
-					"userdata": "${aws_s3_bucket.user_data.id}",
-					"instanceProfile": "${aws_iam_instance_profile.npk_node.arn}",
-					"iamFleetRole": "${aws_iam_role.npk_fleet_role.arn}"
-				} + {
-					[settings.regions[regionKeys[i]][azi]]: "${aws_subnet." + settings.regions[regionKeys[i]][azi] + ".id}"
-						for i in std.range(0, std.length(regionKeys) - 1)
-						for azi in std.range(0, std.length(settings.regions[regionKeys[i]]) - 1)
-				}
-			},
-			"lambda_functions_settings": {
-				"template": "${file(\"${path.module}/templates/npk_settings.tpl\")}",
-
-				"vars": {
-					"www_dns_name": std.toString(settings.dnsNames.www),
-					"region": "${var.region}",
-					"campaign_max_price": "${var.campaign_max_price}",
-					"critical_events_sns_topic": "${aws_sns_topic.critical_events.id}"
-				}
+				} + (if settings.useSAML == true && settings.useCustomDNS == false then {
+					"saml_domain": "${aws_cognito_user_pool_domain.saml.domain}.auth.us-west-2.amazoncognito.com",
+					"saml_redirect": "https://${aws_cloudfront_distribution.npk.domain_name}"
+				} else {}) + (if settings.useSAML == true && settings.useCustomDNS == true then {
+					"saml_domain": "auth." + settings.dnsNames.www[0],
+					"saml_redirect": "https://" + settings.dnsNames.www[0]
+				} else {})
 			},
 			"userdata_template": {
 				"template": "${file(\"${path.module}/templates/userdata.tpl\")}",
 
 				"vars": {
-					"use1": "${var.dictionary-east-1-id}",
-					"use2": "${var.dictionary-east-2-id}",
-					"usw1": "${var.dictionary-west-1-id}",
-					"usw2": "${var.dictionary-west-2-id}",
+					"dictionaryBuckets": std.strReplace(std.manifestJsonEx({
+						[regionKeys[i]]: "${var.dictionary-" + regionKeys[i] + "-id}"
+						for i in std.range(0, std.length(regionKeys) - 1)
+					}, ""), "\n", ""),
 					"userdata": "${aws_s3_bucket.user_data.id}",
 					"apigateway": if settings.useCustomDNS then
 							settings.dnsNames.api[0]
@@ -74,18 +54,6 @@ local az(region) = {
 			"npk_config": {
 				"content": "${data.template_file.npk_config.rendered}",
 				"filename": "${path.module}/../site-content/angular/npk_config.js",
-			},
-			"api_handler_variables": {
-				"content": "${data.template_file.api_handler_variables.rendered}",
-				"filename": "${path.module}/lambda_functions/proxy_api_handler/api_handler_variables.js",
-			},
-			"lambda_functions_settings-spot_monitor": {
-				"content": "${data.template_file.lambda_functions_settings.rendered}",
-				"filename": "${path.module}/lambda_functions/spot_monitor/npk_settings.js",
-			},
-			"lambda_functions_settings-status_reporter": {
-				"content": "${data.template_file.lambda_functions_settings.rendered}",
-				"filename": "${path.module}/lambda_functions/status_reporter/npk_settings.js",
 			},
 			"userdata_template": {
 				"content": "${data.template_file.userdata_template.rendered}",

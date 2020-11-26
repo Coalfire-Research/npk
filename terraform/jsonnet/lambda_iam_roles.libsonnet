@@ -1,5 +1,7 @@
+
+
 {
-	"resource": {
+	resource(settings):: {
 		"aws_iam_role": {
 			"lambda_proxy_api_handler": {
 				"name_prefix": "npk_lambda_api_handler_role_",
@@ -46,8 +48,31 @@
 				"policy": "${data.aws_iam_policy_document.lambda_spot_monitor.json}",
 			}
 		}
-	},
-	"data": {
+	} + if std.objectHas(settings, "debug_lambda") && settings.debug_lambda == true then {
+		"aws_iam_policy_attachment": {
+			"lambda_proxy_api_handler-xray": {
+				"name": "lambda_proxy_api_handler-xray",
+				"roles": ["${aws_iam_role.lambda_proxy_api_handler.id}"],
+
+				"policy_arn": "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
+			},
+			"lambda_status_reporter-xray": {
+				"name": "lambda_status_reporter-xray",
+				"roles": ["${aws_iam_role.lambda_status_reporter.id}"],
+
+				"policy_arn": "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
+			},
+			"lambda_spot_monitor-xray": {
+				"name": "lambda_spot_monitor-xray",
+				"roles": ["${aws_iam_role.lambda_spot_monitor.id}"],
+
+				"policy_arn": "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
+			}
+		}
+	} else {},
+	data(settings)::
+	local regionKeys = std.objectFields(settings.regions);
+	{
 		"aws_iam_policy_document": {
 			"lambda_proxy_api_handler": {
 				"statement": [{
@@ -84,10 +109,8 @@
 						"s3:GetObject"
 					],
 					"resources": [
-						"${var.dictionary-east-1}/*",
-						"${var.dictionary-east-2}/*",
-						"${var.dictionary-west-1}/*",
-						"${var.dictionary-west-2}/*"
+						"${var.dictionary-" + regionKeys[i] + "}/*"
+						for i in std.range(0, std.length(regionKeys) - 1)
 					]
 				},{
 					"sid": "4",

@@ -1,4 +1,5 @@
 *.auto.tfvars
+*.pem
 !terraform/dictionaries.auto.tfvars
 */.terraform*
 *.tfstate

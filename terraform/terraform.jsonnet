@@ -43,7 +43,9 @@ local regionKeys = std.objectFields(settings.regions);
 				["www-" + i]: defaultResource + acm.certificate(settings.dnsNames.www[i]) for i in std.range(0, std.length(settings.dnsNames.www) - 1)
 			} + {
 				["api-" + i]: defaultResource + acm.certificate(settings.dnsNames.api[i]) for i in std.range(0, std.length(settings.dnsNames.api) - 1)
-			}
+			} + if settings.useSAML == true && settings.useCustomDNS == true then {
+				"saml": acm.certificate("auth." + settings.dnsNames.www[0])
+			} else {}
 		} + if std.type(settings.route53Zone) == "string" then {
 			"aws_route53_record": {
 				["acm-validation-www-" + i]: acm.route53_record(
@@ -59,7 +61,14 @@ local regionKeys = std.objectFields(settings.regions);
 					"${aws_acm_certificate.api-" + i + ".domain_validation_options.0.resource_record_value}",
 					settings.route53Zone
 				) for i in std.range(0, std.length(settings.dnsNames.api) - 1)
-			},
+			} + if settings.useSAML == true && settings.useCustomDNS == true then {
+				"saml": acm.route53_record(
+					"${aws_acm_certificate.saml.domain_validation_options.0.resource_record_name}",
+					"${aws_acm_certificate.saml.domain_validation_options.0.resource_record_type}",
+					"${aws_acm_certificate.saml.domain_validation_options.0.resource_record_value}",
+					settings.route53Zone
+				)
+			} else {},
 			"aws_acm_certificate_validation": {
 				["www-" + i]: acm.certificate_validation(
 					"${aws_acm_certificate.www-" + i + ".arn}",
@@ -70,7 +79,12 @@ local regionKeys = std.objectFields(settings.regions);
 					"${aws_acm_certificate.api-" + i + ".arn}",
 					"${aws_route53_record.acm-validation-api-" + i + ".fqdn}"
 				) for i in std.range(0, std.length(settings.dnsNames.api) - 1)
-			}
+			} + if settings.useSAML == true && settings.useCustomDNS == true then {
+				"saml": acm.certificate_validation(
+					"${aws_acm_certificate.saml.arn}",
+					"${aws_route_53_record.acm-vallidation-saml.fqdn}"
+				)
+			} else {}
 		} else {}
 	} + if std.type(settings.route53Zone) != "string" then {
 		"output": {
@@ -108,7 +122,8 @@ local regionKeys = std.objectFields(settings.regions);
 	},
 	'cloudwatch.tf.json': cloudwatch,
 	'cognito_iam_roles.tf.json': {
-		"resource": cognito_iam_roles
+		"resource": cognito_iam_roles.resource,
+		"data": cognito_iam_roles.data(settings)
 	},
 	'cognito.tf.json': {
 		"resource": cognito.resource(settings),
@@ -157,11 +172,24 @@ local regionKeys = std.objectFields(settings.regions);
 					"key_name": "npk-key",
 					"public_key": "${tls_private_key.ssh.public_key_openssh}"
 				} for region in regionKeys
+			},
+			"local_file": {
+				"ssh_key": {
+					"sensitive_content": "${tls_private_key.ssh.private_key_pem}",
+					"filename": "${path.module}/npk.pem",
+					"file_permission": "0600"
+				}
 			}
 		}
 	},
-	'lambda_functions.tf.json': lambda_functions,
-	'lambda_iam_roles.tf.json': lambda_iam_roles,
+	'lambda_functions.tf.json': {
+		"resource": lambda_functions.resources(settings),
+		"data": lambda_functions.data
+	},
+	'lambda_iam_roles.tf.json': {
+		"resource": lambda_iam_roles.resource(settings),
+		"data": lambda_iam_roles.data(settings)
+	},
 	'null_resources.tf.json': null_resources.resource(settings),
 	'provider-aws.tf.json': {
 		"provider": [
@@ -321,12 +349,13 @@ local regionKeys = std.objectFields(settings.regions);
 			for i in std.range(0, std.length(regionKeys) - 1)
 	},
 	'variables.tf.json': {
-		"variable": variables.variables + {
+		"variable": variables.variables(settings) + {
 			"access_key": { "default": settings.access_key },
 	    	"secret_key": { "default": settings.secret_key },
 	    	"region": { "default": settings.defaultRegion },
 	    	"campaign_data_ttl": { "default": settings.campaign_data_ttl },
-	    	"campaign_max_price": { "default": settings.campaign_max_price }
+	    	"campaign_max_price": { "default": settings.campaign_max_price },
+	    	"useSAML": { "default": settings.useSAML }
 		}
 	},
 	'vpc.tf.json': {

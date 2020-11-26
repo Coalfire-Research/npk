@@ -16,16 +16,16 @@ if [[ "$ERR" == "1" ]]; then
 	exit 1
 fi
 
-BUCKET1=npk-dictionary-east-1-20181029005812833000000004
+BUCKET1=npk-dictionary-east-1-20181029005812833000000004-2
 REGION1="us-east-1"
 
-BUCKET2=npk-dictionary-east-2-20181029005812776500000003
+BUCKET2=npk-dictionary-east-2-20181029005812776500000003-2
 REGION2="us-east-2"
 
-BUCKET3=npk-dictionary-west-1-20181029005812746900000001
+BUCKET3=npk-dictionary-west-1-20181029005812746900000001-2
 REGION3="us-west-1"
 
-BUCKET4=npk-dictionary-west-2-20181029005812750900000002
+BUCKET4=npk-dictionary-west-2-20181029005812750900000002-2
 REGION4="us-west-2"
 
 echo "- Downloading components"

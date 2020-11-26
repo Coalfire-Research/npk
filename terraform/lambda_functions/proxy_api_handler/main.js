@@ -828,7 +828,9 @@ function stopCampaign(entity, campaign) {
 				return failure(respond(404, "Error retrieving spot fleet data: not found.", false));
 			}
 
-			var request = fleet.SpotFleetRequestConfigs[0];
+				success(fleet.SpotFleetRequestConfigs[0])
+			})
+		}).then(request => {
 			if (request.SpotFleetRequestState == "active") {
 				ec2.cancelSpotFleetRequests({
 					SpotFleetRequestIds: [campaign.spotFleetRequestId],
@@ -838,7 +840,7 @@ function stopCampaign(entity, campaign) {
 						return failure(respond(500, "Error cancelling spot fleet: " + err, false));
 					}
 
-					console.log(response);
+							console.log(response);
 
 					if (response.SuccessfulFleetRequests.length < 1) {
 						return failure(respond(500, "Error cancelling spot fleet: " + err, false));
@@ -857,7 +859,7 @@ function stopCampaign(entity, campaign) {
 					});
 				});
 			} else {
-				editCampaign(entity, campaignId, {
+				return editCampaign(entity, campaignId, {
 					active: false,
 					status: "CANCELLED"
 				}).then(function(data) {

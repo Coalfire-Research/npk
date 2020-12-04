@@ -36,13 +36,13 @@
 				"supported_identity_providers": ["NPKSAML"],
 				"allowed_oauth_scopes": ["email", "openid"],
 				"allowed_oauth_flows": ["code"],
-				"callback_urls": if settings.useCustomDNS == "true" then [
-					"https://auth.${settings.dnsNames.www}"
+				"callback_urls": if settings.useCustomDNS == true then [
+					"https://" + settings.dnsNames.www[0]
 				] else [
 					"https://${aws_cloudfront_distribution.npk.domain_name}"
 				],
-				"logout_urls": if settings.useCustomDNS == "true" then [
-					"https://auth.${settings.dnsNames.www}"
+				"logout_urls": if settings.useCustomDNS == true then [
+					"https://" + settings.dnsNames.www[0]
 				] else [
 					"https://${aws_cloudfront_distribution.npk.domain_name}"
 				]
@@ -74,7 +74,7 @@
 
 				"provider_details": {
 					"IDPSignout": "false",
-					"MetadataFile": "${file(\"" + settings.sAMLMetadataDocument + "\")}"
+					"MetadataURL": settings.sAMLMetadataUrl
 				},
 
 				"attribute_mapping": {
@@ -112,7 +112,7 @@
 		}
 	} else {}) + (if settings.useSAML == true && settings.useCustomDNS == true then {
 		"saml_acs_url": {
-			"value": "https://" + settings.dnsNames.www[0] + "/saml2/idpresponse"
+			"value": "https://auth." + settings.dnsNames.www[0] + "/saml2/idpresponse"
 		}
 	} else {})
 }

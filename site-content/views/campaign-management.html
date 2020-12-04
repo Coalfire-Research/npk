@@ -90,7 +90,7 @@
                     <small>
                       <ng-pluralize count="manifest.instanceCount" when="{'1': '{{ manifest.instanceCount }} Node', 'other': '{{ manifest.instanceCount }} Nodes'}"></ng-pluralize>
                       x 
-                      <ng-pluralize count="manifest.instanceDuration" when="{'1': '{ manifest.instanceDuration }} Hour', 'other': '{{ manifest.instanceDuration }} Hours'}"></ng-pluralize>
+                      <ng-pluralize count="manifest.instanceDuration" when="{'1': '{{ manifest.instanceDuration }} Hour', 'other': '{{ manifest.instanceDuration }} Hours'}"></ng-pluralize>
                       @ ${{ manifest.priceTarget / manifest.instanceCount / manifest.instanceDuration | number}}/hr
                     </small>
                   </div>

@@ -216,7 +216,7 @@ angular
 
       $scope.useSamlSSO = (SAMLSSO.useSamlSSO == "1");
       if ($scope.useSamlSSO == true) {
-        $scope.samlSSOURL = "https://" + SAMLSSO.SAMLDomain + "/oauth2/authorize?identity_provider=" + SAMLSSO.SAMLIdp + "&redirect_uri=" + SAMLSSO.SAMLRedirectUrl + "&response_type=CODE&client_id=" + COGNITO_CONFIG.ClientId + "&scope=email%20openid"
+        $scope.samlSSOURL = "https://" + SAMLSSO.SAMLDomain + "/oauth2/authorize?identity_provider=" + SAMLSSO.SAMLIdp + "&redirect_uri=" + SAMLSSO.SAMLRedirectUrl + "&response_type=CODE&client_id=" + COGNITO_CONFIG.ClientId + "&scope=email%20openid"        
       }
       
 
@@ -227,10 +227,9 @@ angular
          code = $location.$$absUrl.match(/\?code=([a-z0-9\-]{36})/)
          if (code != null && code.length == 2) {
           console.log('Got SSO code ' + code[1]);
-          $scope.$parent.ok_modal.set("fa-exclamation-circle", "SAML Code Detected", "Processing SAML SSO Request", "OK", "").show();
+          //$scope.$parent.ok_modal.set("fa-exclamation-circle", "SAML Code Detected", "Processing SAML SSO Request", "OK", "").show();
           $scope.handleSamlSSO(code[1]).then((data) => {
-            $location.path('/dashboard');
-            $scope.$apply();
+            location.href = "/";
           })
          }
       };
@@ -367,10 +366,14 @@ angular
       }
 
       $scope.signOut = function() {
-        $scope.cognitoSvc.cognitoUser.signOut();
+        try {
+          $scope.cognitoSvc.cognitoUser.signOut();
+        } catch (e) {
+          console.log("Unable to sign out CognitoUser: " + e);
+        }
 
+        localStorage.clear();
         setTimeout(function() {
-          localStorage.clear();
           location.href = location.origin + location.pathname;
         }, 0);
       };

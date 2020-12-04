@@ -1,5 +1,11 @@
 #! /bin/bash
 
+if [[ $1 == "" ]]; then
+	TERBIN=terraform
+else
+	TERBIN=$1
+fi
+
 ERR=0;
 if [[ ! -f $(which jsonnet) ]]; then
 	ERR=1;
@@ -31,60 +37,79 @@ if [[ "$(terraform -v | grep v0.11 | wc -l)" != "1" ]]; then
 	echo "Error: Wrong version of Terraform is installed. NPK requires Terraform v0.11.";
 fi
 
+if [[ ! -f $(which snap) ]]; then
+	if [[ $(snap list | grep $TERBIN | wc -l) ]]; then
+		ERR=1;
+		echo "Error: Terraform cannot be installed via snap. Download the v0.11 binary manually and place it in your path."
+	fi
+
+	if [[ $(snap list | grep jsonnet | wc -l) ]]; then
+		ERR=1;
+		echo "Error: jsonnet cannot be installed via snap. Download the binary manually and place it in your path."
+	fi
+
+	if [[ $(snap list | grep jq | wc -l) ]]; then
+		ERR=1;
+		echo "Error: jq cannot be installed via snap. Install via apt or download in manually and place it in your path."
+	fi
+fi
+
 if [[ "$ERR" == "1" ]]; then
 	echo -e "\nInstall missing components, then try again.\n"
 	exit 1
 fi
 
+PROFILE=$(jq -r '.awsProfile' npk-settings.json)
+
+export AWS_DEFAULT_REGION=us-west-2
+export AWS_DEFAULT_OUTPUT=json
+export AWS_PROFILE=$PROFILE
+
 echo "[*] Preparing to deploy NPK."
-echo "[*] Getting availabilityzones from AWS"
+
 # Get the availability zones for each region
-echo "[*] - us-east-1"
-aws --profile $(jq -r '.awsProfile' npk-settings.json) ec2 --region us-east-1 describe-availability-zones | jq '{"us-east-1": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > r1.json
-echo "[*] - us-east-2"
-aws --profile $(jq -r '.awsProfile' npk-settings.json) ec2 --region us-east-2 describe-availability-zones | jq '{"us-east-2": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > r2.json
-echo "[*] - us-west-1"
-aws --profile $(jq -r '.awsProfile' npk-settings.json) ec2 --region us-west-1 describe-availability-zones | jq '{"us-west-1": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > r3.json
-echo "[*] - us-west-2"
-aws --profile $(jq -r '.awsProfile' npk-settings.json) ec2 --region us-west-2 describe-availability-zones | jq '{"us-west-2": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > r4.json
+if [ ! -f regions.json ]; then
+	echo "[*] Getting availability zones from AWS"
+	while IFS= read -r region; do
+		echo "[*] - ${region}"
+		aws ec2 --region ${region} describe-availability-zones | jq -r '{"'${region}'": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > region-${region}.json
+	done <<< $(echo '["us-east-1", "us-east-2", "us-west-1", "us-west-2"]' | jq -r '.[]')
 
-jq -s '.[0] * .[1] * .[2] * .[3]' r1.json r2.json r3.json r4.json | jq '{"regions": .}' > regions.json
-rm r1.json r2.json r3.json r4.json
+	jq -rs 'reduce .[] as $item ({}; . * $item)' ./region-*.json > regions.json
+	rm region-*.json
 
-if [[ "$(cat regions.json | wc -l)" -lt "4" ]]; then
-	echo -e "\n[!] Error retrieving AWS availability zones. Check the 'awsProfile' setting and try again"
+	if [[ "$(cat regions.json | wc -l)" -lt "4" ]]; then
+		echo -e "\n[!] Error retrieving AWS availability zones. Check the 'awsProfile' setting and try again"
+		rm regions.json
+		exit 1
+	fi
+else
+	echo "[*] Using known availability zones. Delete regions.json to force re-evaluation."
+fi
+
+if [[ ! -d .terraform ]]; then
+	echo "[+] Creating service-linked roles for EC2 spot fleets"
+	aws iam create-service-linked-role --aws-service-name spot.amazonaws.com
+	aws iam create-service-linked-role --aws-service-name spotfleet.amazonaws.com
+fi
+
+# remove old configs silently:
+rm -f *.tf.json
+
+
+echo "[*] Generating Terraform configurations"
+jsonnet -m . terraform.jsonnet
+
+if [[ "$?" -eq "1" ]]; then
+	echo ""
+	echo "[!] An error occurred generating the config files. Address the error and try again."
+	echo ""
 	exit 1
 fi
 
-echo "[*] Checking service-linked roles for EC2 spot fleets"
-aws --profile $(jq -r '.awsProfile' npk-settings.json) iam get-role --role-name AmazonEC2SpotFleetRole > /dev/null
-if [[ $? -eq 255 ]]; then
-	echo "[+] Creating service-linked roles for EC2 spot fleets"
-	aws --profile $(jq -r '.awsProfile' npk-settings.json) iam create-role --role-name AmazonEC2SpotFleetRole --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Sid":"","Effect":"Allow","Principal":{"Service":"spotfleet.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
-	aws --profile $(jq -r '.awsProfile' npk-settings.json) iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole --role-name AmazonEC2SpotFleetRole
-	aws --profile $(jq -r '.awsProfile' npk-settings.json) iam create-service-linked-role --aws-service-name spot.amazonaws.com
-	aws --profile $(jq -r '.awsProfile' npk-settings.json) iam create-service-linked-role --aws-service-name spotfleet.amazonaws.com
+if [[ ! -d .terraform ]]; then
+	$TERBIN init
 fi
 
-
-echo "[*] Retrieving AWS credentials from profile"
-
-# Get credentials from AWSCLI
-AWS_ACCESS_KEY_ID=$(aws configure get $(jq -r '.awsProfile' npk-settings.json).aws_access_key_id)
-AWS_SECRET_ACCESS_KEY=$(aws configure get $(jq -r '.awsProfile' npk-settings.json).aws_secret_access_key)
-
-echo "[*] Generating combined settings file"
-# Merge them into a single config
-echo "{\"access_key\": \"$AWS_ACCESS_KEY_ID\", \"secret_key\": \"$AWS_SECRET_ACCESS_KEY\"}" > credentials.json
-jq -s '.[0] * .[1] * .[2]' npk-settings.json regions.json credentials.json > generated-settings.jsonnet
-rm credentials.json regions.json
-
-echo "[*] Generating Terraform configurations"
-# Generate terraform configs
-jsonnet -m . terraform.jsonnet
-
-terraform init
 terraform apply -auto-approve
-terraform apply -auto-approve
-
-# terraform apply -auto-approve	# Yes, userdata.sh is an unresolvable cyclical dependency. I am ashamed.
+terraform apply -auto-approve	# Yes, userdata.sh is an unresolvable cyclical dependency. I am ashamed.

@@ -1,4 +1,5 @@
-local npksettings = import 'generated-settings.jsonnet';
+local npksettings = import 'npk-settings.json';
+local regions = import 'regions.json';
 local provider = import 'jsonnet/provider.libsonnet';
 local vpc = import 'jsonnet/vpc.libsonnet';
 local subnet = import 'jsonnet/subnet.libsonnet';
@@ -24,7 +25,8 @@ local templates = import 'jsonnet/templates.libsonnet';
 local null_resources = import 'jsonnet/null_resources.libsonnet';
 
 local settings = npksettings + {
-	"defaultRegion": "us-west-2"
+	"defaultRegion": "us-west-2",
+	regions: regions
 };
 
 local defaultResource = {
@@ -61,14 +63,14 @@ local regionKeys = std.objectFields(settings.regions);
 					"${aws_acm_certificate.api-" + i + ".domain_validation_options.0.resource_record_value}",
 					settings.route53Zone
 				) for i in std.range(0, std.length(settings.dnsNames.api) - 1)
-			} + if settings.useSAML == true && settings.useCustomDNS == true then {
-				"saml": acm.route53_record(
+			} + (if settings.useSAML == true && settings.useCustomDNS == true then {
+				"acm-validation-saml": acm.route53_record(
 					"${aws_acm_certificate.saml.domain_validation_options.0.resource_record_name}",
 					"${aws_acm_certificate.saml.domain_validation_options.0.resource_record_type}",
 					"${aws_acm_certificate.saml.domain_validation_options.0.resource_record_value}",
 					settings.route53Zone
 				)
-			} else {},
+			} else {}),
 			"aws_acm_certificate_validation": {
 				["www-" + i]: acm.certificate_validation(
 					"${aws_acm_certificate.www-" + i + ".arn}",
@@ -79,12 +81,12 @@ local regionKeys = std.objectFields(settings.regions);
 					"${aws_acm_certificate.api-" + i + ".arn}",
 					"${aws_route53_record.acm-validation-api-" + i + ".fqdn}"
 				) for i in std.range(0, std.length(settings.dnsNames.api) - 1)
-			} + if settings.useSAML == true && settings.useCustomDNS == true then {
+			} + (if settings.useSAML == true && settings.useCustomDNS == true then {
 				"saml": acm.certificate_validation(
 					"${aws_acm_certificate.saml.arn}",
-					"${aws_route_53_record.acm-vallidation-saml.fqdn}"
+					"${aws_route53_record.acm-validation-saml.fqdn}"
 				)
-			} else {}
+			} else {})
 		} else {}
 	} + if std.type(settings.route53Zone) != "string" then {
 		"output": {
@@ -224,7 +226,16 @@ local regionKeys = std.objectFields(settings.regions);
 							"${aws_api_gateway_domain_name.api-url-" + i + ".cloudfront_zone_id}"
 						)
 					) for i in std.range(0, std.length(settings.dnsNames.api) - 1)
-				}
+				} + (if settings.useSAML == true && settings.useCustomDNS == true then {
+					"saml": route53.record(
+						"auth." + settings.dnsNames.www[0],
+						settings.route53Zone,
+						route53.alias(
+							"${aws_cognito_user_pool_domain.saml.cloudfront_distribution_arn}",
+							"Z2FDTNDATAQYW2"
+						)
+					)
+				} else {})
 			}
 		} else {},
 	'routetable.tf.json': {
@@ -350,8 +361,7 @@ local regionKeys = std.objectFields(settings.regions);
 	},
 	'variables.tf.json': {
 		"variable": variables.variables(settings) + {
-			"access_key": { "default": settings.access_key },
-	    	"secret_key": { "default": settings.secret_key },
+			"profile": { "default": settings.awsProfile },
 	    	"region": { "default": settings.defaultRegion },
 	    	"campaign_data_ttl": { "default": settings.campaign_data_ttl },
 	    	"campaign_max_price": { "default": settings.campaign_max_price },

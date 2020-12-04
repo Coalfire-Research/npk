@@ -192,7 +192,12 @@ var listSpotInstanceRequests = function(region) {
 				knownSpotInstanceRequests[e.InstanceId] = e;
 				knownSpotInstanceRequests[e.InstanceId].Region = region;
 
-				spotRequestsByFleetRequest[e.Tags[0].Value] = e.Status;
+				var tags = {};
+				e.Tags.forEach(function(t) {
+					tags[t.Key] = t.Value;
+				})
+
+				spotRequestsByFleetRequest[tags["aws:ec2spot:fleet-request-id"]] = e.Status;
 			});
 
 			return success(data.SpotInstanceRequests);
@@ -267,7 +272,7 @@ function editCampaign(entity, campaign, values) {
 			AttributeUpdates: values
 		};
 
-		// console.log(JSON.stringify(ddbParams));
+		console.log(JSON.stringify(ddbParams));
 
 		db.updateItem(ddbParams, function (err, data) {
 			if (err) {

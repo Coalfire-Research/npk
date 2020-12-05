@@ -31,7 +31,7 @@
 					"target_origin_id": "static",
 					"forwarded_values": {
 						"query_string": false,
-
+						"headers": ["Origin","Access-Control-Allow-Origin","Access-Control-Request-Method","Access-Control-Request-Headers"],
 						"cookies": {
 							"forward": "none",
 						}

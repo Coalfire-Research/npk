@@ -65,6 +65,67 @@ export AWS_DEFAULT_REGION=us-west-2
 export AWS_DEFAULT_OUTPUT=json
 export AWS_PROFILE=$PROFILE
 
+echo "[*] Checking account quotas..."
+
+PQUOTA=$(aws service-quotas list-service-quotas --service-code ec2 | jq '.Quotas[] | select(.QuotaCode == "L-7212CCBC") | .Value')
+GQUOTA=$(aws service-quotas list-service-quotas --service-code ec2 | jq '.Quotas[] | select(.QuotaCode == "L-3819A6DF") | .Value')
+
+QUOTAERR=0
+if [[ $PQUOTA -lt 16 ]]; then
+	QUOTAERR=1
+	echo "The target account is limited to fewer than 384 vCPUs in us-west-2 for P-type instances."
+	echo "-> Current limit: $PQUOTA"
+	echo ""
+fi
+
+if [[ $GQUOTA -lt 16 ]]; then
+	QUOTAERR=1
+	echo "The target account is limited to fewer than 16 vCPUs in us-west-2 for G-type instances."
+	echo "-> Current limit: $GQUOTA"
+	echo ""
+fi
+
+if [[ $QUOTAWARN -eq 1 ]]; then
+	echo "You cannot proceed without increasing your limits."
+	echo "-> A limit of at least 16 is required for minimal capacity."
+	echo "-> A limit of 384 is required for full capacity."
+	echo ""
+	exit 1
+fi
+
+QUOTAWARN=0
+if [[ $PQUOTA -lt 384 ]]; then
+	QUOTAWARN=1
+	echo "The target account is limited to fewer than 384 vCPUs in us-west-2 for P-type instances."
+	echo "-> Current limit: $PQUOTA"
+	echo ""
+fi
+
+if [[ $GQUOTA -lt 384 ]]; then
+	QUOTAWARN=1
+	echo "The target account is limited to fewer than 384 vCPUs in us-west-2 for G-type instances."
+	echo "-> Current limit: $GQUOTA"
+	echo ""
+fi
+
+if [[ $QUOTAWARN -eq 1 ]]; then
+	echo "1. Attempting to create campaigns in excess of these limits will fail".
+	echo "2. The UI will not prevent you from requesting campaigns in excess of these limits."
+	echo "3. The UI does not yet indicate when requests fail due to exceeded limits."
+	echo ""
+	echo "tl;dr: You can ignore this warning, but probably don't."
+	echo ""
+	read -r -p " Do you understand? [Yes]: " key
+
+	if [[ "$key" != "Yes" ]]; then
+		echo "You must accept the campaign size warning in order to continue."
+		echo ""
+
+		exit 1
+	fi
+fi
+
+
 echo "[*] Preparing to deploy NPK."
 
 # Get the availability zones for each region

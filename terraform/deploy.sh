@@ -85,7 +85,7 @@ if [[ $GQUOTA -lt 16 ]]; then
 	echo ""
 fi
 
-if [[ $QUOTAWARN -eq 1 ]]; then
+if [[ $QUOTAERR -eq 1 ]]; then
 	echo "You cannot proceed without increasing your limits."
 	echo "-> A limit of at least 16 is required for minimal capacity."
 	echo "-> A limit of 384 is required for full capacity."

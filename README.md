@@ -6,6 +6,8 @@ NPK is a distributed hash-cracking platform built entirely of serverless compone
 
 'NPK' is an initialism for the three primary atomic elements in fertilizer (Nitrogen, Phosphorus, and Potassium). Add it to your hashes to increase your cred yield!
 
+# V2 branch is highly recommended for individual use. Use Master only if you intend to selfhost.
+
 ## How it works
 
 Lets face it - even the beastliest cracking rig spends a lot of time at idle. You sink a ton of money up front on hardware, then have the electricity bill to deal with. NPK lets you leverage extremely powerful hash cracking with the 'pay-as-you-go' benefits of AWS. For example, you can crank out as much as 1.2TH/s of NTLM for a mere $14.70/hr. NPK was also designed to fit easily within the free tier while you're not using it! Without the free tier, it'll still cost less than 25 CENTS per MONTH to have online!
@@ -41,6 +43,8 @@ NPK supports multiple users, with strict separation of data, campaigns, and resu
 Configure how long data will stay in NPK with configurable lifecycle durations during installation. Hashfiles and results are automatically removed after this much time to keep things nicely cleaned up.
 
 ## Install
+
+(For the most detailed usage instructions, check the Wiki)
 
 NPK requires that you have the following installed: 
 * **awscli** (> v1.16)
@@ -95,6 +99,6 @@ npk/terraform$ terraform destroy
 ```
 
 # Support
-We appreciate PRs and Issues posted, we'll do our best to cover them. We also have a discord server up, feel free to pop in and say hi, or ask a question. 
+We appreciate PRs and Issues posted, we'll do our best to cover them. We also have a discord server up, feel free to pop in and say hi, or ask a question.
 
 https://discord.gg/aff6nny

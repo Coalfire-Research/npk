@@ -37,7 +37,7 @@ if [[ "$(terraform -v | grep v0.11 | wc -l)" != "1" ]]; then
 	echo "Error: Wrong version of Terraform is installed. NPK requires Terraform v0.11.";
 fi
 
-if [[ ! -f $(which snap) ]]; then
+if [[ -f $(which snap) ]]; then
 	if [[ $(snap list | grep $TERBIN | wc -l) ]]; then
 		ERR=1;
 		echo "Error: Terraform cannot be installed via snap. Download the v0.11 binary manually and place it in your path."

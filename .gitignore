@@ -11,6 +11,7 @@ site-content/assets/js/cognito_config.js
 **/node_modules
 terraform/npk-settings.json
 terraform/generated-settings.jsonnet
+terraform/regions.json
 terraform/*.tf.json
 terraform/lambda_functions/zip_files/*
 terraform/lambda_functions/proxy_api_handler/api_handler_variables.js

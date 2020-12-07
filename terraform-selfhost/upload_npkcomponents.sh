@@ -38,7 +38,7 @@ if [ ! -f /home/brad/repos/npk/terraform-selfhost/components/maskprocessor.7z ];
 fi
 
 if [ ! -f /home/brad/repos/npk/terraform-selfhost/components/epel.rpm ]; then
-	wget -O /home/brad/repos/npk/terraform-selfhost/components/epel.rpm https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/epel-release-7-11.noarch.rpm
+	wget -O /home/brad/repos/npk/terraform-selfhost/components/epel.rpm https://npk-dictionary-east-1-20181029005812833000000004-2.s3.us-east-1.amazonaws.com/components/epel.rpm
 fi
 
 echo "- Uploading to S3"

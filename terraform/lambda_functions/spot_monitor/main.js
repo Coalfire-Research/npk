@@ -4,12 +4,11 @@
 "use strict";
 
 var cb = "";
-var AWSXRay 	= require('aws-xray-sdk');
-var aws			= AWSXRay.captureAWS(require('aws-sdk'));
+// var AWSXRay 	= require('aws-xray-sdk');
+// var aws			= AWSXRay.captureAWS(require('aws-sdk'));
+var aws 	= require('aws-sdk');
 var settings = JSON.parse(JSON.stringify(process.env));
 settings.availabilityZones = JSON.parse(settings.availabilityZones);
-
-var ddbTypes 	= require('dynamodb-data-types').AttributeValue;
 
 aws.config.apiVersions = {
 	dynamodb: 	'2012-08-10'
@@ -439,6 +438,266 @@ var evaluateAllSpotInstances = function() {
 				cb(null, "Spot Monitor invocation completed.");
 			});
 		});
+	});
+};
+
+exports.main2 = function(event, context, callback) {
+
+	var promiseDetails = { fleets: {}, spotPrices: {}, instances: {} };
+	var promiseError = false;
+
+	var spotFleetPromises = [];
+	Object.keys(settings.availabilityZones).forEach(function(region) {
+		var ec2 = new aws.EC2({region: region});
+
+		spotFleetPromises.push(ec2.describeSpotFleetRequests({}).promise().then((data) => {
+			return { fleets: data.SpotFleetRequestConfigs, region: region };
+		}));
+	});
+
+	// Get all the spot fleets
+	return Promise.all(spotFleetPromises).then((fleetObjects) => {
+
+		var fleetPromises = [];		
+		fleetObjects.forEach(function(fleetObject) {
+
+			var fleets = fleetObject.fleets;
+			var region = fleetObject.region;
+
+			fleets.forEach(function(fleet) {
+
+				var ec2 = new aws.EC2({region: region});
+
+				promiseDetails.fleets[fleet.SpotFleetRequestId] = fleet;
+				promiseDetails.fleets[fleet.SpotFleetRequestId].region = region;
+				promiseDetails.fleets[fleet.SpotFleetRequestId].instances = {};
+				promiseDetails.fleets[fleet.SpotFleetRequestId].price = 0;
+
+				// Get the instances for each fleet
+				/*fleetPromises.push(ec2.describeSpotFleetInstances({
+					SpotFleetRequestId: fleet.SpotFleetRequestId
+				}).promise().then((data) => {
+					// Save the active instances
+					promiseDetails.fleet[fleet.SpotFleetRequestId].instances = data.ActiveInstances;
+				}));*/
+
+				fleetPromises.push(ec2.describeSpotFleetRequestHistory({
+					SpotFleetRequestId: fleet.SpotFleetRequestId,
+					StartTime: "1970-01-01T00:00:00Z"
+				}).promise().then((data) => {
+					promiseDetails.fleets[fleet.SpotFleetRequestId].history = data.HistoryRecords;
+				}));
+			});
+
+		});
+
+		return Promise.all(fleetPromises);
+
+	}, (e) => {
+		console.log("spotFleetPromises failed.", e);
+
+		promiseError = e;
+		return Promise.resolve(e)
+	}).then((fleetPromises) => {
+		if (promiseError) {
+			return Promise.resolve("Skipping due to prior error.");
+		};
+
+		var spotPricePromises = [];
+
+		// Loop over the state changes to find spot price histories we need.
+		Object.keys(promiseDetails.fleets).forEach(function(fleetId) {
+			promiseDetails.fleets[fleetId].history.forEach(function(historyRecord) {
+				// Skip anything that isn't an instanceChange request.
+				if (historyRecord.EventType != "instanceChange") {
+					return false;
+				}
+
+				// Save the instance information for later:
+				var event = JSON.parse(historyRecord.EventInformation.EventDescription);
+				if (!promiseDetails.instances.hasOwnProperty(historyRecord.EventInformation.InstanceId)) {
+					promiseDetails.instances[historyRecord.EventInformation.InstanceId] = event;
+					promiseDetails.instances[historyRecord.EventInformation.InstanceId].fleetId = fleetId;
+					promiseDetails.instances[historyRecord.EventInformation.InstanceId].region = promiseDetails.fleets[fleetId].region;
+					promiseDetails.instances[historyRecord.EventInformation.InstanceId].startTime = 0;
+					promiseDetails.instances[historyRecord.EventInformation.InstanceId].endTime = new Date().getTime();
+				}
+				
+				switch (historyRecord.EventInformation.EventSubType) {
+					case "launched":
+						promiseDetails.instances[historyRecord.EventInformation.InstanceId].startTime = new Date(historyRecord.Timestamp).getTime();
+					break;
+
+					case "terminated":
+						console.log('hit');
+						promiseDetails.instances[historyRecord.EventInformation.InstanceId].endTime = new Date(historyRecord.Timestamp).getTime();
+					break;
+				}
+
+				// Create a key based on region and instanceType, to track previously-requested combinations.
+				var spotKey = promiseDetails.fleets[fleetId].region + ":" + event.instanceType;
+
+				// Skip remaining processing if it's already been requested.
+				if (promiseDetails.spotPrices.hasOwnProperty(spotKey)) {
+					return false;
+				}
+
+				promiseDetails.spotPrices[spotKey] = {};
+				var ec2 = new aws.EC2({region: promiseDetails.fleets[fleetId].region});
+				spotPricePromises.push(ec2.describeSpotPriceHistory({
+					InstanceTypes: [event.instanceType],
+					ProductDescriptions: ["Linux/UNIX (Amazon VPC)"],
+					// Default to retrieving the last two days' spot prices.
+					StartTime: (new Date().getTime() / 1000) - (60 * 60 * 48)
+				}).promise().then((data) => {
+
+					data.SpotPriceHistory.forEach(function(spotHistoryItem) {
+						if (!promiseDetails.spotPrices[spotKey].hasOwnProperty(spotHistoryItem.AvailabilityZone)) {
+							promiseDetails.spotPrices[spotKey][spotHistoryItem.AvailabilityZone] = {};
+						}
+
+						var dateKey = new Date(spotHistoryItem.Timestamp).getTime();
+						promiseDetails.spotPrices[spotKey][spotHistoryItem.AvailabilityZone][dateKey] = spotHistoryItem.SpotPrice;
+					});
+				}));
+			});
+		});
+
+		return Promise.all(spotPricePromises);
+
+	}, (e) => {
+		console.log("fleetPromises failed.", e);
+
+		promiseError = e;
+		return Promise.resolve(e);
+	}).then((spotPricePromises) => {
+		if (promiseError) {
+			return Promise.resolve("Skipping due to prior error.");
+		};
+
+		// Promises are all done. Let's calculate the instance costs, and roll them up to the fleet.
+		Object.keys(promiseDetails.instances).forEach(function(instanceId) {
+			var instance = promiseDetails.instances[instanceId];
+
+			var prices = promiseDetails.spotPrices[instance.region + ':' + instance.instanceType][instance.availabilityZone];
+			prices[new Date().getTime()] = prices[Object.keys(prices).slice(-1)];
+
+			var timestamps = Object.keys(prices).sort(function(a, b) { return a - b; });
+
+			var accCost = 0;
+			var accSeconds = 0;
+			var duration = instance.endTime - instance.startTime;
+			var tempStartTime = instance.startTime;
+			timestamps.forEach(function(e) {
+				// console.log("Checking against time: " + e)
+				if (e <= tempStartTime || mseconds >= duration) {
+					return true;
+				}
+
+				var ppms = prices[e] / 3600000;
+				var mseconds = e - tempStartTime;
+
+				if (mseconds > duration) {
+					mseconds -= (mseconds - duration);
+				}
+
+				accCost += (mseconds * ppms);
+				accSeconds += mseconds;
+
+				// console.log("Costs: " + seconds + " seconds @ " + prices[e] + "/hr = " + (seconds * pps).toFixed(8));
+				// console.log("Oldtime: " + tempStartTime + "; Newtime: " + (tempStartTime - seconds));
+
+				tempStartTime += mseconds;
+			});
+
+			console.log("Instance " + instanceId + " up for " + (accSeconds / 1000).toFixed(3) + " seconds; estimated cost $" + accCost.toFixed(4));
+			promiseDetails.instances[instanceId].price = accCost;
+			promiseDetails.fleets[instance.fleetId].price += accCost;
+
+			// var actualDuration = (new Date().getTime()) - (new Date(spotInstance.CreateTime).getTime());
+			// console.log("^-- This should not exceed " + (actualDuration / 1000).toFixed(0));
+		});
+
+		// Now review the fleets for those over their price limit.
+		Object.keys(promiseDetails.fleets).forEach(function(fleetId) {
+			var fleet = promiseDetails.fleets[fleetId];
+			var tags = {};
+
+			fleet.SpotFleetRequestConfig.LaunchSpecifications[0].TagSpecifications.forEach(function(l) {
+				l.Tags.forEach(function(t) {
+					tags[t.Key] = t.Value;
+				});
+			});
+
+			if (fleet.SpotFleetRequestState.indexOf("cancelled") == 0) {
+				finalPromises.push(editCampaignViaRequestId(e, {
+					active: false,
+					spotRequestStatus: fleet.SpotFleetRequestState,
+					status: (fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING"
+				}));
+
+				return true;
+			}
+
+			if (fleet.price > parseFloat(tags.MaxCost) || fleet.price > parseFloat(settings.campaign_max_price)) {
+				finalPromises.push(editCampaignViaRequestId(fleetId, {
+					active: true,
+					price: totalCosts,
+					spotRequestStatus: fleet.SpotFleetRequestState,
+					status: "RUNNING"
+				}));
+
+				finalPromises.push(ec2.cancelSpotFleetRequests({
+					TerminateInstances: true,
+					SpotFleetRequestIds: [fleetId]
+				}).promise().then((data) => {
+					console.log("Cancelled " + fleetId);
+					return Promise.resolve();
+				}, (e) => {
+					return criticalAlert('Failed to terminate fleet ' + fleetId);
+				}));
+			}
+
+			if (fleet.price > parseFloat(tags.MaxCost) * 1.1 || fleet.price > parseFloat(settings.campaign_max_price) * 1.1) {
+				finalPromises.push(critcalAlert("SFR " + fleetId + " current price is: " + fleet.price + "; Terminating."));
+				finalPromises.push(editCampaignViaRequestId(fleetId, {
+					active: true,
+					price: totalCosts,
+					spotRequestStatus: fleet.SpotFleetRequestState,
+					status: "RUNNING"
+				}));
+
+				finalPromises.push(ec2.cancelSpotFleetRequests({
+					TerminateInstances: true,
+					SpotFleetRequestIds: [fleetId]
+				}).promise().then((data) => {
+					console.log("Cancelled " + fleetId);
+					return Promise.resolve();
+				}, (e) => {
+					return criticalAlert('Failed to terminate fleet ' + fleetId);
+				}));
+			}
+		});
+
+		return Promise.all(finalPromises);
+
+	}, (e) => {
+		console.log("spotPricePromises failed.", e);
+
+		promiseError = e;
+		return Promise.resolve(e)
+	}).then((spotPricePromises) => {
+		if (promiseError) {
+			return Promise.resolve("Skipping due to prior error.");
+		};
+
+		console.log("Finished.");
+
+	}, (e) => {
+		console.log("finalPromises failed.", e);
+
+		promiseError = e;
+		return Promise.resolve(e)
 	});
 };
 

@@ -75,7 +75,7 @@ angular
 				"NTLM",
 				"NetNTLMv2",
 				"WPA/WPA2",
-				"WPA/WPA2 PMK"
+				"WPA/WPA2 PMK",
 				"Kerberos 5 TGS-REP etype 23"
 			];
 

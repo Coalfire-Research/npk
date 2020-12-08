@@ -241,7 +241,7 @@ function editCampaignViaRequestId(spotFleetRequestId, values) {
 				return success(null);
 			}
 
-			data = ddbTypes.unwrap(data.Items[0]);
+			data = aws.DynamoDB.Converter.unmarshall(data.Items[0]);
 			console.log("Found campaign " + data.keyid.split(':').slice(1));
 
 			editCampaign(data.userid, data.keyid.split(':').slice(1), values).then((updates) => {
@@ -253,7 +253,7 @@ function editCampaignViaRequestId(spotFleetRequestId, values) {
 
 function editCampaign(entity, campaign, values) {
 	return new Promise((success, failure) => {
-		values = ddbTypes.wrap(values);
+		values = aws.DynamoDB.Converter.marshall(values);
 
 		Object.keys(values).forEach(function(e) {
 			values[e] = {
@@ -588,17 +588,19 @@ exports.main2 = function(event, context, callback) {
 			var accSeconds = 0;
 			var duration = instance.endTime - instance.startTime;
 			var tempStartTime = instance.startTime;
+
+			console.log("duration: " + duration);
 			timestamps.forEach(function(e) {
 				// console.log("Checking against time: " + e)
-				if (e <= tempStartTime || mseconds >= duration) {
+				if (e <= tempStartTime || accSeconds >= duration) {
 					return true;
 				}
 
 				var ppms = prices[e] / 3600000;
 				var mseconds = e - tempStartTime;
 
-				if (mseconds > duration) {
-					mseconds -= (mseconds - duration);
+				if (accSeconds + mseconds > duration) {
+					mseconds -= (accSeconds + mseconds - duration);
 				}
 
 				accCost += (mseconds * ppms);
@@ -618,6 +620,7 @@ exports.main2 = function(event, context, callback) {
 			// console.log("^-- This should not exceed " + (actualDuration / 1000).toFixed(0));
 		});
 
+		var finalPromises = [];
 		// Now review the fleets for those over their price limit.
 		Object.keys(promiseDetails.fleets).forEach(function(fleetId) {
 			var fleet = promiseDetails.fleets[fleetId];
@@ -630,7 +633,7 @@ exports.main2 = function(event, context, callback) {
 			});
 
 			if (fleet.SpotFleetRequestState.indexOf("cancelled") == 0) {
-				finalPromises.push(editCampaignViaRequestId(e, {
+				finalPromises.push(editCampaignViaRequestId(fleetId, {
 					active: false,
 					spotRequestStatus: fleet.SpotFleetRequestState,
 					status: (fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING"
@@ -654,6 +657,7 @@ exports.main2 = function(event, context, callback) {
 					console.log("Cancelled " + fleetId);
 					return Promise.resolve();
 				}, (e) => {
+					console.log(e);
 					return criticalAlert('Failed to terminate fleet ' + fleetId);
 				}));
 			}

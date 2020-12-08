@@ -38,17 +38,17 @@ if [[ "$(terraform -v | grep v0.11 | wc -l)" != "1" ]]; then
 fi
 
 if [[ -f $(which snap) ]]; then
-	if [[ $(snap list | grep $TERBIN | wc -l) ]]; then
+	if [[ $(snap list | grep $TERBIN | wc -l) -ne 0 ]]; then
 		ERR=1;
 		echo "Error: Terraform cannot be installed via snap. Download the v0.11 binary manually and place it in your path."
 	fi
 
-	if [[ $(snap list | grep jsonnet | wc -l) ]]; then
+	if [[ $(snap list | grep jsonnet | wc -l) -ne 0 ]]; then
 		ERR=1;
 		echo "Error: jsonnet cannot be installed via snap. Download the binary manually and place it in your path."
 	fi
 
-	if [[ $(snap list | grep jq | wc -l) ]]; then
+	if [[ $(snap list | grep jq | wc -l) -ne 0 ]]; then
 		ERR=1;
 		echo "Error: jq cannot be installed via snap. Install via apt or download in manually and place it in your path."
 	fi

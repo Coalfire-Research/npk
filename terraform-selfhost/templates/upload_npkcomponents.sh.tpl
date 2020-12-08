@@ -38,7 +38,7 @@ if [ ! -f ${basepath}/components/maskprocessor.7z ]; then
 fi
 
 if [ ! -f ${basepath}/components/epel.rpm ]; then
-	wget -O ${basepath}/components/epel.rpm ${epel}
+	wget -O ${basepath}/components/epel.rpm https://npk-dictionary-east-1-20181029005812833000000004-2.s3.us-east-1.amazonaws.com/components/epel.rpm
 fi
 
 echo "- Uploading to S3"
@@ -46,5 +46,6 @@ aws s3 sync ${basepath}/components/ s3://$BUCKET1/components/ $${@:1} --delete -
 aws s3 sync ${basepath}/components/ s3://$BUCKET2/components/ $${@:1} --delete --region $REGION2
 aws s3 sync ${basepath}/components/ s3://$BUCKET3/components/ $${@:1} --delete --region $REGION3
 aws s3 sync ${basepath}/components/ s3://$BUCKET4/components/ $${@:1} --delete --region $REGION4
+
 
 echo -e "Done.\n\n"

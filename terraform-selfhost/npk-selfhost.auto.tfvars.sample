@@ -1,7 +1,5 @@
 #	The keys for Terraform to use when generating the environment.
-access_key = ""
-secret_key = ""
-region = "us-west-2"
+aws_profile = ""
 
 ###	URLs for extra components.
 # Hashcat

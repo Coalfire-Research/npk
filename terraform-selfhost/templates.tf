@@ -1,5 +1,4 @@
 variable "hashcat" {}
-variable "epel" {}
 
 # dictionaries.auto.tfvars
 data "template_file" "dictionaries_variables" {
@@ -79,7 +78,19 @@ data "template_file" "upload_npkcomponents" {
 		dw1 		= "${aws_s3_bucket.dictionary-west-1.id}"
 		dw2 		= "${aws_s3_bucket.dictionary-west-2.id}"
 		hashcat 	= "${var.hashcat}"
-		epel 		= "${var.epel}"
+		basepath 	= "${path.module}"
+	}
+}
+
+# sync_npkcomponents.sh
+data "template_file" "sync_npkcomponents" {
+	template = "${file("${path.module}/templates/sync_npkcomponents.sh.tpl")}"
+
+	vars {
+		de1 		= "${aws_s3_bucket.dictionary-east-1.id}"
+		de2 		= "${aws_s3_bucket.dictionary-east-2.id}"
+		dw1 		= "${aws_s3_bucket.dictionary-west-1.id}"
+		dw2 		= "${aws_s3_bucket.dictionary-west-2.id}"
 		basepath 	= "${path.module}"
 	}
 }
@@ -87,6 +98,11 @@ data "template_file" "upload_npkcomponents" {
 resource "local_file" "upload_npkcomponents" {
 	content = "${data.template_file.upload_npkcomponents.rendered}"
 	filename = "${path.module}/upload_npkcomponents.sh"
+}
+
+resource "local_file" "sync_npkcomponents" {
+	content = "${data.template_file.sync_npkcomponents.rendered}"
+	filename = "${path.module}/sync_npkcomponents.sh"
 }
 
 output "upload_npkcomponents" {

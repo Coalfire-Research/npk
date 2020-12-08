@@ -271,7 +271,7 @@ function editCampaign(entity, campaign, values) {
 			AttributeUpdates: values
 		};
 
-		console.log(JSON.stringify(ddbParams));
+		// console.log(JSON.stringify(ddbParams));
 
 		db.updateItem(ddbParams, function (err, data) {
 			if (err) {
@@ -309,7 +309,7 @@ var evaluateAllSpotInstances = function() {
 
 	var promises = [];
 	Object.keys(availabilityZones).forEach(function(region) {
-		console.log(region);
+		// console.log(region);
 		promises.push(listSpotFleetRequests(region));
 		promises.push(listSpotInstanceRequests(region));
 	});
@@ -371,7 +371,7 @@ var evaluateAllSpotInstances = function() {
 
 				knownSpotFleetRequests[e].AllInstanceIds.forEach(function(i) {
 					//var instanceCost = calculateSpotCosts(knownSpotFleetRequests[e].Region, knownSpotInstanceRequests[i.InstanceId]);
-					console.log(knownSpotInstanceRequests[i]);
+					// console.log(knownSpotInstanceRequests[i]);
 					var instanceCost = calculateSpotCosts(knownSpotFleetRequests[e].Region, knownSpotInstanceRequests[i]);
 					totalCosts += instanceCost;
 
@@ -441,7 +441,7 @@ var evaluateAllSpotInstances = function() {
 	});
 };
 
-exports.main2 = function(event, context, callback) {
+exports.main = function(event, context, callback) {
 
 	var promiseDetails = { fleets: {}, spotPrices: {}, instances: {} };
 	var promiseError = false;
@@ -529,7 +529,6 @@ exports.main2 = function(event, context, callback) {
 					break;
 
 					case "terminated":
-						console.log('hit');
 						promiseDetails.instances[historyRecord.EventInformation.InstanceId].endTime = new Date(historyRecord.Timestamp).getTime();
 					break;
 				}
@@ -589,7 +588,7 @@ exports.main2 = function(event, context, callback) {
 			var duration = instance.endTime - instance.startTime;
 			var tempStartTime = instance.startTime;
 
-			console.log("duration: " + duration);
+			// console.log("duration: " + duration);
 			timestamps.forEach(function(e) {
 				// console.log("Checking against time: " + e)
 				if (e <= tempStartTime || accSeconds >= duration) {
@@ -635,20 +634,32 @@ exports.main2 = function(event, context, callback) {
 			if (fleet.SpotFleetRequestState.indexOf("cancelled") == 0) {
 				finalPromises.push(editCampaignViaRequestId(fleetId, {
 					active: false,
+					price: fleet.price,
 					spotRequestStatus: fleet.SpotFleetRequestState,
 					status: (fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING"
+				}).then((data) => {
+					console.log("Marked campaign of " + fleetId + " as " + ((fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING"))
+				}, (e) => {
+					console.log("[!] Failed attempting to update " + fleetId);
 				}));
 
 				return true;
 			}
 
+			// Update the current price.
+			finalPromises.push(editCampaignViaRequestId(fleetId, {
+				active: true,
+				price: fleet.price,
+				spotRequestStatus: fleet.SpotFleetRequestState,
+				status: "RUNNING"
+			}).then((data) => {
+				console.log("Updated price of " + fleetId);
+			}, (e) => {
+				console.log("[!] Failed attempting to update price for " + fleetId);
+			}));
+
 			if (fleet.price > parseFloat(tags.MaxCost) || fleet.price > parseFloat(settings.campaign_max_price)) {
-				finalPromises.push(editCampaignViaRequestId(fleetId, {
-					active: true,
-					price: totalCosts,
-					spotRequestStatus: fleet.SpotFleetRequestState,
-					status: "RUNNING"
-				}));
+				console.log("Fleet " + fleetId + " costs exceed limits; terminating.");
 
 				finalPromises.push(ec2.cancelSpotFleetRequests({
 					TerminateInstances: true,
@@ -663,13 +674,8 @@ exports.main2 = function(event, context, callback) {
 			}
 
 			if (fleet.price > parseFloat(tags.MaxCost) * 1.1 || fleet.price > parseFloat(settings.campaign_max_price) * 1.1) {
+				console.log("Fleet " + fleetId + " costs CRITICALLY exceed limits (" + fleet.price + "); terminating and raising critical alert.");
 				finalPromises.push(critcalAlert("SFR " + fleetId + " current price is: " + fleet.price + "; Terminating."));
-				finalPromises.push(editCampaignViaRequestId(fleetId, {
-					active: true,
-					price: totalCosts,
-					spotRequestStatus: fleet.SpotFleetRequestState,
-					status: "RUNNING"
-				}));
 
 				finalPromises.push(ec2.cancelSpotFleetRequests({
 					TerminateInstances: true,
@@ -693,19 +699,22 @@ exports.main2 = function(event, context, callback) {
 	}).then((spotPricePromises) => {
 		if (promiseError) {
 			return Promise.resolve("Skipping due to prior error.");
+			callback(promiseError);
 		};
 
 		console.log("Finished.");
+		callback(null, "Finished");
 
 	}, (e) => {
 		console.log("finalPromises failed.", e);
+		callback(e);
 
 		promiseError = e;
 		return Promise.resolve(e)
 	});
 };
 
-exports.main = function(event, context, callback) {
+exports.main2 = function(event, context, callback) {
 
 	cb = function(err, data) {
 		if (err) {

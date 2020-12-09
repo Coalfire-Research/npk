@@ -1,6 +1,6 @@
 *.auto.tfvars
 *.pem
-!terraform/dictionaries.auto.tfvars
+#!terraform/dictionaries.auto.tfvars
 */.terraform*
 *.tfstate
 *.tfstate*
@@ -23,3 +23,8 @@ terraform/templates/npk_settings.tpl
 terraform-selfhost/components/
 tools/rules/*
 tools/wordlists/*
+terraform/dictionaries.auto.tfvars
+site-content/assets/js/dictionary-buckets.js
+terraform-selfhost/upload_npkfile.sh
+terraform-selfhost/upload_npkcomponents.sh
+terraform-selfhost/sync_npkcomponents.sh

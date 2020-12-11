@@ -1,12 +1,11 @@
 {
   "name": "compute-node",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "NPK Compute Node Wrapper for HashCat",
   "main": "hashcat_wrapper.js",
   "dependencies": {
     "aws-api-gateway-client": "^0.2.16",
-    "aws-sdk": "^2.382.0",
-    "node-pty": "^0.7.8"
+    "aws-sdk": "^2.382.0"
   },
   "devDependencies": {},
   "scripts": {

@@ -42,10 +42,10 @@ if [ ! -f ${basepath}/components/epel.rpm ]; then
 fi
 
 echo "- Uploading to S3"
-aws s3 sync ${basepath}/components/ s3://$BUCKET1/components/ $${@:1} --delete --region $REGION1
-aws s3 sync ${basepath}/components/ s3://$BUCKET2/components/ $${@:1} --delete --region $REGION2
-aws s3 sync ${basepath}/components/ s3://$BUCKET3/components/ $${@:1} --delete --region $REGION3
-aws s3 sync ${basepath}/components/ s3://$BUCKET4/components/ $${@:1} --delete --region $REGION4
+aws s3 sync ${basepath}/components/ s3://$BUCKET1/components-v2/ $${@:1} --region $REGION1
+aws s3 sync ${basepath}/components/ s3://$BUCKET2/components-v2/ $${@:1} --region $REGION2
+aws s3 sync ${basepath}/components/ s3://$BUCKET3/components-v2/ $${@:1} --region $REGION3
+aws s3 sync ${basepath}/components/ s3://$BUCKET4/components-v2/ $${@:1} --region $REGION4
 
 
 echo -e "Done.\n\n"

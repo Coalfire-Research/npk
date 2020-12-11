@@ -40,11 +40,7 @@ local az(region) = {
 						[regionKeys[i]]: "${var.dictionary-" + regionKeys[i] + "-id}"
 						for i in std.range(0, std.length(regionKeys) - 1)
 					}, ""), "\n", ""),
-					"userdata": "${aws_s3_bucket.user_data.id}",
-					"apigateway": if settings.useCustomDNS then
-							settings.dnsNames.api[0]
-						else
-							"${element(split(\"/\", aws_api_gateway_deployment.npk.invoke_url), 2)}"
+					"userdata": "${aws_s3_bucket.user_data.id}"
 				}
 			}
 		}

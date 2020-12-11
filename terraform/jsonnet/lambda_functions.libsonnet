@@ -4,7 +4,7 @@
 	{
 		"aws_lambda_function": {
 			"proxy_api_handler": {
-				"depends_on": ["data.archive_file.proxy_api_handler", "aws_iam_role_policy.lambda_proxy_api_handler"],
+				"depends_on": ["local_file.userdata_template", "data.archive_file.proxy_api_handler", "aws_iam_role_policy.lambda_proxy_api_handler"],
 				"filename": "./lambda_functions/zip_files/proxy_api_handler.zip",
 				"function_name": "proxy_api_handler",
 				"role": "${aws_iam_role.lambda_proxy_api_handler.arn}",
@@ -15,6 +15,7 @@
 
 				"environment": {
 					"variables": {
+
 						"www_dns_names": std.toString(settings.dnsNames.www),
 						"campaign_max_price": "${var.campaign_max_price}",
 						"userdata_bucket": "${aws_s3_bucket.user_data.id}",
@@ -30,7 +31,11 @@
 						"dictionaryBuckets": std.manifestJsonEx({
 							[regionKeys[i]]: "${var.dictionary-" + regionKeys[i] + "-id}"
 							for i in std.range(0, std.length(regionKeys) - 1)
-						}, "")
+						}, ""),
+						"apigateway": if settings.useCustomDNS then
+							settings.dnsNames.api[0]
+						else
+							"${element(split(\"/\", aws_api_gateway_deployment.npk.invoke_url), 2)}"
 					}
 				},
 

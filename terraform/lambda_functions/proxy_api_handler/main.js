@@ -712,6 +712,7 @@ function executeCampaign(entity, campaignId) {
 
 		// Build a launchSpecification for each AZ in the target region.
 		var launchSpecifications = [];
+		var instance_userdata = new Buffer(fs.readFileSync(__dirname + '/userdata.sh', 'utf-8').replace("{{APIGATEWAY}}", process.env.apigateway)).toString('base64');
 		var launchSpecificationTemplate = {
 			IamInstanceProfile: {
 				Arn: variables.instanceProfile
@@ -746,7 +747,7 @@ function executeCampaign(entity, campaignId) {
 					Value: entity + '/campaigns/' + campaignId
 				}]
 			}],
-			UserData: fs.readFileSync(__dirname + '/userdata.sh', 'base64')
+			UserData: instance_userdata
 		};
 
 		Object.keys(knownInstanceAZs[manifest.instanceType][manifest.region]).forEach(function(e) {

@@ -466,6 +466,12 @@ exports.main = function(event, context, callback) {
 
 			fleets.forEach(function(fleet) {
 
+				// Skip fleets more than a day old, since some history items can expire before the fleet does.
+				if (new Date(fleet.CreateTime).getTime() < new Date().getTime() - (1000 * 60 * 60 * 24)) {
+					console.log(fleet.SpotFleetRequestId + " created more than a day ago. Skipping.");
+					return false;
+				}
+
 				var ec2 = new aws.EC2({region: region});
 
 				promiseDetails.fleets[fleet.SpotFleetRequestId] = fleet;

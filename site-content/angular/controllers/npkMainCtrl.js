@@ -761,9 +761,9 @@ angular
         }
 
         $scope.instances[e] = {
-          hashes: $scope.pricingSvc[e][$scope.hashType].speed,
+          hashes: $scope.pricingSvc[e][$scope.hashType],
           price:  price,
-          hashprice: Math.round($scope.pricingSvc[e][$scope.hashType].speed / price * 100) / 100
+          hashprice: Math.round($scope.pricingSvc[e][$scope.hashType] / price * 100) / 100
         };
 
         if ($scope.instances[e].hashprice > $scope.bestPrice || $scope.bestPrice == null) {

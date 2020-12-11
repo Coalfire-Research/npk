@@ -1,17 +1,19 @@
 #! /bin/bash
 cd /root/
 
-export APIGATEWAY=${apigateway}
+export APIGATEWAY={{APIGATEWAY}}
 echo $APIGATEWAY > /root/apigateway
 
 export USERDATA=${userdata}
 
-export INSTANCE_ID=`wget -qO- http://169.254.169.254/latest/meta-data/instance-id`
+export INSTANCEID=`wget -qO- http://169.254.169.254/latest/meta-data/instance-id`
 export REGION=`wget -qO- http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/.$//'`
-aws ec2 describe-tags --region $REGION --filter "Name=resource-id,Values=$INSTANCE_ID" --output=text | sed -r 's/TAGS\t(.*)\t.*\t.*\t(.*)/\1="\2"/' | sed -r 's/aws:ec2spot:fleet-request-id/SpotFleet/' > ec2-tags
+aws ec2 describe-tags --region $REGION --filter "Name=resource-id,Values=$INSTANCEID" --output=text | sed -r 's/TAGS\t(.*)\t.*\t.*\t(.*)/\1="\2"/' | sed -r 's/aws:ec2spot:fleet-request-id/SpotFleet/' > ec2-tags
 
 . ec2-tags
 
+# This is required for the wrapper to get anything done.
+export ManifestPath=$ManifestPath
 echo $ManifestPath > /root/manifestpath
 
 yum install -y jq
@@ -29,10 +31,10 @@ mount /dev/xvdb /xvdb/
 mkdir /xvdb/npk-wordlist
 ln -s /xvdb/npk-wordlist /root/npk-wordlist
 
-aws s3 cp s3://$BUCKET/components/epel.rpm .
-aws s3 cp s3://$BUCKET/components/hashcat.7z .
-aws s3 cp s3://$BUCKET/components/maskprocessor.7z .
-aws s3 cp s3://$BUCKET/components/compute-node.zip .
+aws s3 cp s3://$BUCKET/components-v2/epel.rpm .
+aws s3 cp s3://$BUCKET/components-v2/hashcat.7z .
+aws s3 cp s3://$BUCKET/components-v2/maskprocessor.7z .
+aws s3 cp s3://$BUCKET/components-v2/compute-node.zip .
 aws s3 cp s3://$USERDATA/$ManifestPath/manifest.json .
 rpm -Uvh epel.rpm
 yum install -y p7zip p7zip-plugins
@@ -44,14 +46,13 @@ mv /.nvm /root/
 [ -s "/root/.nvm/nvm.sh" ] && \. "/root/.nvm/nvm.sh"
 [ -s "/root/.nvm/bash_completion" ] && \. "/root/.nvm/bash_completion"
 
-# Install NodeJS v8
-nvm install 8
+# Install NodeJS v12
+nvm install 12
 
 # Retrieve the hashes file
 wget -O hashes.txt "$(jq -r '.hashFileUrl' manifest.json)"
 
 # Make the dirs
-mkdir npk-wordlist
 mkdir npk-rules
 
 # Get all manifest components
@@ -67,36 +68,45 @@ jq -r '.dictionaryFile' manifest.json | xargs -L1 -I'{}' rm ./npk-{}
 jq -r '.rulesFiles[]' manifest.json | xargs -L1 -I'{}' rm ./npk-{}
 
 # Link the output file to potfiles
-ln -s /var/log/cloud-init-output.log /potfiles/$${INSTANCE_ID}-output.log
+ln -s /var/log/cloud-init-output.log /potfiles/$${INSTANCEID}-output.log
 
 # Create the crontab to sync s3
 echo "* * * * * root aws s3 sync s3://$USERDATA/$ManifestPath/potfiles/ /potfiles/ && aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/" >> /etc/crontab
 
 aws ec2 describe-spot-fleet-instances --region $REGION --spot-fleet-request-id $SpotFleet | jq '.ActiveInstances[].InstanceId' | sort > fleet_instances
-cat fleet_instances | wc -l > instance_count
-cat fleet_instances | grep -nr $INSTANCE_ID - | cut -d':' -f1 > instance_number
-echo $INSTANCE_ID > instance_id
-echo $REGION > region
+INSTANCECOUNT=$(cat fleet_instances | wc -l)
+INSTANCENUMBER=$(cat fleet_instances | grep -nr $INSTANCEID - | cut -d':' -f1)
 
 7z x hashcat.7z
 7z x maskprocessor.7z
-mv hashcat-5.0.0/ hashcat
-mv maskprocessor-0.73/ maskprocessor
+mv hashcat-*/ hashcat
+mv maskprocessor-*/ maskprocessor
 
 if [[ "$(jq -r '.attackType' manifest.json)" == "0" ]]; then
-	aws s3api head-object --bucket $BUCKET --key $(jq -r '.dictionaryFile' manifest.json) | jq -r '.Metadata.lines' > /root/keyspace
+	KEYSPACE=$(aws s3api head-object --bucket $BUCKET --key $(jq -r '.dictionaryFile' manifest.json) | jq -r '.Metadata.lines')
 elif [[ "$(jq -r '.attackType' manifest.json)" == "3" ]]; then
-	/root/hashcat/hashcat64.bin --keyspace -a 3 $(jq -r '.mask' /root/manifest.json) > /root/keyspace
+	KEYSPACE=$(/root/hashcat/hashcat64.bin --keyspace -a 3 $(jq -r '.mask' /root/manifest.json))
 else
-	/root/hashcat/hashcat64.bin --keyspace -a $(jq -r '.attackType' /root/manifest.json) npk-wordlist/* > /root/keyspace
+	KEYSPACE=$(/root/hashcat/hashcat64.bin --keyspace -a $(jq -r '.attackType' /root/manifest.json) npk-wordlist/*)
 fi
 
-unzip -d compute-node compute-node.zip
-node compute-node/maskprocessor.js
+unzip -qq -d compute-node compute-node.zip
+#node compute-node/maskprocessor.js
+MASK=$(jq -r '.mask' manifest.json | sed 's/?/ $?/g')
+MASK=\"$${MASK:1}\"
+
+echo "Manifest has mask of [$MASK]"
+
+if [[ $(echo $MASK | wc -c) -gt 0 ]]; then
+	echo "/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule $MASK"
+	/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule $MASK
+	echo : >> /root/npk-rules/npk-maskprocessor.rule
+	echo "Mask rule created with $(cat /root/npk-rules/npk-maskprocessor.rule | wc -l) entries"
+fi
 
 # Create the snitch
-echo "* * * * * root /root/compute-node/kill_if_dead.sh" >> /etc/crontab
+#echo "* * * * * root /root/compute-node/kill_if_dead.sh" >> /etc/crontab
 
-node compute-node/hashcat_wrapper.js
-aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
-# /root/hashcat/hashcat64.bin -O -w 4 -b --benchmark-all | tee /potfiles/benchmark-results.txt
+#node compute-node/hashcat_wrapper.js
+#aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
+/root/hashcat/hashcat.bin -O -w 4 -b --benchmark-all > benchmark-results.txt

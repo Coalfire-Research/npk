@@ -144,7 +144,7 @@
                       <div class="form-group row">
                         <label for="mask" class="col-sm-6 col-form-label">Hash Type</label>
                         <div class="col-sm-6 input-group">
-                          <input id="mask" type="text" name="mask" class="form-control" ng-model="hashType">
+                          <input id="mask" type="text" name="mask" class="form-control" ng-model="hashType" ng-change="updateInstances()">
                         </div>
                       </div>
                       {{ pricingSvc.hashTypes | equals:hashType }}

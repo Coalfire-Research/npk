@@ -105,8 +105,8 @@ if [[ $(echo $MASK | wc -c) -gt 0 ]]; then
 fi
 
 # Create the snitch
-#echo "* * * * * root /root/compute-node/kill_if_dead.sh" >> /etc/crontab
+echo "* * * * * root /root/compute-node/kill_if_dead.sh" >> /etc/crontab
 
-#node compute-node/hashcat_wrapper.js
-#aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
-/root/hashcat/hashcat.bin -O -w 4 -b --benchmark-all > benchmark-results.txt
+node compute-node/hashcat_wrapper.js
+aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
+#/root/hashcat/hashcat.bin -O -w 4 -b --benchmark-all > benchmark-results.txt

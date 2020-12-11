@@ -934,7 +934,7 @@ angular
 
     $scope.attackType = 0;
     $scope.attackTypeDescription = {
-      "f": "(Fubar. Something is wrong.)",
+      "-": "None (No attacks enabled)",
       0: "(Use Rules)",
       3: "(Mask Only)",
       6: "(Hybrid; Dictionary + Mask)"
@@ -968,7 +968,7 @@ angular
         return true;
       }
 
-      $scope.attackType = 'f';
+      $scope.attackType = '-';
       return true;
     };
 

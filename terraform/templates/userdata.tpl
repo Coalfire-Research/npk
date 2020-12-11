@@ -1,11 +1,10 @@
 #! /bin/bash
 cd /root/
 
-export APIGATEWAY={{APIGATEWAY}}
-echo $APIGATEWAY > /root/apigateway
+echo {{APIGATEWAY}} > /root/apigateway
 
+export APIGATEWAY=$(cat /root/apigateway)
 export USERDATA=${userdata}
-
 export INSTANCEID=`wget -qO- http://169.254.169.254/latest/meta-data/instance-id`
 export REGION=`wget -qO- http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/.$//'`
 aws ec2 describe-tags --region $REGION --filter "Name=resource-id,Values=$INSTANCEID" --output=text | sed -r 's/TAGS\t(.*)\t.*\t.*\t(.*)/\1="\2"/' | sed -r 's/aws:ec2spot:fleet-request-id/SpotFleet/' > ec2-tags
@@ -93,20 +92,33 @@ fi
 unzip -qq -d compute-node compute-node.zip
 #node compute-node/maskprocessor.js
 MASK=$(jq -r '.mask' manifest.json | sed 's/?/ $?/g')
-MASK=\"$${MASK:1}\"
+MASK=$${MASK:1}
 
 echo "Manifest has mask of [$MASK]"
 
 if [[ $(echo $MASK | wc -c) -gt 0 ]]; then
-	echo "/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule $MASK"
-	/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule $MASK
+	echo "/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule \"$MASK\""
+	/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule "$MASK"
 	echo : >> /root/npk-rules/npk-maskprocessor.rule
 	echo "Mask rule created with $(cat /root/npk-rules/npk-maskprocessor.rule | wc -l) entries"
 fi
 
+# Put the envvars in a useful place, in case debugging is needed.
+echo "export APIGATEWAY=$APIGATEWAY" >> envvars
+echo "export USERDATA=$USERDATA" >> envvars
+echo "export INSTANCEID=$INSTANCEID" >> envvars
+echo "export REGION=$REGION" >> envvars
+echo "export ManifestPath=$ManifestPath" >> envvars
+echo "export INSTANCECOUNT=$INSTANCECOUNT" >> envvars
+echo "export INSTANCENUMBER=$INSTANCENUMBER" >> envvars
+echo "export KEYSPACE=$KEYSPACE" >> envvars
+chmod +x envvars
+
 # Create the snitch
-echo "* * * * * root /root/compute-node/kill_if_dead.sh" >> /etc/crontab
+# echo "* * * * * root /root/compute-node/kill_if_dead.sh" >> /etc/crontab
 
 node compute-node/hashcat_wrapper.js
 aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
+sleep 30
+poweroff
 #/root/hashcat/hashcat.bin -O -w 4 -b --benchmark-all > benchmark-results.txt

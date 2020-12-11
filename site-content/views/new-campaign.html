@@ -400,14 +400,12 @@
                         <div class="col-lg-6">
                           <div class="form-group" ng-hide="hashes_loading">
                             <h5 style="text-align: center;">Hashes File</h5>
-                            <select class="form-control" multiple="multiple" id="hashes_select" name="my_multi_select0[]" ng-model="selectedHashes" ng-options="value.Name for (key, value) in hashesFiles.Contents" style="height: 90px;">
+                            <select class="form-control" multiple="multiple" id="hashes_select" name="my_multi_select0[]" ng-model="selectedHashes" ng-selected="key.Name == uploadedFile" ng-options="value.Name for (key, value) in hashesFiles.Contents" style="height: 90px;">
                             </select>
                           </div>
                           <div class="bg-dark text-center" ng-show="hashes_loading">
                             <img height="50px" width="50px" src="assets/images/loading.gif">
                           </div>
-                        </div>
-                        <div class="col-lg-6" style="padding-top: 34px;">
                           <input type="file" name="hashfile" onchange="angular.element(this).scope().uploadHashFile()" id="hashfile" hidden="true">
                           <label for="hashfile" ng-show="upload_ready">
                             <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1">
@@ -415,6 +413,30 @@
                               <span>Upload more Hashes</span>
                             </div>
                           </label>
+                          <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1" ng-show="uploading_hashes" style="width: 60%; ">
+                            <div class="progress mt-3" style="margin-top: 0px !important;">
+                              <div class="progress-bar bg-secondary" style="width:{{ uploadProgress }}%"></div>
+                            </div>
+                          </div>
+                          <div class="btn btn-lg btn-outline-success waves-effect waves-light m-1" ng-show="upload_finished">
+                            <i class="fa fa-check"></i>
+                            <span>Uploaded Successfully!</span>
+                          </div>
+                        </div>
+                        <div class="col-lg-6">
+                          <div class="form-group" ng-hide="hashes_loading">
+                            <h5 style="text-align: center;">Paste Hashes</h5>
+                            <textarea class="form-control" id="hashes_paste" name="hashes_paste" ng-model="pastedHashes" style="height: 90px;"></textarea>
+                          </div>
+                          <div class="bg-dark text-center" ng-show="hashes_loading">
+                            <img height="50px" width="50px" src="assets/images/loading.gif">
+                          </div>
+                          <div ng-show="upload_ready">
+                            <button class="btn btn-lg btn-outline-dark waves-effect waves-light m-1" name="hashfile" ng-click="uploadHashText()" id="hashpaste">
+                                <i class="fa fa-plus-square"></i>
+                                <span>Create Hash File</span>
+                            </button>
+                          </div>
                           <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1" ng-show="uploading_hashes" style="width: 60%; ">
                             <div class="progress mt-3" style="margin-top: 0px !important;">
                               <div class="progress-bar bg-secondary" style="width:{{ uploadProgress }}%"></div>

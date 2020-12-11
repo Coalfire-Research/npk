@@ -741,7 +741,7 @@ angular
       Object.keys($scope.pricingSvc.hashTypes).forEach(function(e) {
         if ($scope.pricingSvc.hashTypes[e] == $scope.hashType) {
           result = (e.indexOf('$salt') >= 0 || e.indexOf('crypt') >= 0);
-          console.log(e);
+          // console.log(e);
         }
       });
 
@@ -1119,6 +1119,7 @@ angular
           console.log("Success");
           $scope.uploading_hashes = false;
           $scope.upload_finished = true;
+          $scope.uploadedFile = file.name;
           $scope.$digest();
 
           $scope.getHashFiles();
@@ -1128,6 +1129,44 @@ angular
       reader.readAsArrayBuffer(file);
     };
 
+    $scope.uploadHashText = function() {
+
+      var body = $('#hashes_paste').val();
+      var filename = "console_upload_" + new Date().toISOString();
+
+      if (body == "") {
+        $scope.orderWarnings.push("You probably didn't mean to create an empty hashfile.");
+        $('#orderErrorModal').modal('show');
+        return false;
+      }
+
+      $scope.upload_ready = false;
+      $scope.uploading_hashes = true;
+
+      var uploader = new AWS.S3.ManagedUpload({
+        params: {Bucket: USERDATA_BUCKET, Key: AWS.config.credentials.identityId + "/uploads/" + filename, Body: body, ContentType: "text/plain"}
+      })
+      .on('httpUploadProgress', function(evt) {
+        $scope.uploadProgress = Math.floor(evt.loaded / evt.total * 100);
+        $scope.$digest();
+      })
+      .send(function(err, result) {
+        if (err) {
+          console.log("Upload failed. " + err);
+          return false;
+        }
+
+        $scope.uploading_hashes = false;
+        $scope.upload_finished = true;
+        $scope.uploadedFile = filename;
+        $scope.$digest();
+
+        $scope.getHashFiles();
+      });
+    };
+
+    $scope.uploadedFile = null;
+
     $scope.getHashFiles = function() {
       $scope.$parent.npkDB.listBucketContents(USERDATA_BUCKET, "self/uploads/").then((data) => {
         Object.keys(data.Contents).forEach(function (e) {
@@ -1136,7 +1175,10 @@ angular
           } else {
             data.Contents[e].Name = data.Contents[e].Key.split('/')[2];
           }
-          
+
+          if ($scope.uploadedFile == data.Contents[e].Key.split('/')[2]) {
+            $scope.selectedHashes = [data.Contents[e]];
+          }
         });
 
         $scope.hashesFiles = data;
@@ -1146,6 +1188,8 @@ angular
     }
 
     $scope.order = {};
+    $scope.orderErrors = [];
+    $scope.orderWarnings = [];
     $scope.verifyOrder = function() {
       $scope.orderErrors = [];
       $scope.orderWarnings = [];

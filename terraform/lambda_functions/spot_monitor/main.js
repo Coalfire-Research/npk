@@ -472,6 +472,21 @@ exports.main = function(event, context, callback) {
 					return false;
 				}
 
+				if (fleet.SpotFleetRequestState.indexOf("cancelled") == 0) {
+					fleetPromises.push(editCampaignViaRequestId(fleet.SpotFleetRequestId, {
+						active: false,
+						price: fleet.price,
+						spotRequestStatus: fleet.SpotFleetRequestState,
+						status: (fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING"
+					}).then((data) => {
+						console.log("Marked campaign of " + fleet.SpotFleetRequestId + " as " + ((fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING"))
+					}, (e) => {
+						console.log("[!] Failed attempting to update " + fleet.SpotFleetRequestId);
+					}));
+
+					return false;
+				}
+
 				var ec2 = new aws.EC2({region: region});
 
 				promiseDetails.fleets[fleet.SpotFleetRequestId] = fleet;
@@ -636,21 +651,6 @@ exports.main = function(event, context, callback) {
 					tags[t.Key] = t.Value;
 				});
 			});
-
-			if (fleet.SpotFleetRequestState.indexOf("cancelled") == 0) {
-				finalPromises.push(editCampaignViaRequestId(fleetId, {
-					active: false,
-					price: fleet.price,
-					spotRequestStatus: fleet.SpotFleetRequestState,
-					status: (fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING"
-				}).then((data) => {
-					console.log("Marked campaign of " + fleetId + " as " + ((fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING"))
-				}, (e) => {
-					console.log("[!] Failed attempting to update " + fleetId);
-				}));
-
-				return true;
-			}
 
 			// Update the current price.
 			finalPromises.push(editCampaignViaRequestId(fleetId, {

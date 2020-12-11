@@ -40,7 +40,19 @@
                         Show All
                       </label>
                       <select class="form-control" ng-options="value as key for (key, value) in pricingSvc.hashTypes | commonHashTypes: !showAll" ng-model="hashType" ng-change="updateInstances()" style="margin-bottom: 5px;"></select>
-                      <span ng-show="isSalted()"><small>Warning: Hashrates for salted or workfactor hashes will not be accurate. Make sure you understand the ramifications and adjust your campaign accordingly.</small></span>
+                      <div ng-show="isSalted()" class="alert alert-outline-warning" role="alert">
+                        <div class="alert-icon">
+                          <i class="icon-close"></i>
+                        </div>
+                        <div class="alert-message">
+                          <span>
+                            <strong>
+                              Warning:
+                            </strong>
+                            Hashrates for salted or workfactor hashes will not be accurate. Make sure you understand the ramifications and adjust your campaign accordingly.
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div class="card border border-white shadow-none">
@@ -55,9 +67,6 @@
                         </button>
                         <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-east-1'}" ng-click="pickForcedRegion('us-east-1')">
                           East-1
-                        </button>
-                        <button class="btn btn-sm border-secondary btn-secondary waves-effect waves-light">
-                          <s>East-2</s>
                         </button>
                       </div>
                     </div>
@@ -149,7 +158,19 @@
                         </div>
                       </div>
                       {{ pricingSvc.hashTypes | equals:hashType }}
-                      <span ng-show="isSalted()"><small>Warning: Hashrates for salted or workfactor hashes will not be accurate. Make sure you understand the ramifications and adjust your campaign accordingly.</small></span>
+                      <div ng-show="isSalted()" class="alert alert-outline-warning" role="alert">
+                        <div class="alert-icon">
+                          <i class="icon-close"></i>
+                        </div>
+                        <div class="alert-message">
+                          <span>
+                            <strong>
+                              Warning:
+                            </strong>
+                            Hashrates for salted or workfactor hashes will not be accurate. Make sure you understand the ramifications and adjust your campaign accordingly.
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div class="card border border-white shadow-none">

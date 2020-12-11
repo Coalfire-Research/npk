@@ -736,6 +736,18 @@ angular
       }
     });
 
+    $scope.isSalted = function() {
+      var result = false;
+      Object.keys($scope.pricingSvc.hashTypes).forEach(function(e) {
+        if ($scope.pricingSvc.hashTypes[e] == $scope.hashType) {
+          result = (e.indexOf('$salt') >= 0 || e.indexOf('crypt') >= 0);
+          console.log(e);
+        }
+      });
+
+      return result;
+    };
+
     $scope.updateInstances = function() {
       var empty = {
         hashes: "-",

@@ -40,6 +40,7 @@
                         Show All
                       </label>
                       <select class="form-control" ng-options="value as key for (key, value) in pricingSvc.hashTypes | commonHashTypes: !showAll" ng-model="hashType" ng-change="updateInstances()" style="margin-bottom: 5px;"></select>
+                      <span ng-show="isSalted()"><small>Warning: Hashrates for salted or workfactor hashes will not be accurate. Make sure you understand the ramifications and adjust your campaign accordingly.</small></span>
                     </div>
                   </div>
                   <div class="card border border-white shadow-none">
@@ -148,6 +149,7 @@
                         </div>
                       </div>
                       {{ pricingSvc.hashTypes | equals:hashType }}
+                      <span ng-show="isSalted()"><small>Warning: Hashrates for salted or workfactor hashes will not be accurate. Make sure you understand the ramifications and adjust your campaign accordingly.</small></span>
                     </div>
                   </div>
                   <div class="card border border-white shadow-none">

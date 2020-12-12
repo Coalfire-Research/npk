@@ -29,9 +29,9 @@ BUCKET4=${dw2}
 REGION4="us-west-2"
 
 echo "- syncing upstream S3 to selfhosted buckets."
-aws s3 sync s3://npk-dictionary-east-1-20181029005812833000000004-2 s3://$BUCKET1 --region $REGION1
-aws s3 sync s3://npk-dictionary-east-2-20181029005812776500000003-2 s3://$BUCKET2 --region $REGION2
-aws s3 sync s3://npk-dictionary-west-1-20181029005812746900000001-2 s3://$BUCKET3 --region $REGION3
-aws s3 sync s3://npk-dictionary-west-2-20181029005812750900000002-2 s3://$BUCKET4 --region $REGION4
+aws s3 sync s3://npk-dictionary-east-1-20181029005812833000000004 s3://$BUCKET1 --region $REGION1
+aws s3 sync s3://npk-dictionary-east-2-20181029005812776500000003 s3://$BUCKET2 --region $REGION2
+aws s3 sync s3://npk-dictionary-west-1-20181029005812746900000001 s3://$BUCKET3 --region $REGION3
+aws s3 sync s3://npk-dictionary-west-2-20181029005812750900000002 s3://$BUCKET4 --region $REGION4
 
 echo "- buckets synced."

@@ -38,7 +38,7 @@ if [ ! -f ${basepath}/components/maskprocessor.7z ]; then
 fi
 
 if [ ! -f ${basepath}/components/epel.rpm ]; then
-	wget -O ${basepath}/components/epel.rpm https://npk-dictionary-east-1-20181029005812833000000004-2.s3.us-east-1.amazonaws.com/components/epel.rpm
+	wget -O ${basepath}/components/epel.rpm https://npk-dictionary-east-1-20181029005812833000000004.s3.us-east-1.amazonaws.com/components/epel.rpm
 fi
 
 echo "- Uploading to S3"

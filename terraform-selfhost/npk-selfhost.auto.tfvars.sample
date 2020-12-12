@@ -4,6 +4,3 @@ aws_profile = ""
 ###	URLs for extra components.
 # Hashcat
 hashcat = "https://hashcat.net/files/hashcat-5.0.0.7z"
-
-# EPEL repo RPM
-epel = "https://npk-dictionary-east-1-20181029005812833000000004-2.s3.us-east-1.amazonaws.com/components/epel.rpm"

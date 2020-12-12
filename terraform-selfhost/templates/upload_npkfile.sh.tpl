@@ -16,7 +16,7 @@ if [[ "$1" != "wordlist" && "$1" != "rules" ]]; then
 	ERR=1
 fi
 
-if [[ $# -lt 4 ]]; then
+if [[ $# -lt 2 ]]; then
 	ERR=1
 fi
 
@@ -39,17 +39,17 @@ REGION4="us-west-2"
 
 FILENAME=$(echo $${2##*/})
 ARCHIVE=$(echo $${FILENAME%.*}).7z
-LINES=$(wc -l $2 | cut -d" " -f1)
+FILELINES=$(wc -l $2 | cut -d" " -f1)
 SIZE=$(ls -al $2 | cut -d" " -f5)
 echo "Processing $1 $FILENAME"
 echo "- Compressing"
 7z a $ARCHIVE $2
 
 echo "- Uploading to S3"
-aws s3 cp $ARCHIVE s3://$BUCKET1/$1/ $${@:3} --metadata type=$1,lines=$LINES,size=$SIZE --region $REGION1
-aws s3 cp $ARCHIVE s3://$BUCKET2/$1/ $${@:3} --metadata type=$1,lines=$LINES,size=$SIZE --region $REGION2
-aws s3 cp $ARCHIVE s3://$BUCKET3/$1/ $${@:3} --metadata type=$1,lines=$LINES,size=$SIZE --region $REGION3
-aws s3 cp $ARCHIVE s3://$BUCKET4/$1/ $${@:3} --metadata type=$1,lines=$LINES,size=$SIZE --region $REGION4
+aws s3 cp $ARCHIVE s3://$BUCKET1/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION1
+aws s3 cp $ARCHIVE s3://$BUCKET2/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION2
+aws s3 cp $ARCHIVE s3://$BUCKET3/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION3
+aws s3 cp $ARCHIVE s3://$BUCKET4/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION4
 rm $ARCHIVE
 
 echo -e "Done.\n\n"

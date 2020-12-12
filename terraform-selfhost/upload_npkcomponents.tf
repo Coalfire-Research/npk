@@ -1,4 +1,4 @@
-resource "null_resource" "upload_npkcomponents" {
+/*resource "null_resource" "upload_npkcomponents" {
     triggers {
         content = "${local_file.upload_npkcomponents.content}"
     }
@@ -15,7 +15,7 @@ resource "null_resource" "upload_npkcomponents" {
         "data.archive_file.compute-node",
         "null_resource.upload_npkcomponents"
     ]
-}
+}*/
 
 data "archive_file" "compute-node" {
   type        = "zip"

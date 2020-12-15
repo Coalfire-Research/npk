@@ -3,4 +3,4 @@ aws_profile = ""
 
 ###	URLs for extra components.
 # Hashcat
-hashcat = "https://hashcat.net/files/hashcat-5.0.0.7z"
+hashcat = "https://hashcat.net/files/hashcat-6.1.1.7z"

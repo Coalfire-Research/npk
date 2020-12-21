@@ -37,7 +37,7 @@
 						"apigateway": if settings.useCustomDNS then
 							settings.dnsNames.api[0]
 						else
-							"https://${aws_api_gateway_rest_api.npk.id}.execute-api." + settings.defaultRegion + ".amazonaws.com/v1"
+							"${aws_api_gateway_rest_api.npk.id}.execute-api." + settings.defaultRegion + ".amazonaws.com/v1"
 					}
 				},
 

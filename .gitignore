@@ -9,6 +9,7 @@ plan/*
 site-content/angular/npk_config.js
 site-content/assets/js/cognito_config.js
 **/node_modules
+terraform/quotas.json
 terraform/npk-settings.json
 terraform/generated-settings.jsonnet
 terraform/regions.json

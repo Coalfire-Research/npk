@@ -118,7 +118,7 @@ if [[ $QUOTAWARN -eq 1 ]]; then
 	read -r -p " Do you understand? [Yes]: " key
 
 	if [[ "$key" != "Yes" ]]; then
-		echo "You must accept the campaign size warning in order to continue."
+		echo "You must accept the campaign size warning with 'Yes' in order to continue."
 		echo ""
 
 		exit 1
@@ -127,6 +127,8 @@ fi
 
 
 echo "[*] Preparing to deploy NPK."
+
+jq -n --arg PQUOTA "$PQUOTA" --arg GQUOTA "$GQUOTA" '{pquota: $PQUOTA, gquota: $GQUOTA}' > quotas.json
 
 # Get the availability zones for each region
 if [ ! -f regions.json ]; then
@@ -173,4 +175,3 @@ if [[ ! -d .terraform ]]; then
 fi
 
 terraform apply -auto-approve
-terraform apply -auto-approve	# Yes, userdata.sh is an unresolvable cyclical dependency. I am ashamed.

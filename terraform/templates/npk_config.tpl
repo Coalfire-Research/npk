@@ -17,6 +17,10 @@ angular.module('app')
 		"SAMLRedirectUrl": "${saml_redirect}",
 		"SAMLIdp": "NPKSAML"
 	})
+	.constant('QUOTAS', {
+		"gQuota": "${g_quota}",
+		"pQuota": "${p_quota}"
+	})
 	.constant('USERDATA_BUCKET', "${userdata_bucket}")
 	.constant('APIGATEWAY_URL', "${api_gateway_url}")
 	;

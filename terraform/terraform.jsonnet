@@ -1,5 +1,6 @@
 local npksettings = import 'npk-settings.json';
 local regions = import 'regions.json';
+local quotas = import 'quotas.json';
 local provider = import 'jsonnet/provider.libsonnet';
 local vpc = import 'jsonnet/vpc.libsonnet';
 local subnet = import 'jsonnet/subnet.libsonnet';
@@ -25,8 +26,9 @@ local templates = import 'jsonnet/templates.libsonnet';
 local null_resources = import 'jsonnet/null_resources.libsonnet';
 
 local settings = npksettings + {
-	"defaultRegion": "us-west-2",
-	regions: regions
+	defaultRegion: "us-west-2",
+	regions: regions,
+	quotas: quotas
 };
 
 local defaultResource = {

@@ -600,7 +600,7 @@ angular
 
       });
    }])
-  .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKETS', 'USERDATA_BUCKET', 'APIGATEWAY_URL', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKETS, USERDATA_BUCKET, APIGATEWAY_URL) {
+  .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKETS', 'USERDATA_BUCKET', 'APIGATEWAY_URL', 'QUOTAS', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKETS, USERDATA_BUCKET, APIGATEWAY_URL, QUOTAS) {
 
     $scope.pricingSvc = pricingSvc;
     // window.campaignCtrl = $scope;
@@ -629,25 +629,25 @@ angular
     $scope.uploadProgress = 30;
     $scope.upload_finished = false;
 
-    $scope.idealG3Instance = {
-      instanceType: "?",
-      price: 0,
-      az: ''
+    $scope.idealInstances = {
+      "g3": {
+        instanceType: "?",
+        price: 0,
+        az: ''
+      },
+      "p2": {
+        instanceType: "?",
+        price: 0,
+        az: ''
+      },
+      "p3": {
+        instanceType: "?",
+        price: 0,
+        az: ''
+      }
     };
 
-    $scope.idealP2Instance = {
-      instanceType: "?",
-      price: 0,
-      az: ''
-    };
-
-    $scope.idealP3Instance = {
-      instanceType: "?",
-      price: 0,
-      az: ''
-    };
-
-    $scope.instances = {};
+    // $scope.instances = {};
 
     $scope.toggleAdvancedView = function() {
       $scope.showAdvanced = $('#use_advanced').prop('checked');
@@ -660,6 +660,7 @@ angular
       $scope.processInstancePrices();
     };
 
+    $scope.pricesLoaded = false;
     $scope.getLowestPrice = function(list) {
 
       var promises = [];
@@ -669,6 +670,8 @@ angular
       });
 
       return Promise.all(promises).then((data) => {
+        $scope.pricesLoaded = true;
+
         var result = {
           cheapestRegion: '',
           cheapestType: '',
@@ -683,6 +686,15 @@ angular
 
           if ($scope.forceRegion !== false && data[i].price == null) {
             return false;
+          }
+
+          // Skip instances too large for our deployment.
+          if ($scope.quotaFor(data[i].instanceType) == 0) {
+            return result;
+          }
+
+          if (data[i].price == 0) {
+            return result;
           }
 
           // TODO: Switch '<' at 551:115 to '>' to pick bigger instances.
@@ -736,6 +748,10 @@ angular
       }
     });
 
+    $scope.$watch('selectedInstance', function() {
+      $scope.buildSliders();
+    });
+
     $scope.isSalted = function() {
       var result = false;
       Object.keys($scope.pricingSvc.hashTypes).forEach(function(e) {
@@ -748,10 +764,9 @@ angular
       return result;
     };
 
-    $scope.updateInstances = function() {
+/*    $scope.updateInstances = function() {
       var empty = {
         hashes: "-",
-        price: "?",
         hashprice: "?"
       };
 
@@ -760,30 +775,19 @@ angular
           $scope.instances[e] = empty;
         }
 
-        var price = 10;
+        var price = 0;
         if (typeof $scope.pricingSvc[e] == "undefined" || typeof $scope.pricingSvc[e][$scope.hashType] == "undefined") {
 
-          $scope.instances[e] = {
-            hashes: "-",
-            price: price,
-            hashprice: "?"
-          };
+          $scope.instances[e] = empty;
 
           return true;
         }
 
         $scope.instances[e] = {
-          hashes: $scope.pricingSvc[e][$scope.hashType],
-          price:  price,
-          hashprice: Math.round($scope.pricingSvc[e][$scope.hashType] / price * 100) / 100
+          hashes: $scope.pricingSvc[e][$scope.hashType]
         };
-
-        if ($scope.instances[e].hashprice > $scope.bestPrice || $scope.bestPrice == null) {
-          $scope.idealInstance = e;
-          $scope.bestPrice = $scope.instances[e].hashprice;
-        }
       });
-    };
+    };*/
 
     $scope.selectedAZ = "";
     $scope.pickInstance = function(which) {
@@ -873,10 +877,12 @@ angular
     });
 
     $scope.$watch('hashType', function() {
+      // $scope.updateInstances();
+      $scope.setIdealInstance();
       $scope.updateWordlistAttack();
 
       if ($scope.selectedInstance != "none") {
-        $scope.maskDuration = Math.floor($scope.maskKeyspace / $scope.instances[$scope.selectedInstanceGeneration].hashes / $scope.gpus[$scope.selectedInstance])
+        $scope.maskDuration = Math.floor($scope.maskKeyspace / $scope.pricingSvc[$scope.selectedInstanceGeneration][$scope.hashType] / $scope.gpus[$scope.selectedInstance])
       }
 
       $scope.updateTotalKeyspace();
@@ -930,7 +936,7 @@ angular
         $scope.wordlistAttackStats.total.keyspace = $scope.wordlistAttackStats.wordlist.lines * $scope.wordlistAttackStats.rules.keyspace;
         $scope.wordlistAttackStats.total.size = $scope.wordlistAttackStats.wordlist.size + $scope.wordlistAttackStats.rules.size;
 
-        $scope.wordlistAttackStats.total.requiredDuration = Math.floor($scope.wordlistAttackStats.total.keyspace / $scope.instances[$scope.selectedInstanceGeneration].hashes / $scope.gpus[$scope.selectedInstance])
+        $scope.wordlistAttackStats.total.requiredDuration = Math.floor($scope.wordlistAttackStats.total.keyspace / $scope.pricingSvc[$scope.selectedInstanceGeneration][$scope.hashType] / $scope.gpus[$scope.selectedInstance])
 
         $scope.$digest();
       });
@@ -956,7 +962,7 @@ angular
     $scope.totalDuration = 0;
     $scope.updateTotalKeyspace = function() {
       $scope.totalKeyspace = (($scope.use_mask) ? $scope.maskKeyspace : 1) * (($scope.use_wordlist) ? $scope.wordlistAttackStats.total.keyspace : 1);
-      $scope.totalDuration = $scope.totalKeyspace / (($scope.selectedInstance != "none") ? ($scope.gpus[$scope.selectedInstance] * ($scope.instances[$scope.selectedInstanceGeneration].hashes /4)) : 1);
+      $scope.totalDuration = $scope.totalKeyspace / (($scope.selectedInstance != "none") ? ($scope.gpus[$scope.selectedInstance] * ($scope.pricingSvc[$scope.selectedInstanceGeneration][$scope.hashType] /4)) : 1);
 
       $scope.updateCoverage();
 
@@ -985,8 +991,8 @@ angular
     };
 
     $scope.totalCoverage = 0;
-    $scope.instanceCount = 2;
-    $scope.instanceDuration = 4;
+    $scope.instanceCount = 0;
+    $scope.instanceDuration = 0;
     $scope.totalPrice = 0;
 
     $scope.updateCoverage = function() {
@@ -1053,7 +1059,7 @@ angular
       }
 
       if ($scope.selectedInstance != "none") {
-        $scope.maskDuration = Math.floor($scope.maskKeyspace / $scope.instances[$scope.selectedInstanceGeneration].hashes / $scope.gpus[$scope.selectedInstance])
+        $scope.maskDuration = Math.floor($scope.maskKeyspace / $scope.pricingSvc[$scope.selectedInstanceGeneration][$scope.hashType] / $scope.gpus[$scope.selectedInstance])
       }
 
       $scope.mask += value;
@@ -1089,6 +1095,46 @@ angular
       "p3.8xlarge": 4,
       "p3.16xlarge": 8
     };
+
+    $scope.vcpus = {
+      "g3.4xlarge": 16,
+      "g3.8xlarge": 32,
+      "g3.16xlarge": 64,
+      "p2.xlarge": 4,
+      "p2.8xlarge": 32,
+      "p2.16xlarge": 64,
+      "p3.2xlarge": 8,
+      "p3.8xlarge": 32,
+      "p3.16xlarge": 64
+    };
+
+    $scope.view_layout = {
+      "g3": ["g3.4xlarge", "g3.8xlarge", "g3.16xlarge"],
+      "p2": ["p2.xlarge", "p2.8xlarge", "p2.16xlarge"],
+      "p3": ["p3.2xlarge", "p3.8xlarge", "p3.16xlarge"]
+    };
+
+    $scope.quotaFor = function(instanceType) {
+      if (typeof instanceType == "undefined") {
+        return false;
+      }
+
+      switch (instanceType.split("")[0]) {
+        case 'g':
+          return Math.floor(QUOTAS.gQuota / $scope.vcpus[instanceType]);
+        break;
+
+        case 'p':
+          return Math.floor(QUOTAS.pQuota / $scope.vcpus[instanceType]);
+        break;
+
+        case 'n': // This is to match 'none';
+          return 0;
+        break;
+      }
+    }
+
+    $scope.quotas = QUOTAS;
 
     $scope.uploadHashFile = function() {
       var reader = new FileReader();
@@ -1236,7 +1282,7 @@ angular
         }
       }
 
-      if ($scope.instanceCount < 1 || $scope.instanceCount > 6) {
+      if ($scope.instanceCount < 1 || $scope.instanceCount > $scope.maxInstances) {
         $scope.orderErrors.push("Invalid instance count.");
       }
 
@@ -1357,28 +1403,36 @@ angular
         "p3.16xlarge": 8
       });
 
+      $scope.idealInstances = {
+        "g3": {},
+        "p2": {},
+        "p3": {}
+      }
+
       Promise.all([
         $scope.cheapest_g3,
         $scope.cheapest_p2,
         $scope.cheapest_p3
       ]).then((data) => {
-        $scope.idealG3Instance = {
+        $scope.idealInstances.g3 = {
           instanceType: data[0].cheapestType,
           price: data[0].price,
           az: data[0].cheapestRegion
         };
 
-        $scope.idealP2Instance = {
+        $scope.idealInstances.p2 = {
           instanceType: data[1].cheapestType,
           price: data[1].price,
           az: data[1].cheapestRegion
         };
 
-        $scope.idealP3Instance = {
+        $scope.idealInstances.p3 = {
           instanceType: data[2].cheapestType,
           price: data[2].price,
           az: data[2].cheapestRegion
         };
+
+        $scope.setIdealInstance();
 
         $scope.$apply()
       }).catch((err) => {
@@ -1386,9 +1440,49 @@ angular
       });
     }
 
+    $scope.setIdealInstance = function() {
+      $scope.idealInstance = null;
+      ["g3", "p2", "p3"].forEach(function(e) {
+        $scope.idealInstances[e].pricePerformance = $scope.pricingSvc[e][$scope.hashType] / $scope.idealInstances[e].price;
+
+        if (!$scope.idealInstances[e].price) {
+          return false;
+        }
+
+        if ($scope.idealInstance == null || $scope.idealInstances[e].pricePerformance > $scope.idealInstances[$scope.idealInstance].pricePerformance) {
+          $scope.idealInstance = e;
+        }
+      });
+    }
+
+    $scope.maxInstances = "0";
+    $scope.buildSliders = function() {
+
+      var maxInstances = $scope.quotaFor($scope.selectedInstance);
+
+      $scope.maxInstances = maxInstances;
+      if ($scope.instanceCount > $scope.maxInstances) {
+        $scope.instanceCount = $scope.maxInstances;
+      }
+
+      if (maxInstances > 0) {
+        $("#instance_count").data("ionRangeSlider").update({
+          min: 0,
+          max: maxInstances,
+          block: false
+        });
+      } else {
+        $("#instance_count").data("ionRangeSlider").update({
+          min: 0,
+          max: 0,
+          block: true
+        });
+      }      
+    };
+
     $scope.onReady = function() {
       $scope.$parent.startApp();
-      $scope.updateInstances();
+      // $scope.updateInstances();
 
       $scope.toggleMask();
       $scope.toggleWordlist();
@@ -1405,17 +1499,18 @@ angular
 
       $("#instance_count").ionRangeSlider({
         type: "single",
-        min: 1,
-        max: 6,
+        min: 0,
+        max: 1,
         step: 1,
         grid: true,
         grid_num: 1,
-        grid_snap: true
+        grid_snap: true,
+        block: true
       });
 
       $("#instance_duration").ionRangeSlider({
         type: "single",
-        min: 1,
+        min: 0,
         max: 24,
         step: 1,
         grid: true,

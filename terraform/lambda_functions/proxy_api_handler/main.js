@@ -37,8 +37,8 @@ var allowed_regions = [
 	"us-east-2"
 ];
 
-var allowed_intances = [
-	"g3s.xlarge",
+var allowed_instances = [
+	// "g3s.xlarge",
 	"g3.4xlarge",
 	"g3.8xlarge",
 	"g3.16xlarge",
@@ -51,6 +51,20 @@ var allowed_intances = [
 	"p3.8xlarge",
 	"p3.16xlarge"
 ];
+
+var vcpus = {
+	"g3.4xlarge": 16,
+	"g3.8xlarge": 32,
+	"g3.16xlarge": 64,
+
+	"p2.xlarge": 4,
+	"p2.8xlarge": 32,
+	"p2.16xlarge": 64,
+
+	"p3.2xlarge": 8,
+	"p3.8xlarge": 32,
+	"p3.16xlarge": 64
+}
 
 process.on('unhandledRejection', error => {
 	console.log('unhandledRejection', error.message);
@@ -360,7 +374,7 @@ function createCampaign(entity, campaign) {
 	verifiedManifest.hashType = campaign.hashType;
 
 	if (parseInt(campaign.instanceCount) < 1 || parseInt(campaign.instanceCount) > 6) {
-		return respond(400, "instanceCount must be between 1 and 6", false);
+		return respond(400, "instanceCount must be greater than 1", false);
 	}
 
 	verifiedManifest.instanceCount = campaign.instanceCount;
@@ -377,8 +391,27 @@ function createCampaign(entity, campaign) {
 
 	verifiedManifest.region = campaign.region;
 
-	if (allowed_intances.indexOf(campaign.instanceType) < 0) {
+	if (Object.keys(vcpus).indexOf(campaign.instanceType) < 0) {
 		return respond(400, campaign.instanceType + " is not a valid or allowed instance type.", false);
+	}
+
+	switch (campaign.instanceType.split("")[0]) {
+		case 'g':
+			var quota = variables.gQuota;
+		break;
+
+		case 'p':
+			var quota = variables.pQuota;
+		break;
+
+		default:
+			return respond(400, "Unable to determine applicable quota for " + campaign.instanceType, false);
+		break;
+	}
+
+	var neededVCPUs = vcpus[campaign.instanceType] * parseInt(campaign.instanceCount);
+	if (quota < neededVCPUs) {
+		return respond(400, "Order exceeds account quota limits. Needs " + neededVCPUs + " but account is limited to " + quota, false);
 	}
 
 	verifiedManifest.instanceType = campaign.instanceType;

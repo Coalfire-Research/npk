@@ -20,6 +20,8 @@ local az(region) = {
 					"use_SAML": "${var.useSAML}",
 					"saml_domain": "",
 					"saml_redirect": "",
+					"g_quota": settings.quotas.gquota,
+					"p_quota": settings.quotas.pquota,
 					"api_gateway_url": if settings.useCustomDNS then
 							settings.dnsNames.api[0]
 						else

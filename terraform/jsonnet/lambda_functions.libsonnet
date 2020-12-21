@@ -18,6 +18,8 @@
 
 						"www_dns_names": std.toString(settings.dnsNames.www),
 						"campaign_max_price": "${var.campaign_max_price}",
+						"gQuota": settings.quotas.gquota,
+						"pQuota": settings.quotas.pquota,
 						"userdata_bucket": "${aws_s3_bucket.user_data.id}",
 						"instanceProfile": "${aws_iam_instance_profile.npk_node.arn}",
 						"iamFleetRole": "${aws_iam_role.npk_fleet_role.arn}",

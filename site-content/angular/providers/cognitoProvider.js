@@ -3,6 +3,7 @@ angular
    .provider('cognito', ['COGNITO_CONFIG', 'COGNITO_CREDENTIALS', 'SAMLSSO', function(COGNITO_CONFIG, COGNITO_CREDENTIALS, SAMLSSO) {
       
       var logonRoute = "/";
+      var userRoute = "/dashboard";
 
       var cognito = function() {
          return {
@@ -20,6 +21,15 @@ angular
                params.data = params.body;
                params.headers = this.cognitoSigner.sign(params);
                return params;
+            },
+
+            isAdmin: function() {
+               if (localStorage.getItem("authType") == null || !this.cognitoUserSession.hasOwnProperty('idToken')) {
+                  console.log('Init::Auth not initialized');
+                  return false;
+               }
+
+               return this.cognitoUserSession.idToken.payload['cognito:groups'].indexOf('npk-admins') > -1;
             },
 
             isLoggedOn: function() {
@@ -268,6 +278,32 @@ angular
                });
             },
 
+            routeRequireAdmin: function() {
+               var self = this;
+
+               if (!this.isLoggedOn()) {
+
+                  return new Promise((success, failure) => {
+                     self.init();
+                     self.onReady.then((result) => {
+                        if (result === true) {
+                           if (this.isAdmin()) {
+                              return success(undefined);
+                           }
+
+                           console.log("routeRequireAdmin failed authorization check.");
+                           return success(self.userRoute);
+                        }
+
+                        console.log("routeRequireAdmin failed login. Result: " + result);
+                        return success(self.logonRoute);
+                     });
+                  });
+               }
+
+               return undefined;
+            },
+
             routeRequireLogin: function() {
                var self = this;
 
@@ -412,6 +448,10 @@ angular
       };
 
       this.setLogonRoute = function(routePath) {
+         logonRoute = routePath;
+      };
+
+      this.setUserRoute = function(routePath) {
          logonRoute = routePath;
       };
 

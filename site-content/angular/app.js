@@ -86,7 +86,7 @@ angular
 		};
 	})
 	.filter('commonHashTypes', function() {
-		return function(items, filter) {
+		var filter = function(items, favorites, filter) {
 			var commonItems = [
 				"NTLM",
 				"NetNTLMv2",
@@ -94,15 +94,20 @@ angular
 				"WPA/WPA2 PMK"
 			];
 
+			favorites = favorites || [];
+
 			result = {};
 			Object.keys(items).forEach(function(e) {
-				if (commonItems.indexOf(e) > -1 || filter === false) {
+				if (commonItems.indexOf(e) > -1 || favorites.indexOf(e) > -1 || filter === false) {
 					result[e] = items[e];
 				}
 			});
 
 			return result;
 		};
+
+		filter.$stateful = true;
+		return filter;
 	})
 	.filter('momentns', function () {
 	    return function (input, momentFn /*, param1, param2, ...param n */) {
@@ -153,6 +158,7 @@ angular
 
     	// Set the cognitoProvider's unauthenticated redirect route.
     	cognitoProvider.setLogonRoute('/');
+    	cognitoProvider.setUserRoute('/dashboard');
 
     	$locationProvider.hashPrefix('');
 
@@ -224,9 +230,16 @@ angular
 	   		}]
 	   	})
 	   	.when('/user-settings', {
-	   		templateUrl: "views/nyi.html",
+	   		templateUrl: "views/user-settings.html",
+	   		controller: "sCtrl",
 	   		resolveRedirectTo: ['cognito', function(cognito) {
 	   			return cognito.routeRequireLogin();
+	   		}]
+	   	})
+	   	.when('/users', {
+	   		templateUrl: "views/nyi.html",
+	   		resolveRedirectTo: ['cognito', function(cognito) {
+	   			return cognito.routeRequireAdmin();
 	   		}]
 	   	})
 
@@ -247,6 +260,22 @@ angular
     		templateUrl: "sidebar.html"
     	};
     })
+    .directive('jsonText', function() {
+	    return {
+	        restrict: 'A',
+	        require: 'ngModel',
+	        link: function(scope, element, attr, ngModel) {            
+	          function into(input) {
+	            return JSON.parse(input);
+	          }
+	          function out(data) {
+	            return JSON.stringify(data);
+	          }
+	          ngModel.$parsers.push(into);
+	          ngModel.$formatters.push(out);
+	        }
+	    };
+	})
     ;
 
 /*

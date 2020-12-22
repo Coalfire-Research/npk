@@ -29,22 +29,38 @@ angular
         return typeof what;
       };
 
+      $scope.settings = {};
       $scope.getSettings = function() {
-        $scope.settings = Promise.all([
+
+        Promise.all([
           $scope.npkDB.select('admin:setting:', 'Settings'),
           $scope.npkDB.select('self:setting:', 'Settings')
         ]).then((data) => {
 
-          var result = {};
+          var result = { admin: {}, self: {} };
 
           Object.keys(data).forEach(function(i) {
             Object.keys(data[i]).forEach(function(e) {
-              result[e] = data[i][e].value;
+              var key = e.split(":");
+              result[key[0]][key[2]] = data[i][e].value;
             });
           });
 
-          return result;
-        }).catch((e) => {
+          $scope.settings = result;
+
+          $scope.settings.admin.favoriteHashTypes = $scope.settings.admin.favoriteHashTypes || [];
+          $scope.settings.self.favoriteHashTypes = $scope.settings.self.favoriteHashTypes || [];
+          $scope.settings.favoriteHashTypes = [].concat($scope.settings.self.favoriteHashTypes).concat($scope.settings.admin.favoriteHashTypes);
+
+          // console.log(pricingSvc.hashTypes.$dirty);
+
+          if (!$scope.$$phase) {
+            $scope.$digest();
+          }
+
+          console.log("Settings loaded.");
+
+        }, (e) => {
           throw Error(e);
         });
       };
@@ -58,7 +74,7 @@ angular
       };
       */
 
-      // window.$$scope = $scope;
+      window.$$scope = $scope;
 
       $scope.handleLogin = function() {
           
@@ -141,6 +157,7 @@ angular
 
             if ($scope.cognitoSvc.isLoggedOn()) {
               $scope.handleLogin();
+              $scope.getSettings();
             }
          }
       };
@@ -1788,6 +1805,128 @@ angular
 
     $scope.$on('$routeChangeSuccess', function() {
        
+      $scope.onReady();
+    });
+  }])
+  .controller('sCtrl', ['$scope', '$routeParams', '$location', '$timeout', 'npkDB', function($scope, $routeParams, $location, $timeout, npkDB) {
+
+    $scope.availableSettings = {
+      admin: {
+        "favoriteHashTypes": "array"
+      },
+      self: {
+        "favoriteHashTypes": "array"
+      }
+    };
+
+    $scope.updateSetting = function(user, setting, value) {
+      
+      if (!$scope.availableSettings[user].hasOwnProperty(setting)) {
+        return Promise.reject("Specified setting is not known");
+      }
+
+      switch ($scope.availableSettings[user][setting]) {
+        case "array":
+          try {
+            value = JSON.parse(value)
+          } catch (e) {
+            return Promise.reject(e);
+          }
+
+          if (!Array.isArray(value)) {
+            return Promise.reject("Setting requires array value.");
+          }
+        break;
+
+        case "number":
+          if (value / 1 != value || value.length < 10) {
+            return Promise.reject("Setting requires numeric value");
+          }
+        break;
+      }
+
+      return npkDB.putSetting(user + ':setting:' + setting, value).then((data) => {
+        $scope.$parent.settings[user][setting] = value;
+
+        if (setting == "favoriteHashTypes") {
+          $scope.$parent.settings.favoriteHashTypes = [].concat($scope.settings.self.favoriteHashTypes).concat($scope.settings.admin.favoriteHashTypes);
+        }
+
+        $scope.$digest();
+        return Promise.resolve(data);
+      }, (e) => {
+        console.log(e);
+        return Promise.reject(e);
+      });
+    };
+
+    $scope.waitForSettings = function() {
+      if (Object.keys($scope.$parent.settings).length == 0) {
+        $timeout(function() {
+          $scope.waitForSettings();
+        }, 20);
+      } else {
+        if (!$scope.$$phase) {
+          $scope.$digest();
+        }
+
+        $timeout(function() {
+          $('[data-toggle="tooltip"]').tooltip();
+        });
+      }
+    };
+
+    $scope.$watch('editSetting', function () {
+      if ($scope.editType != "" && $scope.editSetting != "") {
+        if ($scope.$parent.settings[$scope.editType].hasOwnProperty([$scope.editSetting])) {
+          $scope.editModel = JSON.stringify($scope.$parent.settings[$scope.editType][$scope.editSetting]);
+        } else {
+          $scope.editModel = "";
+        }
+      } else {
+        $scope.editModel = "";
+      }
+    });
+
+    $scope.$watch('editType', function () {
+      if ($scope.editType != "" && $scope.editSetting != "") {
+        if ($scope.$parent.settings[$scope.editType].hasOwnProperty([$scope.editSetting])) {
+          $scope.editModel = JSON.stringify($scope.$parent.settings[$scope.editType][$scope.editSetting]);
+        } else {
+          $scope.editSetting = "";
+          $scope.editModel = "";
+        }
+      } else {
+        $scope.editModel = "";
+      }
+    });
+
+    $scope.editMessages = [];
+    $scope.editType = "";
+    $scope.editSetting = "";
+    $scope.editModel = "";
+    $scope.openEditSettingModal = function(type, setting) {
+      $scope.editType = type;
+      $scope.editSetting = setting;
+
+      $('#editUserSettingModal').modal('show');
+    }
+
+    $scope.saveEdits = function() {
+      return $scope.updateSetting($scope.editType, $scope.editSetting, $scope.editModel).then((data) => {
+        $('#editUserSettingModal').modal('hide');
+      }, (e) => {
+        $scope.editMessages = [e.toString().replace("  ", "").replace("\n", "")];
+        $scope.$digest();
+      });
+    }
+
+    $scope.onReady = function() {
+      $scope.$parent.startApp();
+      $scope.waitForSettings();
+    };
+
+    $scope.$on('$routeChangeSuccess', function() {
       $scope.onReady();
     });
   }])

@@ -57,6 +57,36 @@ angular
 				});
 			},
 
+			putSetting: function(compound_key, value) {
+				var self = this;
+
+				var keys = compound_key.split(":");
+				switch (keys[0]) {
+					case 'admin':
+						var owner = 'admin';
+					break;
+
+					case 'self':
+						var owner = AWS.config.credentials.identityId;
+					break;
+
+					default:
+						console.log('Allowed key prefixes are "self" and "admin"');
+					break;
+				}
+
+
+
+				return self.ddb.putItem({
+					TableName: 'Settings',
+					Item: AWS.DynamoDB.Converter.marshall({
+						userid: owner,
+						keyid: keys.slice(1).join(":"),
+						value: value
+					})
+				}).promise();
+			},
+
 			delete: function(table, key) {
 
 			},

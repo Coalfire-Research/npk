@@ -12,7 +12,7 @@
 			"hash_key": "userid",
 			"range_key": "keyid",
 
-			"item": '{"userid": {"S": "admin"},"keyid": {"S": "setting:campaign_max_pricedata_ttl"},"value": {"N": "${var.campaign_data_ttl}"}}'
+			"item": '{"userid": {"S": "admin"},"keyid": {"S": "setting:data_ttl"},"value": {"N": "${var.campaign_data_ttl}"}}'
 		}
 	}
 }

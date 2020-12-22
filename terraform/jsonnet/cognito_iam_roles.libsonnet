@@ -1,6 +1,17 @@
 {
 	"resource":	{
 		"aws_iam_role": {
+			"cognito_admins": {
+				"name_prefix": "cognito_admin_role_",
+				"assume_role_policy": '{"Version": "2012-10-17","Statement": [{
+			    	"Effect": "Allow",
+			    	"Principal": {"Federated": "cognito-identity.amazonaws.com"},
+			    	"Action": "sts:AssumeRoleWithWebIdentity",
+			    	"Condition": {
+			    		"StringEquals": {"cognito-identity.amazonaws.com:aud": "${aws_cognito_identity_pool.main.id}"},
+			    		"ForAnyValue:StringLike": {"cognito-identity.amazonaws.com:amr": "authenticated"}
+				}}]}'
+			},
 			"cognito_authenticated": {
 				"name_prefix": "cognito_authenticated_role_",
 				"assume_role_policy": '{"Version": "2012-10-17","Statement": [{
@@ -21,6 +32,16 @@
 			},
 		},
 		"aws_iam_role_policy": {
+			"cognito_admins": {
+				"name_prefix": "cognito_admins_policy_",
+				"role": "${aws_iam_role.cognito_admins.id}",
+				"policy": "${data.aws_iam_policy_document.cognito_admins.json}"
+			},
+			"cognito_admins_baseline": {
+				"name_prefix": "cognito_baseline_policy_",
+				"role": "${aws_iam_role.cognito_admins.id}",
+				"policy": "${data.aws_iam_policy_document.cognito_authenticated.json}"
+			},
 			"cognito_authenticated": {
 				"name_prefix": "cognito_authenticated_policy_",
 				"role": "${aws_iam_role.cognito_authenticated.id}",
@@ -38,6 +59,19 @@
 				"roles": {
 					"authenticated": "${aws_iam_role.cognito_authenticated.arn}",
 					"unauthenticated": "${aws_iam_role.cognito_unauthenticated.arn}"
+				},
+
+				"role_mapping": {
+					"identity_provider": "${aws_cognito_user_pool.npk.endpoint}:${aws_cognito_user_pool_client.npk.id}",
+					"ambiguous_role_resolution": "AuthenticatedRole",
+					"type": "Rules",
+
+					"mapping_rule": [{
+						"claim": "cognito:groups",
+						"match_type": "Contains",
+						"value": "npk-admins",
+						"role_arn": "${aws_iam_role.cognito_admins.arn}"
+					}]
 				}
 			}
 		}
@@ -46,6 +80,66 @@
 	local regionKeys = std.objectFields(settings.regions);
 	{
 		"aws_iam_policy_document": {
+			"cognito_admins": {
+				"statement": [{
+					"sid": "adminSettings",
+					"actions": [
+						"dynamodb:PutItem",
+					],
+					"resources": [
+						"${aws_dynamodb_table.campaigns.arn}",
+						"${aws_dynamodb_table.settings.arn}"
+					],
+					"condition": [{
+							"test": "ForAllValues:StringEquals",
+							"variable": "dynamodb:LeadingKeys",
+
+							"values": [
+								"admin"
+							]
+					}, {
+							"test": "ForAllValues:StringEquals",
+							"variable": "dynamodb:Attributes",
+
+							"values": [
+								"userid",
+								"keyid",
+								"value",
+							]
+					}]
+				}, {
+					"sid": "cognitoAdmin",
+					"actions": [
+						"cognito-idp:AdminAddUserToGroup",
+						"cognito-idp:AdminCreateUser",
+						"cognito-idp:AdminDeleteUser",
+						"cognito-idp:AdminListUserAuthEvents",
+						"cognito-idp:AdminRemoveUserFromGroup",
+						"cognito-idp:AdminResetUserPassword",
+						"cognito-idp:ListUsers",
+					],
+					"resources": [
+						"${aws_cognito_user_pool.npk.arn}"
+					],
+					"condition": [{
+							"test": "ForAllValues:StringEquals",
+							"variable": "dynamodb:LeadingKeys",
+
+							"values": [
+								"&{cognito-identity.amazonaws.com:sub}",
+								"admin"
+							]
+					}, {
+							"test": "ForAllValues:StringEquals",
+							"variable": "dynamodb:Attributes",
+
+							"values": [
+								"keyid",
+								"value"
+							]
+					}]
+				}]
+			},
 			"cognito_authenticated": {
 				"statement": [{
 					"sid": "1",
@@ -113,6 +207,32 @@
 							"values": [
 								"&{cognito-identity.amazonaws.com:sub}",
 								"admin"
+							]
+					}]
+				},{
+					"sid": "settings",
+					"actions": [
+						"dynamodb:PutItem",
+					],
+					"resources": [
+						"${aws_dynamodb_table.campaigns.arn}",
+						"${aws_dynamodb_table.settings.arn}"
+					],
+					"condition": [{
+							"test": "ForAllValues:StringEquals",
+							"variable": "dynamodb:LeadingKeys",
+
+							"values": [
+								"&{cognito-identity.amazonaws.com:sub}"
+							]
+					}, {
+							"test": "ForAllValues:StringEquals",
+							"variable": "dynamodb:Attributes",
+
+							"values": [
+								"userid",
+								"keyid",
+								"value"
 							]
 					}]
 				},{

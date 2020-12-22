@@ -14,6 +14,18 @@
 						"always-trigger": "${timestamp()}"
 					}
 
+				},
+				"cognito-add-to-admin-group": {
+					"provisioner": [{
+						"local-exec": {
+							"command": "aws --region " + settings.defaultRegion + " --profile " + settings.awsProfile + " cognito-idp admin-add-user-to-group --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --group npk-admins"
+						}
+					}],
+
+					"depends_on": ["aws_cognito_user_pool.npk"],
+					"triggers": {
+						"username": "${random_string.admin_password.keepers.admin_email}"
+					}
 				}
 			}
 		}

@@ -29,14 +29,19 @@
         </a>
       </li>
       <li class="sidebar-header" style="padding-top: 16px;">Other Actions</li>
-      <li>
-        <a href="#/events" class="waves-effect">
-          <i class="icon-calendar"></i> <span>Events</span>
+      <li ng-show="cognitoSvc.isAdmin()">
+        <a href="#/users" class="waves-effect">
+          <i class="icon-user"></i> <span>User Administration</span>
         </a>
       </li>
       <li>
         <a href="#/user-settings" class="waves-effect">
           <i class="icon-settings"></i> <span>Settings</span>
+        </a>
+      </li>
+      <li>
+        <a href="#/events" class="waves-effect">
+          <i class="icon-calendar"></i> <span>Events</span>
         </a>
       </li>
     </ul>

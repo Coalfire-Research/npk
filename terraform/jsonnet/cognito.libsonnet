@@ -64,6 +64,15 @@
 					}
 				}
 			}
+		},
+		"aws_cognito_user_group": {
+			"npk-admins": {
+				"name": "npk-admins",
+				"user_pool_id": "${aws_cognito_user_pool.npk.id}",
+				"description": "Administrators of NPK",
+				"precedence": "0",
+				"role_arn": "${aws_iam_role.cognito_admins.arn}"
+			}
 		}
 	} + (if settings.useSAML == true then {
 		"aws_cognito_identity_provider": {
@@ -101,6 +110,9 @@
 	output(settings): {
 		"admin_create_user_command": {
 			"value": "aws --region " + settings.defaultRegion + " --profile " + settings.awsProfile + " cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --user-attributes '[{\"Name\": \"email\", \"Value\": \"${random_string.admin_password.keepers.admin_email}\"}, {\"Name\": \"email_verified\", \"Value\": \"true\"}]' --temporary-password ${random_string.admin_password.result}"
+		},
+		"admin_join_group_command": {
+			"value": "aws --region " + settings.defaultRegion + " --profile " + settings.awsProfile + " cognito-idp admin-add-user-to-group --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --group npk-admins --user-attributes '[{\"Name\": \"email\", \"Value\": \"${random_string.admin_password.keepers.admin_email}\"}, {\"Name\": \"email_verified\", \"Value\": \"true\"}]' --temporary-password ${random_string.admin_password.result}"
 		}
 	} + (if settings.useSAML == true then {
 		"saml_entity_id": {

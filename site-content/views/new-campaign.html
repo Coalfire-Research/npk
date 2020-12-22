@@ -39,7 +39,7 @@
                       <label for="showAll">
                         Show All
                       </label>
-                      <select class="form-control" ng-options="value as key for (key, value) in pricingSvc.hashTypes | commonHashTypes: !showAll" ng-model="hashType" ng-change="updateInstances()" style="margin-bottom: 5px;"></select>
+                      <select class="form-control" ng-options="value as key for (key, value) in pricingSvc.hashTypes | commonHashTypes : $parent.settings.favoriteHashTypes : !showAll" ng-model="hashType" ng-change="updateInstances()" style="margin-bottom: 5px;"></select>
                       <div ng-show="isSalted()" class="alert alert-outline-warning" role="alert">
                         <div class="alert-icon">
                           <i class="icon-close"></i>

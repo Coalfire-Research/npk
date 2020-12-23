@@ -1930,4 +1930,167 @@ angular
       $scope.onReady();
     });
   }])
+  .controller('uaCtrl', ['$scope', '$routeParams', '$location', '$timeout', 'userSvc', function($scope, $routeParams, $location, $timeout, userSvc) {
+
+    $scope.users = [];
+
+    $scope.raiseAlert = function(message) {
+      console.log(message);
+    }
+
+    $scope.createUser = function(element, email, isAdmin) {
+      $(element).removeClass('btn-success').addClass('btn-secondary').innerText = "...";
+      userSvc.createUser(email, isAdmin).then((data) => {
+        $(element).removeClass('btn-secondary').addClass('btn-success').innerText = "Save";
+        $('#newUserModal').modal('hide');
+
+        return Promise.resolve();
+      }, (e) => {
+        $(element).removeClass('btn-secondary').addClass('btn-success').innerText = "Save";
+        $scope.modalMessages = [e];
+
+        return Promise.resolve();
+      }).then(() => {
+        $scope.loadUsers();
+      });
+    };
+
+    $scope.getAuthEvents = function(user) {
+      userSvc.getUserAuthEvents(user.Username).then((data) => {
+        user.authEvents = data.AuthEvents;
+
+        if (!$scope.$$phase) {
+          $scope.$digest();
+        }        
+      });
+    };
+
+    $scope.promoteUser = function (element, user) {
+      $(element).removeClass('btn-outline-success').addClass('btn-outline-secondary');
+
+      userSvc.makeUserAdmin(user).then((data) => {
+        $(element).removeClass('btn-outline-secondary').addClass('btn-outline-success');
+
+        return Promise.resolve();
+      }, (e) => {
+        $scope.raiseAlert(e);
+
+        return Promise.resolve();
+      }).then(() => {
+        $scope.loadUsers();
+      });
+    };
+
+    $scope.demoteUser = function (element, user) {
+      $(element).removeClass('btn-outline-warning').addClass('btn-outline-secondary');
+
+      userSvc.makeUserLimited(user).then((data) => {
+        $(element).removeClass('btn-outline-secondary').addClass('btn-outline-warning');
+
+        return Promise.resolve();
+      }, (e) => {
+        $scope.raiseAlert(e);
+
+        return Promise.resolve();
+      }).then(() => {
+        $scope.loadUsers();
+      });
+    };
+
+    $scope.resetUserPassword = function (element, user) {
+      $(element).removeClass('btn-outline-secondary').addClass('btn-secondary');
+
+      userSvc.makeUserAdmin(user).then((data) => {
+        $(element).removeClass('btn-secondary').addClass('btn-outline-secondary');
+
+        return Promise.resolve();
+      }, (e) => {
+        $scope.raiseAlert(e);
+
+        return Promise.resolve();
+      }).then(() => {
+        $scope.loadUsers();
+      });
+    };
+
+    $scope.deleteUser = function (element, user) {
+      $(element).removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+
+      userSvc.deleteUser(user).then((data) => {
+        $(element).removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+
+        return Promise.resolve();
+      }, (e) => {
+        $scope.raiseAlert(e);
+
+        return Promise.resolve();
+      }).then(() => {
+        $scope.loadUsers();
+      });
+    };
+
+    $scope.disableUser = function (element, user) {
+      $(element).removeClass('btn-outline-secondary').addClass('btn-secondary');
+
+      userSvc.disableUser(user).then((data) => {
+        $(element).removeClass('btn-secondary').addClass('btn-outline-secondary');
+
+        return Promise.resolve();
+      }, (e) => {
+        $scope.raiseAlert(e);
+
+        return Promise.resolve();
+      }).then(() => {
+        $scope.loadUsers();
+      });
+    };
+
+    $scope.enableUser = function (element, user) {
+      $(element).removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+
+      userSvc.enableUser(user).then((data) => {
+        $(element).removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+
+        return Promise.resolve();
+      }, (e) => {
+        $scope.raiseAlert(e);
+
+        return Promise.resolve();
+      }).then(() => {
+        $scope.loadUsers();
+      });
+    };
+
+    $scope.loadUsers = function() {
+      userSvc.listUsers().then((data) => {
+        console.log(data);
+        $scope.users = userSvc.users;
+
+        if (!$scope.$$phase) {
+          $scope.$digest();
+        }
+
+        $('.arrow').hide();
+        $('.tooltip-inner').hide();
+        $timeout(function() {
+          $('[data-toggle="tooltip"]').tooltip();
+        });
+      });
+    }
+
+    $scope.newUserEmail = "";
+    $scope.newUserIsAdmin = false;
+    $scope.openNewUserModal = function() {
+      $('#newUserModal').modal('show');
+    };
+    
+    $scope.onReady = function() {
+      $scope.$parent.startApp();
+      $scope.loadUsers();
+    };
+
+    $scope.$on('$routeChangeSuccess', function() {
+      $scope.onReady();
+    });
+  }])
   ;

@@ -113,10 +113,13 @@
 						"cognito-idp:AdminAddUserToGroup",
 						"cognito-idp:AdminCreateUser",
 						"cognito-idp:AdminDeleteUser",
+						"cognito-idp:AdminDisableUser",
+						"cognito-idp:AdminEnableUser",
 						"cognito-idp:AdminListUserAuthEvents",
 						"cognito-idp:AdminRemoveUserFromGroup",
 						"cognito-idp:AdminResetUserPassword",
 						"cognito-idp:ListUsers",
+						"cognito-idp:ListUsersInGroup"
 					],
 					"resources": [
 						"${aws_cognito_user_pool.npk.arn}"

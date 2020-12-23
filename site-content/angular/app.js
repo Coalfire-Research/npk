@@ -237,7 +237,8 @@ angular
 	   		}]
 	   	})
 	   	.when('/users', {
-	   		templateUrl: "views/nyi.html",
+	   		templateUrl: "views/user-administration.html",
+	   		controller: "uaCtrl",
 	   		resolveRedirectTo: ['cognito', function(cognito) {
 	   			return cognito.routeRequireAdmin();
 	   		}]

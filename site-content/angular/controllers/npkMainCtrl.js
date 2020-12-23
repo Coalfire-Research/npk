@@ -157,8 +157,9 @@ angular
 
             if ($scope.cognitoSvc.isLoggedOn()) {
               $scope.handleLogin();
-              $scope.getSettings();
             }
+
+            $scope.getSettings();
          }
       };
       // END READY

@@ -1,0 +1,177 @@
+<div class="clearfix"></div>
+	
+  <div class="content-wrapper">
+    <div class="container-fluid">
+
+      <!--Start Dashboard Content-->
+
+      <div class="row" ng-repeat="admin in [true, false]">
+        <div class="col-lg-12">
+          <div class="card bg-transparent shadow-none border border-secondary-light">
+            <div class="card-header bg-transparent text-white border-secondary-light">
+              {{ (admin) ? 'Admin' : 'Limited' }} Users
+              <div class="card-action">
+                <button ng-show="!admin" ng-click="openNewUserModal()" class="btn btn-sm badge badge-pill badge-success pr-3" style="text-transform: none;">
+                  <i class="icon-plus text-white"></i>
+                  Add User
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-dark table-condensed">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Tools</th>
+                    </tr>
+                  </thead>
+                  <tbody on-finish-render>
+                    <tr ng-repeat="user in users | filter: { 'isAdmin': admin }">
+                      <td class="pl-4" ng-class="[{'text-danger': (user.UserStatus == 'FORCE_CHANGE_PASSWORD')},{'text-secondary': (user.Enabled == false)}]">
+                        {{ user.email }}
+                      </td> 
+                      <td>
+                        <!-- button ng-click="getAuthEvents(user)" class="btn btn-sm btn-outline-primary waves-effect waves-light pt-1 pb-1 pr-2 pl-2 m-0" data-toggle="tooltip" data-placement="top" data-original-title="See Authentication Logs">
+                          <i class="fa fa-tasks"></i>
+                        </button -->
+                        <button ng-show="!user.isAdmin" ng-click="promoteUser(this, user)" class="btn btn-sm btn-outline-success waves-effect waves-light pt-1 pb-1 pr-2 pl-2 m-0" data-toggle="tooltip" data-placement="top" data-original-title="Promote to Admin">
+                          <i class="fa fa-arrow-up"></i>
+                        </button>
+                        <button ng-show="user.isAdmin" ng-click="demoteUser(this, user)" class="btn btn-sm btn-outline-warning waves-effect waves-light pt-1 pb-1 pr-2 pl-2 m-0" data-toggle="tooltip" data-placement="top" data-original-title="Demote to Limited User">
+                          <i class="fa fa-arrow-down"></i>
+                        </button>
+                        <button ng-show="user.UserStatus != 'FORCE_CHANGE_PASSWORD'" ng-click="resetUserPassword(this, user)" class="btn btn-sm btn-outline-primary waves-effect waves-light pt-1 pb-1 pr-2 pl-2 m-0" data-toggle="tooltip" data-placement="top" data-original-title="Reset Password">
+                          <i class="fa fa-unlock-alt"></i>
+                        </button>
+                        <button ng-show="user.UserStatus == 'FORCE_CHANGE_PASSWORD'" ng-click="forceResetUserPassword(this, user)" class="btn btn-sm btn-outline-danger waves-effect waves-light pt-1 pb-1 pr-2 pl-2 m-0" data-toggle="tooltip" data-placement="top" data-original-title="Password Reset Pending">
+                          <i class="fa fa-unlock-alt"></i>
+                        </button>
+                        <button ng-show="user.Enabled" ng-click="disableUser(this, user)" class="btn btn-sm btn-outline-secondary waves-effect waves-light pt-1 pb-1 pr-2 pl-2 m-0" data-toggle="tooltip" data-placement="top" data-original-title="Disable User">
+                          <i class="fa fa-user-times"></i>
+                        </button>
+                        <button ng-show="!user.Enabled" ng-click="enableUser(this, user)" class="btn btn-sm btn-outline-primary waves-effect waves-light pt-1 pb-1 pr-2 pl-2 m-0" data-toggle="tooltip" data-placement="top" data-original-title="Enable User">
+                          <i class="fa fa-user"></i>
+                        </button>
+                        <button ng-show="!user.Enabled" ng-click="deleteUser(this, user)" class="btn btn-sm btn-outline-danger waves-effect waves-light pt-1 pb-1 pr-2 pl-2 m-0" data-toggle="tooltip" data-placement="top" data-original-title="Delete User">
+                          <i class="fa fa-trash-o"></i>
+                        </button>
+                      </td>
+                    </tr>
+                   </tbody>
+                 </table>
+               </div>      
+             </div>
+          </div>
+        </div>
+      </div><!--End Row-->
+
+     
+	  
+       <!--End Dashboard Content-->
+
+    </div>
+    <!-- End container-fluid-->
+    
+  </div><!--End content-wrapper-->
+   <!--Start Back To Top Button-->
+  <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+    <!--End Back To Top Button-->
+	
+	<!--Start footer-->
+	<footer class="footer bg-transparent border-secondary-light">
+      <div class="container">
+        <div class="text-center text-white">
+        </div>
+      </div>
+    </footer>
+	<!--End footer-->
+   
+  </div><!--End wrapper-->
+
+  <div id="newUserModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Create User</h5>
+        </div>
+        <div class="modal-body">
+          <table>
+            <thead>
+              <th>Email</th>
+              <th>&nbsp;</th>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="p-2 m-1">
+                  <input ng-model="newUserEmail" type="text" class="form-control form-control-rounded">
+                </td>
+                <td class="p-2 m-1">
+                    <input type="checkbox" id="isAdmin" ng-model="newUserIsAdmin">
+                    <label for="isAdmin">Make Admin</label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="alert alert-outline-danger alert-dismissible" role="alert" ng-repeat="message in modalMessages">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <div class="alert-message">
+              <span>
+                {{ message }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="createUser" class="btn btn-success" ng-click="createUser(this, newUserEmail, newUserIsAdmin)">
+            <i class="fa fa-save"></i>
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div id="authEventsModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Auth Events for {{ user.email }}</h5>
+        </div>
+        <div class="modal-body">
+          <table>
+            <thead>
+              <th>Event</th>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="alert p-2 m-1" ng-repeat="event in user.authEvents" ng-class="[{'alert-outline-info': (event.EventRisk == 'NoRisk')}]">
+                    {{ event.EventId }}: {{ event.EventType }} @ {{ event.CreationDate }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="alert alert-outline-danger alert-dismissible" role="alert" ng-repeat="message in editMessages">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <div class="alert-message">
+              <span>
+                {{ message }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="createUser" class="btn btn-success" ng-click="createUser(this, newUserEmail, newUserIsAdmin)">
+            <i class="fa fa-save"></i>
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Index js -->
+<script src="assets/js/popper.min.js"></script>
+  
+</body>
+</html>

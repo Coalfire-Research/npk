@@ -1,0 +1,125 @@
+<div class="clearfix"></div>
+	
+  <div class="content-wrapper">
+    <div class="container-fluid">
+
+      <!--Start Dashboard Content-->
+
+      <div class="row" ng-repeat="type in ['admin', 'self']">
+        <div class="col-lg-12">
+          <div class="card bg-transparent shadow-none border border-secondary-light">
+            <div class="card-header bg-transparent text-white border-secondary-light">
+              {{ type.toUpperCase() }} Settings
+              <div class="card-action">
+                <button ng-click="openEditSettingModal(type, '')" class="btn btn-sm badge badge-pill badge-success pr-3" style="text-transform: none;">
+                  <i class="icon-plus text-white"></i>
+                  Add Setting
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-dark table-condensed">
+                  <thead>
+                    <tr>
+                      <th>Setting</th>
+                      <th>Value</th>
+                      <th>Tools</th>
+                    </tr>
+                  </thead>
+                  <tbody on-finish-render>
+                    <tr ng-repeat="(key, value) in $parent.settings[type]">
+                      <td class="pl-4">{{ key }}</td> 
+                      <td>{{ value }}</td>
+                      <td>
+                        <div ng-show="$parent.cognitoSvc.isAdmin() || type != 'admin'">
+                          <button ng-show="!availableSettings[type].hasOwnProperty(key)" class="btn btn-outline-secondary pt-1 pb-1 pr-2 pl-2 m-1" data-toggle="tooltip" data-placement="right" title="" data-original-title="This setting can only be modified via Terraform.">
+                            <i class="fa fa-question-circle"></i>
+                          </button>
+                          <button ng-show="availableSettings[type].hasOwnProperty(key)" ng-click="openEditSettingModal(type, key)" class="btn btn-sm btn-outline-primary waves-effect waves-light pt-1 pb-1 pr-2 pl-2 m-1">
+                            <i class="fa fa-pencil"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                   </tbody>
+                 </table>
+               </div>      
+             </div>
+          </div>
+        </div>
+      </div><!--End Row-->
+
+     
+	  
+       <!--End Dashboard Content-->
+
+    </div>
+    <!-- End container-fluid-->
+    
+  </div><!--End content-wrapper-->
+   <!--Start Back To Top Button-->
+  <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+    <!--End Back To Top Button-->
+	
+	<!--Start footer-->
+	<footer class="footer bg-transparent border-secondary-light">
+      <div class="container">
+        <div class="text-center text-white">
+        </div>
+      </div>
+    </footer>
+	<!--End footer-->
+   
+  </div><!--End wrapper-->
+
+  <div id="editUserSettingModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit User Setting</h5>
+          <button type="button" class="close" data-dismiss="editUserSettingModal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <table>
+            <thead>
+              <th>Setting</th>
+              <th>Value</th>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="p-2 m-1">
+                  <select class="form-control" ng-model="editSetting" ng-options="key as key for (key, value) in availableSettings[editType]"></select>
+                </td>
+                <td class="p-2 m-1">
+                  <input ng-model="editModel" type="text" id="rounded-input" class="form-control form-control-rounded">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="alert alert-outline-danger alert-dismissible" role="alert" ng-repeat="message in editMessages">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <div class="alert-message">
+              <span>
+                {{ message }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" ng-click="saveEdits()">
+            <i class="fa fa-save"></i>
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Index js -->
+<script src="assets/js/popper.min.js"></script>
+  
+</body>
+</html>

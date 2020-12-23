@@ -2000,12 +2000,29 @@ angular
     $scope.resetUserPassword = function (element, user) {
       $(element).removeClass('btn-outline-secondary').addClass('btn-secondary');
 
-      userSvc.makeUserAdmin(user).then((data) => {
+      userSvc.resetUserPassword(user).then((data) => {
         $(element).removeClass('btn-secondary').addClass('btn-outline-secondary');
 
         return Promise.resolve();
       }, (e) => {
         $scope.raiseAlert(e);
+
+        return Promise.resolve();
+      }).then(() => {
+        $scope.loadUsers();
+      });
+    };
+
+    $scope.forceResetUserPassword = function (element, user) {
+      $(element).removeClass('btn-success').addClass('btn-secondary').innerText = "...";
+      userSvc.forceResetUser(user.email).then((data) => {
+        $(element).removeClass('btn-secondary').addClass('btn-success').innerText = "Save";
+        $('#newUserModal').modal('hide');
+
+        return Promise.resolve();
+      }, (e) => {
+        $(element).removeClass('btn-secondary').addClass('btn-success').innerText = "Save";
+        $scope.modalMessages = [e];
 
         return Promise.resolve();
       }).then(() => {

@@ -25,7 +25,7 @@
                       <p class="text-center text-white" style="line-height: 1">
                         <small>{{ nid }}</small><br />
                         <small>{{ node['latest'].status }}</small>
-                        <small>[{{ node['latest'].recoveredHashes }} / {{ data.base.hashes }}]</small>
+                        <small>[ {{ node['latest'].hasOwnProperty('recoveredHashes') ? node['latest'].recoveredHashes : 0 }} / {{ data.base.hashes }} ]</small>
                       </p>
                     </div>
                     <div class="col-lg-10 text-center" style="padding-top: 8px;">
@@ -49,7 +49,8 @@
                     </div>
                   </div>
                </div>
-               <small class="ml-2 text-white">{{ data.base.spotRequestStatus.Message }} [{{ data.base.spotRequestStatus.Code }}]</small>
+               <small ng-show="data.base.spotRequestStatus.hasOwnProperty('Code')" class="ml-2 text-white">{{ data.base.spotRequestStatus.Message }} [{{ data.base.spotRequestStatus.Code }}]</small>
+               <small ng-hide="data.base.spotRequestStatus.hasOwnProperty('Code')" class="ml-2 text-white">[ No Spot Request Status reported ]</small>
             </div>
           </td>
         </div>
@@ -72,10 +73,10 @@
                   <h4 class="text-white"><small>Generation:</small> {{ manifest.instanceGeneration }}</h4>
                   <div class="text-right" style="border-right: 1px solid white; border-bottom: 1px solid white; padding-right: 8px;">
                     <small>
-                      [ GPU ] <!-- TODO: Make this reference the instance data -->
+                      [ {{ gpus[manifest.instanceType] }}x {{ gpuNames[manifest.instanceGeneration] }}  ] <!-- TODO: Make this reference the instance data -->
                     </small>
                   </div>
-                  <h5class="text-white"><small>Size:</small> {{ manifest.instanceSize }}</h5>
+                  <h5 class="text-white"><small>Size:</small> {{ manifest.instanceSize }}</h5>
                 </div>
               </div>
             </div>
@@ -94,7 +95,7 @@
                       @ ${{ manifest.priceTarget / manifest.instanceCount / manifest.instanceDuration | number}}/hr
                     </small>
                   </div>
-                  <h5class="text-white"><small>Region:</small> {{ manifest.region }}</h5><br/><br/>
+                  <h5 class="text-white"><small>Region:</small> {{ manifest.region }}</h5><br/><br/>
                   <h4 class="text-white"><small>Actual Price:</small> ${{ data.base.price | number:2 }}</h4>
                 </div>
               </div>
@@ -105,7 +106,12 @@
                   Attack Details
                 </div>
                 <div class="card-body bg-dark text-white text-left">
-                  <h4 class="text-white"><small>Hash type:</small> {{ manifest.hashType }}</h4> 
+                  <h4 class="text-white mb-0"><small>Hash type:</small> {{ manifest.hashType }}</h4> 
+                  <div class="mb-3" ng-show="manifest.rulesFiles.length > 0">
+                    <small style="padding-left: 28px;" ng-repeat="file in manifest.rulesFiles">
+                      {{ getTypeFromHash(manifest.hashType) }}<br>
+                    </small>
+                  </div>
                   <div>
                     Hashfile:
                      <small>
@@ -131,7 +137,7 @@
                     </small>
                   </div>
                   <div style="border-bottom: 1px solid white;">&nbsp;</div>
-                  <h5class="text-white"><small>Region:</small> {{ manifest.region }}</h5>
+                  <h5 class="text-white"><small>Region:</small> {{ manifest.region }}</h5>
                 </div>
               </div>
             </div>
@@ -143,29 +149,44 @@
                 <div class="card-body bg-dark text-white text-left">
                   <h4 class="text-white"><small>Cracked Hashes:</small> {{ data.recovered_hashes }}</h4> 
                   <div>
+                    <div class="badge badge-dark" data-toggle="tooltip" data-placement="left" title="" data-original-title="The amount of time between when the campaign was started and when any instance sent its first status report.">
+                      <i class="fa fa-question-circle"></i>
+                    </div>
                     Provisioning:
                      <small>
                       {{ first | momentfn:'from':(data.base.startTime * 1000):true }}
                     </small>
                   </div>
+
                   <div ng-hide="firstRecovery < 1">
+                    <div class="badge badge-dark" data-toggle="tooltip" data-placement="left" title="" data-original-title="The time between the first status report being received, and the first password match being reported.">
+                      <i class="fa fa-question-circle"></i>
+                    </div>
                     First Crack:
                      <small>
                       {{ firstRecovery | momentfn:'from':(data.base.startTime * 1000):true }}
                     </small>
                   </div>
+
                   <div ng-hide="firstRecovery < 1">
+                    <div class="badge badge-dark" data-toggle="tooltip" data-placement="left" title="" data-original-title="The amount of time between the first and last status report.">
+                      <i class="fa fa-question-circle"></i>
+                    </div>
                     Finished
                      <small>
                       {{ last | momentfn:'from':(data.base.startTime * 1000) }}
                     </small>
                   </div>
                   <div style="border-bottom: 1px solid white;">&nbsp;</div>
-                  <h5class="text-white"><small>Success Rate:</small> {{ data.recovered_hashes / data.base.hashes * 100 | number:2 }}%</h5>
+                  <h5 class="text-white"><small>Success Rate:</small> {{ data.recovered_hashes / data.base.hashes * 100 | number:2 }}%</h5>
                 </div>
               </div>
             </div>
-
+          </div>
+          <div class="row" ng-show="manifest == false">
+            <div class="col-lg-12">
+              <h5 class="text-white"><small>Campaign manifest could not be loaded. This likely means the campaign is more than 7 days old.</small></h6>
+            </div>
           </div>
         </div>
       </div><!--End Card-->

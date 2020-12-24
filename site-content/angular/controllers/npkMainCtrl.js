@@ -1630,7 +1630,7 @@ angular
        $scope.onReady();
     });
   }])
-  .controller('cmCtrl', ['$scope', '$routeParams', '$location', 'USERDATA_BUCKET', function($scope, $routeParams, $location, USERDATA_BUCKET) {
+  .controller('cmCtrl', ['$scope', '$routeParams', '$location', 'USERDATA_BUCKET', 'pricingSvc', function($scope, $routeParams, $location, USERDATA_BUCKET, pricingSvc) {
 
     $scope.data = {};
     $scope.campaigns = {};
@@ -1640,6 +1640,33 @@ angular
     $scope.firstRecovery = 0;
     $scope.last = 0;
     $scope.selected_campaign = null;
+    $scope.manifest = {};
+
+    $scope.gpus = pricingSvc.gpus;
+
+    $scope.gpuNames = {
+      "G3": "Tesla M60",
+      "P2": "Tesla K80",
+      "P3": "Tesla V100"
+    };
+
+    // Apply the tooltips after campaigns are loaded.
+    $scope.$watch('campaigns_loaded', function() {
+      $scope.$$postDigest(function() {
+        $('[data-toggle="tooltip"]').tooltip();
+      });
+    });
+
+    $scope.getTypeFromHash = function(hashId) {
+      var type = false;
+      Object.keys(pricingSvc.hashTypes).forEach(function(e) {
+        if (pricingSvc.hashTypes[e] == hashId) {
+          type = e;
+        }
+      });
+
+      return type;
+    };
 
     $scope.objLength = function(what) {
       if (typeof what == "undefined") { 
@@ -1775,7 +1802,9 @@ angular
         try {
           $scope.manifest = JSON.parse(data.Body.toString('ascii'));
         } catch (e) {
+          $scope.manifest = false;          
           console.log('Unable to parse manifest');
+          $scope.$digest();
           return false;
         }
 
@@ -1787,9 +1816,12 @@ angular
 
 
         $scope.$digest();
+        console.log($scope.manifest);
 
-      }).catch((err) => {
-        console.log('Error retrieving campaign manifest: ' + err)
+      }, (e) => {
+        $scope.manifest = false;
+        $scope.$digest();
+        console.log('Error retrieving campaign manifest: ' + e)
       });
     }
 
@@ -2105,6 +2137,24 @@ angular
     $scope.onReady = function() {
       $scope.$parent.startApp();
       $scope.loadUsers();
+    };
+
+    $scope.$on('$routeChangeSuccess', function() {
+      $scope.onReady();
+    });
+  }])
+  .controller('evCtrl', ['$scope', '$routeParams', '$location', '$timeout', 'npkDB', function($scope, $routeParams, $location, $timeout, npkDB) {
+
+    $scope.events = [];
+    $scope.loadEvents = function() {
+      npkDB.selectEvents('New Campaign:', 'Events').then((data) => {
+
+      });
+    }
+    
+    $scope.onReady = function() {
+      $scope.$parent.startApp();
+      // $scope.loadEvents();
     };
 
     $scope.$on('$routeChangeSuccess', function() {

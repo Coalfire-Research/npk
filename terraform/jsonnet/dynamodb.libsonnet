@@ -38,9 +38,7 @@
 			"hash_key": "spotFleetRequestId",
 			"projection_type": "INCLUDE",
 			"non_key_attributes": ["price"]
-		}],
-
-		"global_secondary_index": [{
+		}, {
 			"name": "Events",
 			"hash_key": "eventType",
 			"projection_type": "ALL"

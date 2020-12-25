@@ -217,7 +217,8 @@ var sendFinished = function (completed) {
 		userid: manifestpath.split('/')[0],
 		campaign: manifestpath.split('/')[2],
 		instance_id: instance_id,
-		action: 'done'
+		action: 'done',
+		eventType: 'CampaignFinished'
 	};
 
 	return new Promise((success, failure) => {

@@ -574,12 +574,12 @@
                           <label for="instance_count">
                             Instance Count: {{ instanceCount }} of {{ maxInstances }}
                           </label>
-                          <input type="text" id="instance_count" value="1" name="instance_count" ng-model="instanceCount" ng-change="updateCoverage()" />
+                          <input type="text" id="instance_count" value="0" name="instance_count" ng-model="instanceCount" ng-change="updateCoverage()" />
                           <br />
                           <label for="instance_duration">
                             Duration: {{ instanceDuration }}
                           </label>
-                          <input type="text" id="instance_duration" value="4" name="instance_duration" ng-model="instanceDuration" ng-change="updateCoverage()" />
+                          <input type="text" id="instance_duration" value="0" name="instance_duration" ng-model="instanceDuration" ng-change="updateCoverage()" />
                           <br>
                           <label>
                             Coverage: {{ totalCoverage | number:4 }}%

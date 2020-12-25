@@ -115,10 +115,17 @@
 
                        <tr >
                         <td colspan="8" class="card-body">
-                          <h6 class="card-text text-white" ng-if="objLength(data.nodes) < 1">
-                            No status reports received. Nodes may still be starting.<br />
-                            <small ng-if="data.spotRequestStatus">Spot request status: {{ data.spotRequestStatus.Message }} [{{ data.spotRequestStatus.Code }}]</small>
-                          </h6>
+                          <div ng-show="objLength(data.nodes) < 1">
+                            <h6 class="card-text text-white">
+                              No status reports received. Nodes may still be starting.<br />
+                            </h6>
+                            <div ng-repeat="(nid, node) in campaigns[id].spotRequestStatus">
+                              <a ng-href="#/campaigns/{{ id }}/nodes/{{ nid }}"><small>{{ nid }}</small></a>
+                              <small class="ml-3 text-white">
+                                {{ campaigns[id].spotRequestStatus[nid].State }} / {{ campaigns[id].spotRequestStatus[nid].Status.Code }};&nbsp;&nbsp;&nbsp;[ {{ campaigns[id].spotRequestStatus[nid].Status.Message }} ]
+                              </small>
+                            </div>
+                          </div>
                           <h6 class="text-white" ng-if="objLength(data.nodes) > 0">Nodes</h6>
                           <div class="row" style="margin: 0px;">
                              <div class="col-lg-12">
@@ -126,7 +133,7 @@
                                 <div class="row">
                                   <div class="col-lg-2" style="margin-top: 1px;">
                                     <p class="text-center" style="line-height: 1">
-                                      <a ng-href="#/campaigns/{{ id }}/nodes/{{ nid }}"><small>{{ nid }}</small></i></a><br />
+                                      <a ng-href="#/campaigns/{{ id }}/nodes/{{ nid }}"><small>{{ nid }}</small></a><br />
                                       <small>{{ node['latest'].status }}</small>
                                       <small>[{{ node['latest'].recoveredHashes }} / {{ data.hashes }}]</small>
                                     </p>
@@ -139,6 +146,10 @@
                                       <div class="progress-bar bg-dark progress-bar-striped" ng-if="node.last.status == 'COMPLETED' || (now() - node.last) > 120" ng-class="{'progress-bar-animated': data.active}" role="progressbar" style="width: {{ ((now() - node.last) / data.durationSeconds) * 100 }}%"></div>
                                    </div>
                                    <small ng-if="node['latest'].startTime">
+                                    Spot Status: [ {{ campaigns[id].spotRequestStatus[nid].State }}; {{ campaigns[id].spotRequestStatus[nid].Status.Code }} ]
+                                    &nbsp;&nbsp;&nbsp;
+                                    Spot Fulfillment Message: [ {{ campaigns[id].spotRequestStatus[nid].Status.Message }} ]
+                                    <br>
                                     Hashcat: {{ node['latest'].progress | number:2 }}% | 
                                     Time: {{ ((node.last - data.startTime) / data.durationSeconds) * 100 | number:2 }}% | 
                                     Price: {{ (data.price / data.targetPrice) * 100 | number:2 }}%
@@ -152,6 +163,18 @@
                                   </div>
                                 </div>
                              </div>
+                             <div ng-repeat="(nid, node) in campaigns[id].spotRequestStatus" ng-hide="data.nodes.hasOwnProperty(nid)">
+                              <div class="row">
+                                <div class="col-lg-2" style="margin-top: 1px;">
+                                  <a ng-href="#/campaigns/{{ id }}/nodes/{{ nid }}"><small>{{ nid }}</small></a>
+                                </div>
+                                <div class="col-lg-10 text-center" style="padding-top: 8px;">
+                                  <small class="ml-3 text-white">
+                                    {{ campaigns[id].spotRequestStatus[nid].State }} / {{ campaigns[id].spotRequestStatus[nid].Status.Code }};&nbsp;&nbsp;&nbsp;[ {{ campaigns[id].spotRequestStatus[nid].Status.Message }} ]
+                                  </small>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </td>
                        </tr>

@@ -825,7 +825,8 @@ function executeCampaign(entity, campaignId) {
 				active: true,
 				status: "STARTING",
 				spotFleetRequestId: data.SpotFleetRequestId,
-				startTime: Math.floor(new Date().getTime() / 1000)
+				startTime: Math.floor(new Date().getTime() / 1000),
+				eventType: "CampaignStarted"
 			}).then(function(tmp) {
 				console.log("Campaign " + campaignId + " started.");
 				return respond(200, {msg: "Campaign started successfully", campaignId: campaignId, spotFleetRequestId: data.SpotFleetRequestId}, true);

@@ -443,7 +443,7 @@ var evaluateAllSpotInstances = function() {
 
 exports.main = function(event, context, callback) {
 
-	var promiseDetails = { fleets: {}, spotPrices: {}, instances: {} };
+	var promiseDetails = { fleets: {}, spotPrices: {}, instances: {}, instanceStatuses: {} };
 	var promiseError = false;
 
 	var spotFleetPromises = [];
@@ -453,6 +453,35 @@ exports.main = function(event, context, callback) {
 		spotFleetPromises.push(ec2.describeSpotFleetRequests({}).promise().then((data) => {
 			return { fleets: data.SpotFleetRequestConfigs, region: region };
 		}));
+
+		spotFleetPromises.push(ec2.describeSpotInstanceRequests({}).promise().then((data) => {
+			data.SpotInstanceRequests.forEach(function(r) {
+				var tags = {};
+				r.Tags.forEach(function(t) {
+					tags[t.Key] = t.Value;
+				});
+
+				if (!tags.hasOwnProperty('aws:ec2spot:fleet-request-id')) {
+					return false;
+				}
+
+				var sfr = tags['aws:ec2spot:fleet-request-id'];
+
+				if (!promiseDetails.instanceStatuses.hasOwnProperty(sfr)) {
+					promiseDetails.instanceStatuses[sfr] = {};
+				}
+
+				promiseDetails.instanceStatuses[sfr][r.InstanceId] = {
+					Status: {
+						Code: r.Status.Code,
+						Message: r.Status.Message
+					},
+					State: r.State
+				}
+			});
+
+			return "skip";
+		}));
 	});
 
 	// Get all the spot fleets
@@ -460,6 +489,11 @@ exports.main = function(event, context, callback) {
 
 		var fleetPromises = [];		
 		fleetObjects.forEach(function(fleetObject) {
+
+			// If the promise is literally "skip", then do so.
+			if (fleetObject === "skip") {
+				return true;
+			}
 
 			var fleets = fleetObject.fleets;
 			var region = fleetObject.region;
@@ -476,7 +510,7 @@ exports.main = function(event, context, callback) {
 					fleetPromises.push(editCampaignViaRequestId(fleet.SpotFleetRequestId, {
 						active: false,
 						price: fleet.price,
-						spotRequestStatus: fleet.SpotFleetRequestState,
+						instanceStatuses: promiseDetails.instanceStatuses[fleet.SpotFleetRequestId],
 						status: (fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING"
 					}).then((data) => {
 						console.log("Marked campaign of " + fleet.SpotFleetRequestId + " as " + ((fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING"))
@@ -509,7 +543,6 @@ exports.main = function(event, context, callback) {
 					promiseDetails.fleets[fleet.SpotFleetRequestId].history = data.HistoryRecords;
 				}));
 			});
-
 		});
 
 		return Promise.all(fleetPromises);
@@ -538,6 +571,7 @@ exports.main = function(event, context, callback) {
 				var event = JSON.parse(historyRecord.EventInformation.EventDescription);
 				if (!promiseDetails.instances.hasOwnProperty(historyRecord.EventInformation.InstanceId)) {
 					promiseDetails.instances[historyRecord.EventInformation.InstanceId] = event;
+					promiseDetails.instances[historyRecord.EventInformation.InstanceId].spotStatus = promiseDetails.instanceStatuses[fleetId][historyRecord.EventInformation.InstanceId].Status;
 					promiseDetails.instances[historyRecord.EventInformation.InstanceId].fleetId = fleetId;
 					promiseDetails.instances[historyRecord.EventInformation.InstanceId].region = promiseDetails.fleets[fleetId].region;
 					promiseDetails.instances[historyRecord.EventInformation.InstanceId].startTime = 0;
@@ -652,11 +686,19 @@ exports.main = function(event, context, callback) {
 				});
 			});
 
+			// Restructure the timestamps for event history
+			promiseDetails.fleets[fleetId].history.forEach(function(h) {
+				h.Timestamp = new Date(h.Timestamp).getTime() / 1000;
+			});
+
+			console.log(promiseDetails.fleets[fleetId].history);
+
 			// Update the current price.
 			finalPromises.push(editCampaignViaRequestId(fleetId, {
 				active: true,
 				price: fleet.price,
-				spotRequestStatus: fleet.SpotFleetRequestState,
+				spotRequestHistory: promiseDetails.fleets[fleetId].history,
+				spotRequestStatus: promiseDetails.instanceStatuses[fleetId],
 				status: "RUNNING"
 			}).then((data) => {
 				console.log("Updated price of " + fleetId);

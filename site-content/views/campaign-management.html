@@ -36,6 +36,10 @@
                         <div class="progress-bar bg-dark progress-bar-striped" ng-class="{'progress-bar-animated': data.active}" role="progressbar" style="width: {{ (((data.base.startTime + data.base.durationSeconds) - node.last) / data.base.durationSeconds) * 100 }}%"></div>
                      </div>
                      <small ng-if="node['latest'].startTime" class="text-white">
+                      Spot Status: [ {{ data.base.spotRequestStatus[nid].State }}; {{ data.base.spotRequestStatus[nid].Status.Code }} ]
+                      &nbsp;&nbsp;&nbsp;
+                      Spot Fulfillment Message: [ {{ data.base.spotRequestStatus[nid].Status.Message }} ]
+                      <br>
                       Hashcat: {{ node['latest'].progress | number:2 }}% | 
                       Time: {{ ((node.last - data.base.startTime) / data.base.durationSeconds) * 100 | number:2 }}% | 
                       Price: {{ (data.base.price / data.base.targetPrice) * 100 | number:2 }}%
@@ -49,8 +53,18 @@
                     </div>
                   </div>
                </div>
-               <small ng-show="data.base.spotRequestStatus.hasOwnProperty('Code')" class="ml-2 text-white">{{ data.base.spotRequestStatus.Message }} [{{ data.base.spotRequestStatus.Code }}]</small>
-               <small ng-hide="data.base.spotRequestStatus.hasOwnProperty('Code')" class="ml-2 text-white">[ No Spot Request Status reported ]</small>
+               <div ng-repeat="(nid, node) in data.base.spotRequestStatus" ng-hide="data.nodes.hasOwnProperty(nid)">
+                <div class="row">
+                  <div class="col-lg-2" style="margin-top: 1px;">
+                    {{ nid }}
+                  </div>
+                  <div class="col-lg-10 text-center" style="padding-top: 8px;">
+                    <small class="ml-3 text-white">
+                      {{ data.base.spotRequestStatus[nid].State }} / {{ data.base.spotRequestStatus[nid].Status.Code }};&nbsp;&nbsp;&nbsp;[ {{ data.base.spotRequestStatus[nid].Status.Message }} ]
+                    </small>
+                  </div>
+                </div>
+              </div>
             </div>
           </td>
         </div>
@@ -182,6 +196,40 @@
                 </div>
               </div>
             </div>
+            <div class="col-lg-12">
+              <div class="card bg-white shadow-none mt-3 border border-secondary-dark">
+                <div class="card-header bg-white text-dark text-left">
+                  Spot Fleet Request History
+                </div>
+                <div class="card-body bg-dark text-white text-left">
+                  <table class="table table-dark table-condensed">
+                    <thead>
+                      <tr>
+                        <th style="width: 120px;">Start Offset</th>
+                        <th style="width: 350px;">Event Type</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="event in data.base.spotRequestHistory" on-finish-render>
+                        <td>
+                          <small>{{ event.Timestamp | momentfn:'from':(data.base.startTime * 1000):true }}</small>
+                        </td>
+                        <td>
+                          <small>{{ event.EventType }}&nbsp;->{{ (event.EventInformation.InstanceId) ? " " + event.EventInformation.InstanceId : "" }} {{ event.EventInformation.EventSubType }}</small>
+                        </td>
+                        <td>
+                          <small ng-if="!event.EventInformation.EventDescription.instanceType">{{ (event.EventInformation.EventDescription) ? event.EventInformation.EventDescription : "&lt; None &gt;" }}</small>
+                          <small ng-if="event.EventInformation.EventDescription.instanceType">
+                            {{ event.EventInformation.EventDescription.instanceType }} running {{ event.EventInformation.EventDescription.image }} in {{ event.EventInformation.EventDescription.availabilityZone }}
+                          </small>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="row" ng-show="manifest == false">
             <div class="col-lg-12">
@@ -217,8 +265,8 @@
                      <th>Actions</th>
                    </tr>
                    </thead>
-                   <tbody ng-repeat="(id, data) in campaigns" on-finish-render>
-                     <tr>
+                   <tbody>
+                     <tr ng-repeat="(id, data) in campaigns" on-finish-render>
                       <td><small><a href="#/campaign-management/{{ id }}">{{ id }}</a></small></td>
                       <td><small>{{ data.startTime * 1000 | date:"MMM d @ H:mm" }}</small></td>
                       <td>

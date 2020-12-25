@@ -1358,6 +1358,7 @@ angular
         $scope.order.hashFileUrl = url;
         $('#orderModal').modal('show');
       });
+
     }
 
     $scope.submittingOrder = true;
@@ -1684,6 +1685,11 @@ angular
       $scope.$parent.npkDB.select('self:campaigns:' + campaign, 'Campaigns').then((data) => {
         Object.keys(data).forEach(function(e) {
           campaigns[e].base = data[e];
+          campaigns[e].base.spotRequestHistory.forEach(function(h) {
+            if (h.EventInformation.EventSubType == "launched" || h.EventInformation.EventSubType == "terminated") {
+              h.EventInformation.EventDescription = JSON.parse(h.EventInformation.EventDescription);
+            }
+          })
         });
       });
 

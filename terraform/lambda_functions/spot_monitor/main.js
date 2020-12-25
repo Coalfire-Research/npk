@@ -441,6 +441,27 @@ var evaluateAllSpotInstances = function() {
 	});
 };
 
+var histories = {};
+function getSpotRequestHistory(ec2, sfr, nextToken = null) {
+	return ec2.describeSpotFleetRequestHistory({
+		SpotFleetRequestId: sfr,
+		StartTime: "1970-01-01T00:00:00Z",
+		NextToken: nextToken
+	}).promise().then((data) => {
+		if (!histories.hasOwnProperty(sfr)) {
+			histories[sfr] = [];
+		}
+
+		histories[sfr] = histories[sfr].concat(data.HistoryRecords);
+
+		if (data.hasOwnProperty('NextToken')) {
+			return getSpotRequestHistory(ec2, sfr, data.NextToken);
+		}
+
+		return true;
+	});
+}
+
 exports.main = function(event, context, callback) {
 
 	var promiseDetails = { fleets: {}, spotPrices: {}, instances: {}, instanceStatuses: {} };
@@ -506,21 +527,6 @@ exports.main = function(event, context, callback) {
 					return false;
 				}
 
-				if (fleet.SpotFleetRequestState.indexOf("cancelled") == 0) {
-					fleetPromises.push(editCampaignViaRequestId(fleet.SpotFleetRequestId, {
-						active: false,
-						price: fleet.price,
-						instanceStatuses: promiseDetails.instanceStatuses[fleet.SpotFleetRequestId],
-						status: (fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING"
-					}).then((data) => {
-						console.log("Marked campaign of " + fleet.SpotFleetRequestId + " as " + ((fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING"))
-					}, (e) => {
-						console.log("[!] Failed attempting to update " + fleet.SpotFleetRequestId);
-					}));
-
-					return false;
-				}
-
 				var ec2 = new aws.EC2({region: region});
 
 				promiseDetails.fleets[fleet.SpotFleetRequestId] = fleet;
@@ -536,12 +542,15 @@ exports.main = function(event, context, callback) {
 					promiseDetails.fleet[fleet.SpotFleetRequestId].instances = data.ActiveInstances;
 				}));*/
 
-				fleetPromises.push(ec2.describeSpotFleetRequestHistory({
+				/* fleetPromises.push(ec2.describeSpotFleetRequestHistory({
 					SpotFleetRequestId: fleet.SpotFleetRequestId,
 					StartTime: "1970-01-01T00:00:00Z"
 				}).promise().then((data) => {
+					if (data.)
 					promiseDetails.fleets[fleet.SpotFleetRequestId].history = data.HistoryRecords;
-				}));
+				})); */
+
+				fleetPromises.push(getSpotRequestHistory(ec2, fleet.SpotFleetRequestId));
 			});
 		});
 
@@ -558,9 +567,25 @@ exports.main = function(event, context, callback) {
 		};
 
 		var spotPricePromises = [];
+		var removedFleetIds = [];
 
 		// Loop over the state changes to find spot price histories we need.
 		Object.keys(promiseDetails.fleets).forEach(function(fleetId) {
+
+			if (!promiseDetails.instanceStatuses.hasOwnProperty(fleetId)) {
+				if (promiseDetails.fleets[fleetId].SpotFleetRequestState.indexOf("cancelled") == 0) {
+					console.log("Inactive fleet [" + fleetId + "] has no instance statuses. Removing from the list and skipping.");
+				} else {
+					console.log("Fleet [" + fleetId + "] with status [" + promiseDetails.fleets[fleetId].SpotFleetRequestState + "] has no instance statuses. This might be catastrophic.");
+				}
+
+				delete promiseDetails.fleets[fleetId];
+				return false;
+			}
+
+			promiseDetails.fleets[fleetId].history = histories[fleetId];
+			delete histories[fleetId];
+
 			promiseDetails.fleets[fleetId].history.forEach(function(historyRecord) {
 				// Skip anything that isn't an instanceChange request.
 				if (historyRecord.EventType != "instanceChange") {
@@ -615,6 +640,32 @@ exports.main = function(event, context, callback) {
 					});
 				}));
 			});
+
+			if (promiseDetails.fleets[fleetId].SpotFleetRequestState.indexOf("cancelled") == 0) {
+				var fleetState = (promiseDetails.fleets[fleetId].SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING";
+
+				// Restructure the timestamps for event history
+				promiseDetails.fleets[fleetId].history.forEach(function(h) {
+					h.Timestamp = new Date(h.Timestamp).getTime() / 1000;
+				});
+
+				spotPricePromises.push(editCampaignViaRequestId(promiseDetails.fleets[fleetId].SpotFleetRequestId, {
+					active: false,
+					spotRequestHistory: promiseDetails.fleets[fleetId].history,
+					spotRequestStatus: promiseDetails.instanceStatuses[fleetId],
+					status: fleetState
+				}).then((data) => {
+					console.log("Marked campaign of " + promiseDetails.fleets[fleetId].SpotFleetRequestId + " as " + fleetState)
+					return "skip";
+				}, (e) => {
+					console.log("[!] Failed attempting to update " + promiseDetails.fleets[fleetId].SpotFleetRequestId);
+					return "skip";
+				}).then((data) => {
+					delete promiseDetails.fleets[fleetId];
+				}));
+
+				return false;
+			}
 		});
 
 		return Promise.all(spotPricePromises);
@@ -632,6 +683,11 @@ exports.main = function(event, context, callback) {
 		// Promises are all done. Let's calculate the instance costs, and roll them up to the fleet.
 		Object.keys(promiseDetails.instances).forEach(function(instanceId) {
 			var instance = promiseDetails.instances[instanceId];
+
+			if (!promiseDetails.fleets.hasOwnProperty(instance.fleetId)) {
+				console.log("Skipping orphaned instance [" + instanceId + "]");
+				return false;
+			}
 
 			var prices = promiseDetails.spotPrices[instance.region + ':' + instance.instanceType][instance.availabilityZone];
 			prices[new Date().getTime()] = prices[Object.keys(prices).slice(-1)];
@@ -690,8 +746,6 @@ exports.main = function(event, context, callback) {
 			promiseDetails.fleets[fleetId].history.forEach(function(h) {
 				h.Timestamp = new Date(h.Timestamp).getTime() / 1000;
 			});
-
-			console.log(promiseDetails.fleets[fleetId].history);
 
 			// Update the current price.
 			finalPromises.push(editCampaignViaRequestId(fleetId, {

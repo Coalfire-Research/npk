@@ -118,6 +118,7 @@ chmod +x envvars
 # echo "* * * * * root /root/compute-node/kill_if_dead.sh" >> /etc/crontab
 
 node compute-node/hashcat_wrapper.js
+echo "Hashcat wrapper finished with status code $?"
 aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
 sleep 30
 poweroff

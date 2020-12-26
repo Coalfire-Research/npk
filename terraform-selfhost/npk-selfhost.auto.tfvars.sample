@@ -1,6 +1,0 @@
-#	The keys for Terraform to use when generating the environment.
-aws_profile = ""
-
-###	URLs for extra components.
-# Hashcat
-hashcat = "https://hashcat.net/files/hashcat-6.1.1.7z"

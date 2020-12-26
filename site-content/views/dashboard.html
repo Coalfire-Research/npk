@@ -125,6 +125,9 @@
                                 {{ campaigns[id].spotRequestStatus[nid].State }} / {{ campaigns[id].spotRequestStatus[nid].Status.Code }};&nbsp;&nbsp;&nbsp;[ {{ campaigns[id].spotRequestStatus[nid].Status.Message }} ]
                               </small>
                             </div>
+                            <div ng-if="!campaigns[id].spotRequestStatus" class="text-center">
+                              <img height="20px" width="20px" src="assets/images/loading.gif">
+                            </div>
                           </div>
                           <h6 class="text-white" ng-if="objLength(data.nodes) > 0">Nodes</h6>
                           <div class="row" style="margin: 0px;">
@@ -171,6 +174,8 @@
                                 <div class="col-lg-10 text-center" style="padding-top: 8px;">
                                   <small class="ml-3 text-white">
                                     {{ campaigns[id].spotRequestStatus[nid].State }} / {{ campaigns[id].spotRequestStatus[nid].Status.Code }};&nbsp;&nbsp;&nbsp;[ {{ campaigns[id].spotRequestStatus[nid].Status.Message }} ]
+                                    <br />
+                                    ( Instance is acknowledged by AWS but still provisioning )
                                   </small>
                                 </div>
                               </div>

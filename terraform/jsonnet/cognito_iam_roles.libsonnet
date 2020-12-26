@@ -87,7 +87,6 @@
 						"dynamodb:PutItem",
 					],
 					"resources": [
-						"${aws_dynamodb_table.campaigns.arn}",
 						"${aws_dynamodb_table.settings.arn}"
 					],
 					"condition": [{
@@ -108,6 +107,14 @@
 							]
 					}]
 				}, {
+					"sid": "events",
+					"actions": [
+						"dynamodb:Query",
+					],
+					"resources": [
+						"${aws_dynamodb_table.campaigns.arn}/index/Events"
+					]
+				}, {
 					"sid": "cognitoAdmin",
 					"actions": [
 						"cognito-idp:AdminAddUserToGroup",
@@ -123,24 +130,16 @@
 					],
 					"resources": [
 						"${aws_cognito_user_pool.npk.arn}"
+					]
+				}, {
+					"sid": "cognitoIdentities",
+					"actions": [
+						"cognito-idp:ListIdentities",
+						"cognito-idp:DescribeIdentity",
 					],
-					"condition": [{
-							"test": "ForAllValues:StringEquals",
-							"variable": "dynamodb:LeadingKeys",
-
-							"values": [
-								"&{cognito-identity.amazonaws.com:sub}",
-								"admin"
-							]
-					}, {
-							"test": "ForAllValues:StringEquals",
-							"variable": "dynamodb:Attributes",
-
-							"values": [
-								"keyid",
-								"value"
-							]
-					}]
+					"resources": [
+						"${aws_cognito_identity_pool.main.arn}"
+					]
 				}]
 			},
 			"cognito_authenticated": {

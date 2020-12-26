@@ -30,7 +30,7 @@ REGION4="us-west-2"
 
 echo "- Downloading components"
 if [ ! -f ${basepath}/components/hashcat.7z ]; then
-	wget -O ${basepath}/components/hashcat.7z ${hashcat}
+	wget -O ${basepath}/components/hashcat.7z https://hashcat.net/files/hashcat-6.1.1.7z
 fi
 
 if [ ! -f ${basepath}/components/maskprocessor.7z ]; then

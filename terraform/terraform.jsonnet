@@ -1,6 +1,7 @@
 local npksettings = import 'npk-settings.json';
 local regions = import 'regions.json';
 local quotas = import 'quotas.json';
+local backend = import 'jsonnet/backend.libsonnet';
 local provider = import 'jsonnet/provider.libsonnet';
 local vpc = import 'jsonnet/vpc.libsonnet';
 local subnet = import 'jsonnet/subnet.libsonnet';
@@ -120,6 +121,7 @@ local regionKeys = std.objectFields(settings.regions);
 			},
 		} else {}
 	},
+	'backend.tf.json': backend(settings),
 	'cloudfront.tf.json': {
 		"resource": cloudfront.resource(settings),
 		"output": cloudfront.output

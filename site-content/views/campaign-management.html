@@ -35,7 +35,7 @@
                         <div class="progress-bar bg-success progress-bar-striped" ng-class="{'progress-bar-animated': data.active}" role="progressbar" style="width: {{ ((node.last - node.firstRecovery) / data.base.durationSeconds) * 100 }}%"></div>
                         <div class="progress-bar bg-dark progress-bar-striped" ng-class="{'progress-bar-animated': data.active}" role="progressbar" style="width: {{ (((data.base.startTime + data.base.durationSeconds) - node.last) / data.base.durationSeconds) * 100 }}%"></div>
                      </div>
-                     <small ng-if="node['latest'].startTime" class="text-white">
+                     <small class="text-white">
                       Spot Status: [ {{ data.base.spotRequestStatus[nid].State }}; {{ data.base.spotRequestStatus[nid].Status.Code }} ]
                       &nbsp;&nbsp;&nbsp;
                       Spot Fulfillment Message: [ {{ data.base.spotRequestStatus[nid].Status.Message }} ]

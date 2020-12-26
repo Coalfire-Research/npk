@@ -408,7 +408,7 @@ angular
           return false;
         }
 
-        $scope.$parent.npkDB.select('self:campaigns:', 'Campaigns').then((data) => {
+        return $scope.$parent.npkDB.select('self:campaigns:', 'Campaigns').then((data) => {
           $scope.campaigns = JSON.parse(JSON.stringify(data)); //Deepcopy lol
           $scope.campaigns.totals = {hashes: 0, recovered_hashes: 0};
 
@@ -537,7 +537,7 @@ angular
 
       $scope.timeout = "";
       $scope.tickTock = function() {
-        $scope.populateDashboard();
+        $scope.populateDashboard()
         $timeout(function() {
           $scope.tickTock();
         }, 30000);
@@ -2119,7 +2119,6 @@ angular
 
     $scope.loadUsers = function() {
       userSvc.listUsers().then((data) => {
-        console.log(data);
         $scope.users = userSvc.users;
 
         if (!$scope.$$phase) {
@@ -2149,18 +2148,61 @@ angular
       $scope.onReady();
     });
   }])
-  .controller('evCtrl', ['$scope', '$routeParams', '$location', '$timeout', 'npkDB', function($scope, $routeParams, $location, $timeout, npkDB) {
+  .controller('evCtrl', ['$scope', '$routeParams', '$location', '$timeout', 'userSvc', 'npkDB', function($scope, $routeParams, $location, $timeout, userSvc, npkDB) {
 
     $scope.events = [];
     $scope.loadEvents = function() {
-      npkDB.selectEvents('New Campaign:', 'Events').then((data) => {
+      Promise.all([
+        npkDB.selectEvents('CampaignStarted'),
+        npkDB.selectEvents('NodeFinished')
+      ]).then((data) => {
+        $scope.events = [];
 
-      });
+        data.forEach(function(t) {
+          t.forEach(function(e) {
+            $scope.events.push(e);
+          });
+        });
+
+        if (!$scope.$$phase) {
+          $scope.$digest();
+        }
+
+        $('.arrow').hide();
+        $('.tooltip-inner').hide();
+        $timeout(function() {
+          $('[data-toggle="tooltip"]').tooltip();
+        });
+
+      }, (e) => {
+        console.log(e);
+      })
     }
+
+    // this is useless because of https://github.com/aws-amplify/amplify-js/issues/54
+    /* $scope.users = [];
+    $scope.userMap = {};
+    $scope.loadUsers = function() {
+      userSvc.listUsers().then((data) => {
+        $scope.users = userSvc.users;
+
+        $scope.userMap = {};
+        $scope.users.forEach(function(e) {
+          $scope.userMap[e.Username] = e.email;
+        });
+
+        console.log($scope.users)
+
+        if (!$scope.$$phase) {
+          $scope.$digest();
+        }
+      });
+    }*/
     
     $scope.onReady = function() {
       $scope.$parent.startApp();
-      // $scope.loadEvents();
+      // $scope.loadUsers();
+      $scope.loadEvents();
     };
 
     $scope.$on('$routeChangeSuccess', function() {

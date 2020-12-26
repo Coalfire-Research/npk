@@ -110,12 +110,14 @@ function putNode(user, campaign, node, body) {
 	var params = {};
 	if (body.completed == 1) {
 		params = {
+			eventType: "NodeFinished",
 			status: 'COMPLETED',
 			progress: 100,
 			recoveredHashes: body.recoveredHashes
 		};
 	} else {
 		params = {
+			eventType: "NodeFinished",
 			status: 'ERROR'
 		};
 	}

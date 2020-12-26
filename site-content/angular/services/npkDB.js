@@ -150,8 +150,32 @@ angular
 
 		            return result;
 				});
+			},
 
+			selectEvents: function(type, table) {
+				var self = this;
 
+				if (['CampaignStarted', 'NodeFinished'].indexOf(type) < 0) {
+					return Promise.reject('Invalid type');
+				}
+
+				return self.query({
+				  	ExpressionAttributeValues: {
+					    ':eventType': {S: type}
+					 },
+					 KeyConditionExpression: 'eventType = :eventType',
+					 TableName: "Campaigns",
+					 IndexName: "Events"
+				}).then((data) => {
+					var results = [];
+
+					data.Items.forEach(function(s) {
+						var newData = AWS.DynamoDB.Converter.unmarshall(s);
+						results.push(newData);
+		            });
+
+		            return results;
+				});
 			},
 
 			s3ForRegion: function(region) {

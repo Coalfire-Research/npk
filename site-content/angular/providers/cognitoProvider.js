@@ -348,17 +348,16 @@ angular
 
                   if (localStorage.getItem("authType") == "Cognito") {
                      self.restoreSession().then((data) => {
-                        self.retrieveCredentials().then((data) => {
-                           console.log('Init::Logon successful')
-                           return success('Logon successful');
-                        }).catch((e) => {
-                           console.log('Init::Logon Failed.');
-                           return failure('Logon Failed.');
-                        });
-
-                     }).catch((e) => {
+                        return self.retrieveCredentials();
+                     }, (e) => {
                         console.log('Init::Auth Init Failed.');
                         return failure('Auth Init Failed.');
+                     }).then((data) => {
+                        console.log('Init::Logon successful')
+                        return success('Logon successful');
+                     }, (e) => {
+                        console.log('Init::Logon Failed.');
+                        return failure('Logon Failed.');
                      });
                   }
 
@@ -367,7 +366,7 @@ angular
                         self.refreshSamlTokens().then((data) => {
                            console.log('Init::SamlAuth Logon Successful.');
                            return success('SamlAuth Logon Successful');
-                        }).catch((e) => {
+                        }, (e) => {
                            console.log('Init::SamlAuth Init Failed.');
                            return failure('SamlAuth Init Failed.');
                         });
@@ -375,15 +374,13 @@ angular
                         self.retrieveSamlCredentials().then((data) => {
                            console.log('Init::SamlAuth Resumed Successfully');
                            return success('SamlAuth Resumed Successfully');
-                        }).catch((e) => {
+                        }, (e) => {
                            console.log('Unable to resume SamlAuth: ' + e);
                            return failure('Unable to resume SamlAuth: ' + e);
                         });
                      }
                   }
 
-               }).catch((e) => {
-                  console.log(e);
                });
             },
 

@@ -12,7 +12,13 @@ angular
 				region: 'us-west-2'
 			}),
 
+			cognitoIdentity: new AWS.CognitoIdentity({
+				apiVersion: '2014-06-30',
+				region: 'us-west-2'
+			}),
+
 			users: [],
+			identities: [],
 
 			createUser: function(email, isAdmin = false) {
 				var self = this;

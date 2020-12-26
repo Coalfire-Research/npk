@@ -1,0 +1,108 @@
+<div class="clearfix"></div>
+	
+  <div class="content-wrapper">
+    <div class="container-fluid">
+
+      <!--Start Dashboard Content-->
+	  
+      <div class="card bg-transparent shadow-none mt-3 border border-secondary-light">
+        <div class="card-header bg-transparent text-white border-secondary-light">
+          Events History
+          <div class="card-action">
+          </div>
+        </div>
+        <div class="card-body text-center text-white">
+          <div class="row">
+            <!-- I hate everything -->
+            <!-- div class="col-lg-6">  
+              <div class="card bg-dark border border-secondary-dark shadow-none">
+                <div class="card-body">
+                  <p class="card-text text-white text-left">Events for User</p>
+                  <hr>
+                  <select id="user" class="form-control" ng-show="users.length > 0" ng-options="user.Username as user.email for user in users" ng-model="filter.userid" style="margin-bottom: 5px;"></select>
+                </div>
+              </div>
+            </div -->
+            <div class="col-lg-6">  
+              <div class="card bg-dark border border-secondary-dark shadow-none">
+                <div class="card-body">
+                  <p class="card-text text-white text-left">Events of Type</p>
+                  <hr>
+                  <select id="type" class="form-control" ng-options="type as type for type in ['CampaignStarted','NodeFinished']" ng-model="filter.eventType" style="margin-bottom: 5px;"></select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!--End Row-->
+        
+      <div class="card bg-white shadow-none mt-3 border border-secondary-dark">
+        <div class="card-header bg-white text-dark text-left">
+          Events List
+        </div>
+        <div class="card-body bg-dark text-white text-left">
+          <table class="table table-dark table-condensed">
+            <thead>
+              <tr>
+                <th style="width: 220px;">Timestamp</th>
+                <th style="width: 370px;">User</th>
+                <th>Event Type</th>
+              </tr>
+            </thead>
+            <tbody ng-repeat="event in events | filter:filter | orderBy:'startTime'" on-finish-render>
+              <tr>
+                <td>
+                  <small>{{ event.startTime | momentfn:'format' }}</small>
+                </td>
+                <td>
+                  <small>
+                    {{ event.userid }}
+                    <div class="badge badge-dark" data-toggle="tooltip" data-placement="top" title="" data-original-title="I know this isn't super helpful, but there's currently no way to correlate a Cognito Identity ID with a Cognito User Pool ID, which means this is literally the best information available currently. A future release will try to work around this limitation.">
+                      <i class="fa fa-question-circle"></i>
+                    </div>
+                  </small>
+                </td>
+                <td>
+                  <small>{{ event.eventType }}</small>
+                </td>
+              </tr>
+              <tr ng-if="event.eventType == 'CampaignStarted'">
+                <td colspan="3">
+                  Campaign {{ event.keyid.split(':')[1] }} started to crack {{ event.hashes }} hashes.
+                  <br>
+                  Order was comprised of {{ event.instanceCount }}x {{ event.instanceType }} for {{ event.durationSeconds / 3600 }} hours.
+                  <br>
+                  Campaign spent {{ event.price | currency:'$' }} of {{ event.targetPrice }} allotted.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!--End Dashboard Content-->
+
+    </div>
+    <!-- End container-fluid-->
+    
+    </div><!--End content-wrapper-->
+   <!--Start Back To Top Button-->
+    <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+    <!--End Back To Top Button-->
+	
+	<!--Start footer-->
+	<footer class="footer bg-transparent border-secondary-light">
+      <div class="container">
+        <div class="text-center text-white">
+        </div>
+      </div>
+    </footer>
+	<!--End footer-->
+   
+  </div><!--End wrapper-->
+
+  <!-- Index js -->
+  <!-- script src="assets/js/index2.js"></script -->
+  
+</body>
+</html>

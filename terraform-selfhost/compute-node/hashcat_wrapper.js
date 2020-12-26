@@ -166,7 +166,7 @@ function runHashcat(params) {
 
 		hashcat.on('exit', function(code, signal) {
 
-			if (code == 1) {
+			if (code == 0) {
 				console.log("\n\nCracking job exited successfully.\n");
 				return success(sendFinished(true));
 			}
@@ -217,8 +217,7 @@ var sendFinished = function (completed) {
 		userid: manifestpath.split('/')[0],
 		campaign: manifestpath.split('/')[2],
 		instance_id: instance_id,
-		action: 'done',
-		eventType: 'CampaignFinished'
+		action: 'done'
 	};
 
 	return new Promise((success, failure) => {

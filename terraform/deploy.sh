@@ -35,6 +35,9 @@ fi
 if [[ "$(terraform -v | grep v0.11 | wc -l)" != "1" ]]; then
 	ERR=1;
 	echo "Error: Wrong version of Terraform is installed. NPK requires Terraform v0.11.";
+	echo "-> Note: A non-default binary can be specified as positional script parameter:"
+	echo "-> e.g: ./deploy-selfhost.sh <terraform-v0.11-path>"
+	echo ""
 fi
 
 if [[ -f $(which snap) ]]; then
@@ -64,6 +67,32 @@ PROFILE=$(jq -r '.awsProfile' npk-settings.json)
 export AWS_DEFAULT_REGION=us-west-2
 export AWS_DEFAULT_OUTPUT=json
 export AWS_PROFILE=$PROFILE
+
+BUCKET=$(jq -r '.backend_bucket' npk-settings.json)
+
+if [[ "$BUCKET" == "" ]]; then
+	echo "No backend bucket is specified in npk-settings.json. This is best practice and required for NPKv2."
+	echo "If you specify a bucket that doesn't exist, NPK will create it for you. How easy is that?"
+	echo "Update npk-settings.json and try again."
+	echo ""
+	exit 1
+fi
+
+EXISTS=$(aws s3api get-bucket-location --bucket $BUCKET)
+if [[ $? -ne 0 ]]; then
+	aws s3api create-bucket --bucket $BUCKET --create-bucket-configuration LocationConstraint=$AWS_DEFAULT_REGION
+
+	if [[ $? -ne 0 ]]; then
+		echo "Error creating backend_bucket. Fix that^ error then try again."
+		exit 1
+	fi
+else
+	if [[ "$( echo $EXISTS | jq -r '.LocationConstraint' )" != "$AWS_DEFAULT_REGION" ]]; then
+		echo "The backend_bucket you specified doesn't reside in the defaultRegion. Specify a bucket in us-west-2, then try again."
+		echo "$( echo $EXISTS | jq '.LocationConstraint' ) vs. $AWS_DEFAULT_REGION"
+		exit 1
+	fi
+fi
 
 echo "[*] Checking account quotas..."
 
@@ -178,8 +207,16 @@ if [[ "$?" -eq "1" ]]; then
 	exit 1
 fi
 
-if [[ ! -d .terraform ]]; then
-	$TERBIN init
+aws s3api head-object --bucket $BUCKET --key c6fc.io/npk/terraform.tfstate >> /dev/null
+ISINIT="$?"
+
+if [[ ! -d .terraform || $ISINIT -ne 0 ]]; then
+	$TERBIN init -force-copy
+
+	if [[ $? -ne 0 ]]; then
+		echo "[-] An error occurred while running 'terraform init'. Address the error and try again"
+		exit 1
+	fi
 fi
 
 terraform apply -auto-approve

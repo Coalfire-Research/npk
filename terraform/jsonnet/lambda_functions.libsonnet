@@ -4,7 +4,7 @@
 	{
 		"aws_lambda_function": {
 			"proxy_api_handler": {
-				"depends_on": ["local_file.userdata_template", "data.archive_file.proxy_api_handler", "aws_iam_role_policy.lambda_proxy_api_handler"],
+				"depends_on": ["data.archive_file.proxy_api_handler", "aws_iam_role_policy.lambda_proxy_api_handler"],
 				"filename": "./lambda_functions/zip_files/proxy_api_handler.zip",
 				"function_name": "proxy_api_handler",
 				"role": "${aws_iam_role.lambda_proxy_api_handler.arn}",
@@ -156,8 +156,8 @@
 		"archive_file": {
 			"proxy_api_handler": {
 				"depends_on": [
-					"null_resource.npm_install_proxy_api_handler"
-					// "data.template_file.userdata_template" //TODO: Fix cyclical dependency
+					"null_resource.npm_install_proxy_api_handler",
+					"local_file.userdata_template"
 				],
 				"type": "zip",
 				"source_dir": "${path.module}/lambda_functions/proxy_api_handler/",

@@ -575,12 +575,12 @@ exports.main = function(event, context, callback) {
 			if (!promiseDetails.instanceStatuses.hasOwnProperty(fleetId)) {
 				if (promiseDetails.fleets[fleetId].SpotFleetRequestState.indexOf("cancelled") == 0) {
 					console.log("Inactive fleet [" + fleetId + "] has no instance statuses. Removing from the list and skipping.");
+					delete promiseDetails.fleets[fleetId];
+					return false;
+					
 				} else {
-					console.log("Fleet [" + fleetId + "] with status [" + promiseDetails.fleets[fleetId].SpotFleetRequestState + "] has no instance statuses. This might be catastrophic.");
+					console.log("Fleet [" + fleetId + "] with status [" + promiseDetails.fleets[fleetId].SpotFleetRequestState + "] has no instance statuses.");
 				}
-
-				delete promiseDetails.fleets[fleetId];
-				return false;
 			}
 
 			promiseDetails.fleets[fleetId].history = histories[fleetId];

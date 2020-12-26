@@ -22,7 +22,7 @@
 						}
 					}],
 
-					"depends_on": ["aws_cognito_user_pool.npk"],
+					"depends_on": ["aws_cognito_user_pool.npk", "aws_cognito_identity_pool.main"],
 					"triggers": {
 						"username": "${random_string.admin_password.keepers.admin_email}"
 					}

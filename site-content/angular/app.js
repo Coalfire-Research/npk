@@ -224,9 +224,10 @@ angular
 	   		}]
 	   	})
 	   	.when('/events', {
-	   		templateUrl: "views/nyi.html",
+	   		templateUrl: "views/events.html",
+	   		controller: "evCtrl",
 	   		resolveRedirectTo: ['cognito', function(cognito) {
-	   			return cognito.routeRequireLogin();
+	   			return cognito.routeRequireAdmin();
 	   		}]
 	   	})
 	   	.when('/user-settings', {

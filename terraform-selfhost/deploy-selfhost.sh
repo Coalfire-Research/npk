@@ -73,6 +73,11 @@ export AWS_DEFAULT_REGION=us-west-2
 export AWS_DEFAULT_OUTPUT=json
 export AWS_PROFILE=$PROFILE
 
+# Disable Pager for AWS CLI v2
+if [[ $(aws --version | grep "aws-cli/2" | wc -l) -ge 1 ]]; then
+	export AWS_PAGER="";
+fi
+
 BUCKET=$(jq -r '.backend_bucket' ../terraform/npk-settings.json)
 
 if [[ "$BUCKET" == "" ]]; then

@@ -194,8 +194,20 @@ fi
 
 if [[ ! -d .terraform ]]; then
 	echo "[+] Creating service-linked roles for EC2 spot fleets"
-	aws iam create-service-linked-role --aws-service-name spot.amazonaws.com
-	aws iam create-service-linked-role --aws-service-name spotfleet.amazonaws.com
+	
+	# check if roles already exist
+	SPOTROLE=$(aws iam list-roles | jq '.Roles[] | select(.RoleName == "AWSServiceRoleForEC2Spot") | .RoleName')
+	FLEETROLE=$(aws iam list-roles | jq '.Roles[] | select(.RoleName == "AWSServiceRoleForEC2SpotFleet") | .RoleName')
+	if [ -r $SPOTROLE]; then 
+		aws iam create-service-linked-role --aws-service-name spot.amazonaws.com
+	else
+		echo "[*] AWSServiceRoleForEC2Spot already exists"
+	fi
+	if [ -r $FLEETROLE]; then 
+		aws iam create-service-linked-role --aws-service-name spotfleet.amazonaws.com
+	else 
+		echo "[*] AWSServiceRoleForEC2SpotFleet already exists"
+	fi
 fi
 
 # remove old configs silently:

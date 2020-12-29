@@ -99,6 +99,26 @@ else
 	fi
 fi
 
+# Get the availability zones for each region
+if [ ! -f ../terraform/regions.json ]; then
+	echo "[*] Getting availability zones from AWS"
+	while IFS= read -r region; do
+		echo "[*] - ${region}"
+		aws ec2 --region ${region} describe-availability-zones | jq -r '{"'${region}'": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > region-${region}.json
+	done <<< $(echo '["us-east-1", "us-east-2", "us-west-1", "us-west-2"]' | jq -r '.[]')
+
+	jq -rs 'reduce .[] as $item ({}; . * $item)' ./region-*.json > ../terraform/regions.json
+	rm region-*.json
+
+	if [[ "$(cat ../terraform/regions.json | wc -l)" -lt "4" ]]; then
+		echo -e "\n[!] Error retrieving AWS availability zones. Check the 'awsProfile' setting and try again"
+		rm ../terraform/regions.json
+		exit 1
+	fi
+else
+	echo "[*] Using known availability zones. Delete regions.json to force re-evaluation."
+fi
+
 # remove old configs silently:
 rm -f *.tf.json
 

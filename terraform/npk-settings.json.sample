@@ -1,5 +1,5 @@
 {
-  "backend_bucket": "terraform-backend-<somerandomcharacters>"
+  "backend_bucket": "terraform-backend-<somerandomcharacters>",
   "campaign_data_ttl": 604800,
   "campaign_max_price": 50,
   "georestrictions": ["US", "CA", "GB", "DE"],
@@ -18,7 +18,7 @@
   "awsProfile": "npk",
   "criticalEventsSMS": "+13035551234",
   "adminEmail": "demo@npkproject.io",
-  "debug_lambda": false
+  "debug_lambda": false,
 
   "useSAML": false,
   "sAMLMetadataDocument": "/home/self/Documents/CorpSAMLMetadata.xml"

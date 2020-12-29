@@ -148,6 +148,14 @@
 					"resources": [
 						"${aws_iam_role.npk_fleet_role.arn}"
 					]
+				},{
+					"sid": "adminGetUser",
+					"actions": [
+						"cognito-idp:AdminGetUser"
+					],
+					"resources": [
+						"${aws_cognito_user_pool.npk.arn}"
+					]
 				}]
 			},
 			"lambda_status_reporter": {

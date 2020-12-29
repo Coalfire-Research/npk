@@ -971,6 +971,7 @@ angular
     $scope.attackType = 0;
     $scope.attackTypeDescription = {
       "-": "None (No attack types enabled)",
+      "i": "Invalid (Conflicting options selected)",
       0: "(Use Rules)",
       3: "(Mask Only)",
       6: "(Hybrid; Dictionary + Mask)"
@@ -983,6 +984,19 @@ angular
       $scope.totalDuration = $scope.totalKeyspace / (($scope.selectedInstance != "none") ? ($scope.gpus[$scope.selectedInstance] * ($scope.pricingSvc[$scope.selectedInstanceGeneration][$scope.hashType] /4)) : 1);
 
       $scope.updateCoverage();
+      $scope.compileManualCommands();
+
+      if ($scope.useTargetOverride) {
+        console.log(1);
+        if ($scope.use_mask || $scope.use_wordlist) {
+          console.log(2);
+          $scope. attackType = "i";
+          return true;
+        }
+
+        $scope.attackType = 3;
+        return true;
+      }
 
       if ($scope.selectedRules.length > 0) {
         $scope.attackType = 0;
@@ -1004,7 +1018,7 @@ angular
         return true;
       }
 
-      $scope.attackType = 'f';
+      $scope.attackType = '-';
       return true;
     };
 
@@ -1039,6 +1053,124 @@ angular
         $('#maskConfig button').each(function(i, e) { $(e).prop('disabled', true)});
       }
     };
+
+    $scope.toggleManual = function() {
+      $scope.use_manual = $('#use_manual').prop('checked');
+
+      if ($scope.use_manual) {
+        $scope.manual_arguments = "";
+        $('manual_arguments').prop('disabled', false);
+        $('useTargetOverride').prop('disabled', false);
+        $('#manualConfig').css('opacity', 1);
+      } else {
+        $scope.manual_arguments = "";
+        $('manual_arguments').prop('disabled', true);
+        $('useTargetOverride').prop('disabled', true);
+        $('#manualConfig').css('opacity', 0.4);
+      }
+
+      $scope.updateTotalKeyspace();
+    }
+
+    $scope.$watch('useTargetOverride', function() {
+      if ($scope.useTargetOverride) {
+        $scope.mask = "< Manual Mask Enabled >";
+        $('#maskConfig button').each(function(i, e) { $(e).prop('disabled', true)});
+      } else {
+        $scope.mask = "";
+        $('#maskConfig button').each(function(i, e) { $(e).prop('disabled', false)});
+      }
+    });
+
+    $scope.$watch('useTargetOverride', function() {
+      $scope.updateTotalKeyspace();
+    });
+
+    $scope.$watch('attackType', function() {
+      $scope.compileManualCommands();
+    });
+
+    $scope.$watch('manual_arguments', function() {
+      $scope.compileManualCommands();
+    });
+
+    $scope.$watch('target_override', function() {
+      $scope.compileManualCommands();
+    });
+
+
+    $scope.manual_command = "";
+    $scope.keyspace_command = "";
+    $scope.compileManualCommands = function() {
+      if (!$scope.use_manual) {
+        $scope.manual_command = "";
+        $scope.keyspace_command = "";
+        return false;
+      }
+
+      if ($scope.useTargetOverride && ($scope.use_mask || $scope.use_wordlist)) {
+        $scope.manual_command = "< Invalid Campaign Configuration >";
+        $scope.keyspace_command = false;
+        return false;
+      }
+
+      var args = [
+        "./hashcat/hashcat.bin",
+        "--quiet",
+        "-O",
+        "4",
+        "-m",
+        $scope.hashType,
+        "-a",
+        $scope.attackType,
+      ];
+
+      if ($scope.attackType == 0) {
+        $scope.selectedRules.forEach(function(e) {
+          console.log(e);
+          args.push("-r");
+          args.push("rules/" + e.Key);
+        });
+      }
+
+      args.push($scope.manual_arguments);
+
+      args.push("hashes.txt");
+
+      if ([0,6].indexOf($scope.attackType) >= 0) {
+        $scope.selectedWordlist.forEach(function(f) {
+          args.push("wordlists/" + f.Key);
+        });
+      }
+
+      if ([3,6].indexOf($scope.attackType) >= 0) {
+        if ($scope.useTargetOverride) {
+          args.push($scope.target_override);
+        } else {
+          args.push($scope.mask);
+        }
+      }
+
+      $scope.manual_command = args.join(" ");
+
+      switch($scope.attackType) {
+        case '0':
+          $scope.keyspace_command = false;
+        break;
+
+        case '3':
+          if ($scope.useTargetOverride) {
+            $scope.keyspace_command = "/root/hashcat/hashcat64.bin --keyspace -a 3 " + $scope.target_override;
+          } else {
+            $scope.keyspace_command = "/root/hashcat/hashcat64.bin --keyspace -a 3 " + $scope.mask;
+          }
+        break;
+
+        case '6':
+          $scope.keyspace_command = false;
+        break;
+      }
+    }
 
     $scope.mask = "";
     $scope.maskKeyspace = 1;
@@ -1274,7 +1406,7 @@ angular
         $scope.orderErrors.push("Only one target hash list may be chosen.");
       }
       
-      if (!$scope.use_wordlist && !$scope.use_mask) {
+      if (!$scope.use_wordlist && !$scope.use_mask && !$scope.useTargetOverride) {
         $scope.orderErrors.push("Select an attack type.")
       }
 
@@ -1286,6 +1418,33 @@ angular
         if ($scope.selectedRules.length < 1) {
           $scope.orderWarnings.push("No rule files are selected. Consider adding some.");
         }
+      }
+
+      if ($scope.use_manual) {
+        $scope.orderWarnings.push("Custom parameters may affect performance, making coverage estimates inaccurate. You must account for this yourself.");
+      }
+
+      if ($scope.useTargetOverride) {
+        $scope.orderWarnings.push("Coverage estimates cannot be provided for manual masks. You must account for this yourself.");
+
+        if ($scope.use_mask) {
+          $scope.orderErrors.push("Manual masks cannot be combined with the mask builder.")
+        }
+
+        if ($scope.use_wordlist) {
+          $scope.orderErrors.push("Manual masks cannot be combined with wordlist attacks.")
+        }
+      }
+
+      var hasShellChars = false
+      "|$[]{}()<>'\"\\`&".split("").forEach(function(c) {
+        if ($scope.manual_arguments.indexOf(c) > -1) {
+          hasShellChars = true;
+        }
+      });
+
+      if (hasShellChars) {
+        $scope.orderWarnings.push("Manual arguments are parameterized, and therefore do not support shell control characters. This command might not do what you expect.");
       }
 
       if ($scope.use_mask) {
@@ -1346,6 +1505,14 @@ angular
         });
       }
 
+      if ($scope.use_manual) {
+        $scope.order.manualArguments = $scope.manual_arguments;
+
+        if ($scope.useTargetOverride) {
+          $scope.order.manualMask = $scope.target_override;
+        }
+      }
+
       $scope.$parent.npkDB.s3.getSignedUrl('getObject', {
         Bucket: USERDATA_BUCKET,
         Key: AWS.config.credentials.identityId + '/' + $scope.order.hashFile,
@@ -1397,6 +1564,7 @@ angular
 
         $('#orderResponseModal').modal('hide');
         $scope.orderErrors = [response.msg];
+        $scope.orderWarnings = [];
         $scope.$digest();
         $('#orderErrorModal').modal('show');
       });
@@ -1505,6 +1673,7 @@ angular
 
       $scope.toggleMask();
       $scope.toggleWordlist();
+      $scope.toggleManual();
 
       $scope.processInstancePrices();
 
@@ -1539,6 +1708,8 @@ angular
           return num + " Hours";
         }
       });
+
+      $('[data-toggle="tooltip"]').tooltip();
       
     };
 

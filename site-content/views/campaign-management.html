@@ -7,7 +7,7 @@
 	  
       <div class="card bg-transparent shadow-none mt-3 border border-secondary-light">
         <div ng-if="selected_campaign" class="card-header bg-transparent text-white border-secondary-light">
-          [ {{ selected_campaign || "Campaign" }} ] Statistics
+          [ {{ selected_campaign || "Campaign" }} ] ordered by [ {{ data.base.cognitoUserEmail }} ]; Statistics
           <div class="card-action">
           </div>
         </div>
@@ -266,7 +266,7 @@
                    </tr>
                    </thead>
                    <tbody>
-                     <tr ng-repeat="(id, data) in campaigns" on-finish-render>
+                     <tr ng-repeat="(id, data) in campaigns | filterObj: {deleted: false}" on-finish-render>
                       <td><small><a href="#/campaign-management/{{ id }}">{{ id }}</a></small></td>
                       <td><small>{{ data.startTime * 1000 | date:"MMM d @ H:mm" }}</small></td>
                       <td>

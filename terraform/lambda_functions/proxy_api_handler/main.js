@@ -26,6 +26,7 @@ aws.config.update({region: 'us-west-2'});
 var db = new aws.DynamoDB();
 var sns = new aws.SNS();
 var sqs = new aws.SQS();
+var cognito = new aws.CognitoIdentityServiceProvider({region: "us-west-2", apiVersion: "2016-04-18"});
 
 var s3 = new aws.S3({region: variables.default_region});
 var s3dict;
@@ -219,8 +220,12 @@ function deleteCampaign(entity, campaign) {
 				}));
 			});
 
-			// Delete the campaign itself;
-			promises.push(
+			// Mark the campaign itself as deleted;
+			promises.push(editCampaign(entity, campaign, {
+				deleted: true
+			}));
+
+			/*promises.push(
 				new Promise((success, failure) => {
 					db.deleteItem({
 					Key: {
@@ -236,11 +241,12 @@ function deleteCampaign(entity, campaign) {
 
 					return success(true);
 				});
-			}));
+			}));*/
 
 			Promise.all(promises).then((data) => {
 				return respond(200, "Deleted", true);
-			}).catch((err) => {
+			}, (err) => {
+				console.log(err);
 				return respond(500, "Error while deleting campaign", false);
 			});
 		});
@@ -350,7 +356,29 @@ function getNVidiaImage(region) {
 	*/
 }
 
-function createCampaign(entity, campaign) {
+function getCognitoUser(pool, username) {
+	return new Promise((success, failure) => {
+		cognito.adminGetUser({
+			UserPoolId: pool,
+			Username: username
+		}).promise()
+		.then((data) => {
+			var attributes = {};
+
+			data.UserAttributes.forEach(function(e) {
+				attributes[e.Name] = e.Value;
+			});
+
+			data.UserAttributes = attributes;
+
+			success(data);
+		}, (err) => {
+			failure(err);
+		})
+	})
+}
+
+function createCampaign(entity, email, campaign) {
 	console.log("Debug: Creating campaign.");
 	campaign.require({
 		"region": 0,
@@ -434,6 +462,18 @@ function createCampaign(entity, campaign) {
 	}
 
 	verifiedManifest.hashFileUrl = campaign.hashFileUrl;
+
+	if (campaign.manualArguments) {
+		verifiedManifest.manualArguments = campaign.manualArguments;
+	}
+
+	if (campaign.manualMask) {
+		if (campaign.mask || campaign.rulesFiles || campaign.dictionaryFile) {
+			return respond(400, "Manual masks cannot be combined with any other attack type.", false);
+		}
+
+		verifiedManifest.manualMask = campaign.manualMask;
+	}
 
 	// Optional values might be present, but nulled.
 	var promises = [];
@@ -598,7 +638,7 @@ function createCampaign(entity, campaign) {
 		return Promise.resolve(true);
 	}));
 
-	Promise.all(promises).then((data) => {
+	return Promise.all(promises).then((data) => {
 		console.log("Debug: All promises returned.");
 
 		// Compare the manifest with the verifiedManifest, and return any values that weren't processed.
@@ -626,34 +666,31 @@ function createCampaign(entity, campaign) {
 				verifiedManifest.attackType = 0;
 			}
 		} else {
-			if (typeof verifiedManifest.mask == "undefined") {
+			if (typeof verifiedManifest.mask == "undefined" && typeof verifiedManifest.manualMask == "undefined") {
 				return respond(400, "Must have either dictionary or mask defined", false);
 			}
 
 			verifiedManifest.attackType = 3;
 		}
 
-		if (typeof verifiedManifest.rulesFiles != "undefined" && verifiedManifest.rulesFiles.length > 0) {
+		if (typeof verifiedManifest.rulesFiles != "undefined" && verifiedManifest.rulesFiles.length > 0 && typeof verifiedManifest.manualMask == "undefined") {
 			verifiedManifest.attackType = 0;
 		}
 
 		if (typeof verifiedManifest.attackType == "undefined") {
-			return respond(500, "Hit an impossible combination of attack types. Exiting anyway.", false);
+			return respond(500, "Hit an impossible combination of attack types. Exiting.", false);
 		}
 
+		var promiseError = false;
 		var campaignId = uuid();
 		// campaignId = "9c3ac117-ea93-4884-8e22-67cbece8dc89";
-		s3.putObject({
+		return s3.putObject({
 			Body: JSON.stringify(verifiedManifest),
 			Bucket: variables.userdata_bucket,
 			Key: entity + '/campaigns/' + campaignId + '/manifest.json',
 			ContentType: 'text/plain'
-		}, function(err, data) {
-			if (err) {
-				return respond(500, "Failed to place campaign manifest; " + err, false);
-			}
-
-			editCampaign(entity, campaignId, {
+		}).promise().then((data) => {
+			return editCampaign(entity, campaignId, {
 				instanceType: verifiedManifest.instanceType,
 				status: "AVAILABLE",
 				active: false,
@@ -665,16 +702,26 @@ function createCampaign(entity, campaign) {
 				targetPrice: verifiedManifest.priceTarget,
 				region: verifiedManifest.region,
 				startTime: Math.floor(new Date().getTime() / 1000),
-				spotFleetRequestId: "<none>"
-			}).then(function(data) {
-				console.log("==================================================================================================");
-				console.log("======     Campaign " + campaignId + " created. Preparing to execute!     ======");
-				console.log("==================================================================================================");
-				return respond(201, {campaignId: campaignId}, true);
-				// return executeCampaign(entity, campaignId);
-			}, function (err) {
-				return respond(500, "Failed to set campaign readiness; " + err, false);
-			});
+				spotFleetRequestId: "<none>",
+				cognitoUserEmail: email,
+				deleted: false
+			})
+		}, (err) => {
+			promiseError = err;
+			return respond(500, "Failed to place campaign manifest; " + err, false);
+		}).then(function(data) {
+			if (promiseError) {
+				console.log("Skipping due to prior error.")
+				return Promise.reject(false)
+			}
+
+			console.log("==================================================================================================");
+			console.log("======     Campaign " + campaignId + " created. Preparing to execute!     ======");
+			console.log("==================================================================================================");
+			return respond(201, {campaignId: campaignId}, true);
+			// return executeCampaign(entity, campaignId);
+		}, function (err) {
+			return respond(500, "Failed to set campaign readiness; " + err, false);
 		});
 	});
 }
@@ -684,7 +731,10 @@ function executeCampaign(entity, campaignId) {
 	var manifest = {};
 	var image = {};
 
-	getActiveCampaigns(entity).then(function(data) {
+	var promiseError = false;
+	var promiseDetails = {};
+
+	return getActiveCampaigns(entity).then(function(data) {
 		
 		data.Items.forEach(function(i) {
 			i = ddbTypes.unwrap(i);
@@ -816,28 +866,37 @@ function executeCampaign(entity, campaignId) {
 
 		// Submit the fleet request.
 		var ec2 = new aws.EC2({region: manifest.region});
-		ec2.requestSpotFleet(spotFleetParams, function (err, data) {
-			if (err) {
-				return respond(500, "Error requesting spot fleet: " + err, false);
-			}
+		return ec2.requestSpotFleet(spotFleetParams).promise()
 
-			editCampaign(entity, campaignId, {
-				active: true,
-				status: "STARTING",
-				spotFleetRequestId: data.SpotFleetRequestId,
-				startTime: Math.floor(new Date().getTime() / 1000),
-				eventType: "CampaignStarted"
-			}).then(function(tmp) {
-				console.log("Campaign " + campaignId + " started.");
-				return respond(200, {msg: "Campaign started successfully", campaignId: campaignId, spotFleetRequestId: data.SpotFleetRequestId}, true);
-			}, function (err) {
-				return respond(500, "Failed to set campaign as active. " + err, false);
-			});
+	}, (err) => {
+		promiseError = err;
+		respond(500, "Unable to retrieve campaign for execution.", false);
+	}).then((data) => {
+
+		if (promiseError) {
+			console.log("Skipping due to previous error");
+			return Promise.reject(promiseError);
+		}
+
+		promiseDetails.sfr = data.SpotFleetRequestId;
+
+		return editCampaign(entity, campaignId, {
+			active: true,
+			status: "STARTING",
+			spotFleetRequestId: data.SpotFleetRequestId,
+			startTime: Math.floor(new Date().getTime() / 1000),
+			eventType: "CampaignStarted"
 		});
 
+	}, (err) => {
+		promiseError = err
+		return Promise.reject(respond(500, "Error requesting spot fleet: " + err, false));
 
+	}).then(function() {
+		console.log("Campaign " + campaignId + " started.");
+		return respond(200, {msg: "Campaign started successfully", campaignId: campaignId, spotFleetRequestId: promiseDetails.sfr}, true);
 	}, function (err) {
-		respond(500, "Unable to retrieve campaign for execution.", false);
+		return respond(500, "Failed to set campaign as active. " + err, false);
 	});
 
 	// return respond(200, "Campaign " + campaignId + " started.", true);
@@ -905,7 +964,7 @@ function stopCampaign(entity, campaign) {
 	});
 }
 
-function processHttpRequest(path, method, entity, body) {
+function processHttpRequest(path, method, entity, email, body) {
 	var params = path.split("/");
 
 	switch (params[0]) {
@@ -913,7 +972,7 @@ function processHttpRequest(path, method, entity, body) {
 			if (typeof params[1] == "undefined") {
 				switch (method) {
 					case "POST":
-						return createCampaign(entity, body);
+						return createCampaign(entity, email, body);
 					break;
 
 					default:
@@ -943,7 +1002,7 @@ function processHttpRequest(path, method, entity, body) {
 								console.log("Stopping campaign " + params[1]);
 								return stopCampaign(entity, data);
 							} else {
-								console.log("Deleting campaign " + params[1]);
+								console.log("Marking campaign deleted " + params[1]);
 								return deleteCampaign(entity, params[1]);
 							}
 						});
@@ -1053,8 +1112,24 @@ exports.main = function(event, context, callback) {
 			}
 		}
 
-		// Process the request
-		return processHttpRequest(event.pathParameters.proxy, event.httpMethod, event.requestContext.identity.cognitoIdentityId, body);
+		// Associate the user identity.
+		var identity = event.requestContext.identity.cognitoAuthenticationProvider.split('/')[2].split(':')
+		return getCognitoUser(identity[0], identity[2]).then((data) => {
+			console.log(data);
+
+			if (!data.UserAttributes.hasOwnProperty('email')) {
+				return Promise.reject(respond(401, {}, { msg: "Unable to obtain user properties." ,success: false }, false));
+			}
+			
+			// Process the request
+			return processHttpRequest(event.pathParameters.proxy, event.httpMethod, event.requestContext.identity.cognitoIdentityId, data.UserAttributes.email, body);
+		}).then((data) => {
+			console.log("Finished with message", data);
+		}, (err) => {
+			console.log("Finished with error", err);
+		}).then(() => {
+			respond(500, "Events occurred out of order. This is a bug.", false);
+		});
 
 	} catch (e) {
 		console.log("Fail", e);

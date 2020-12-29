@@ -81,27 +81,53 @@ INSTANCENUMBER=$(cat fleet_instances | grep -nr $INSTANCEID - | cut -d':' -f1)
 mv hashcat-*/ hashcat
 mv maskprocessor-*/ maskprocessor
 
-if [[ "$(jq -r '.attackType' manifest.json)" == "0" ]]; then
-	KEYSPACE=$(aws s3api head-object --bucket $BUCKET --key $(jq -r '.dictionaryFile' manifest.json) | jq -r '.Metadata.lines')
-elif [[ "$(jq -r '.attackType' manifest.json)" == "3" ]]; then
-	KEYSPACE=$(/root/hashcat/hashcat64.bin --keyspace -a 3 $(jq -r '.mask' /root/manifest.json))
+MANUALARGS=""
+if [[ "$(jq '.manualArguments' manifest.json)" != "null" ]]; then
+	MANUALARGS=$(jq -r '.manualArguments |= split(" ") | .test[]' /root/manifest.json | xargs printf "%q\n")
+fi
+
+echo "[*] using manual args [ $MANUALARGS ]"
+
+# if [[ "$(jq -r '.attackType' manifest.json)" == "0" ]]; then
+# 	# KEYSPACE=$(aws s3api head-object --bucket $BUCKET --key $(jq -r '.dictionaryFile' manifest.json) | jq -r '.Metadata.lines')
+# 	KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a $(jq -r '.attackType' /root/manifest.json) $MANUALARGS npk-wordlist/*)
+# el
+
+if [[ "$(jq -r '.attackType' manifest.json)" == "3" ]]; then
+	if [[ "$(jq '.manualMask' manifest.json)" == "null" ]]; then
+		KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a 3 $(jq -r '.mask' /root/manifest.json))
+		KEYSPACERC=$?
+	else
+		KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a 3 $MANUALARGS $(jq -r '.manualMask' /root/manifest.json))
+		KEYSPACERC=$?
+	fi
 else
-	KEYSPACE=$(/root/hashcat/hashcat64.bin --keyspace -a $(jq -r '.attackType' /root/manifest.json) npk-wordlist/*)
+	KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a $(jq -r '.attackType' /root/manifest.json) $MANUALARGS npk-wordlist/*)
+	KEYSPACERC=$?
+
+	if [[ "$(jq -r '.mask' manifest.json)" != "null" ]]; then
+		MASK=$(jq -r '.mask' manifest.json | sed 's/?/ $?/g')
+		MASK=$${MASK:1}
+
+		echo "[*] Manifest has mask of [$MASK]"
+
+		if [[ $(echo $MASK | wc -c) -gt 0 ]]; then
+			echo "/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule \"$MASK\""
+			/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule "$MASK"
+			echo : >> /root/npk-rules/npk-maskprocessor.rule
+			echo "Mask rule created with $(cat /root/npk-rules/npk-maskprocessor.rule | wc -l) entries"
+		fi
+	fi
+fi
+
+if [[ $KEYSPACERC -ne 0 ]]; then
+	echo "[!] Error determining keyspace. Got result [ $KEYSPACE ] and error code [ $KEYSPACERC ]. Hashcat will probably fail now."
+else
+	echo "[+] Got keyspace $KEYSPACE"
 fi
 
 unzip -qq -d compute-node compute-node.zip
 #node compute-node/maskprocessor.js
-MASK=$(jq -r '.mask' manifest.json | sed 's/?/ $?/g')
-MASK=$${MASK:1}
-
-echo "Manifest has mask of [$MASK]"
-
-if [[ $(echo $MASK | wc -c) -gt 0 ]]; then
-	echo "/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule \"$MASK\""
-	/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule "$MASK"
-	echo : >> /root/npk-rules/npk-maskprocessor.rule
-	echo "Mask rule created with $(cat /root/npk-rules/npk-maskprocessor.rule | wc -l) entries"
-fi
 
 # Put the envvars in a useful place, in case debugging is needed.
 echo "export APIGATEWAY=$APIGATEWAY" >> envvars
@@ -118,7 +144,7 @@ chmod +x envvars
 # echo "* * * * * root /root/compute-node/kill_if_dead.sh" >> /etc/crontab
 
 node compute-node/hashcat_wrapper.js
-echo "Hashcat wrapper finished with status code $?"
+echo "[*] Hashcat wrapper finished with status code $?"
 aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
 sleep 30
 poweroff

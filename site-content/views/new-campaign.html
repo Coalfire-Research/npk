@@ -477,6 +477,125 @@
                           </div>
                           <!-- End Mask Row -->
 
+                          <!-- Manual Row -->
+                          <div class="row" ng-show="!showAdvanced">
+                            <div class="col-lg-12 text-left" id="manualConfig">
+                              <div class="card border border-white shadow-none">
+                                <div class="card-header bg-dark text-white" style="padding: 4px 2px 4px 20px;">
+                                  <div style="margin-top: 8px; width: 400px; display: inline-block;">
+                                    Manual Configuration (Advanced Users Only)
+                                  </div>
+                                  <div class="btn btn-sm btn-outline-warning waves-effect waves-light m-1 card-action" style="padding: 3px 10px;" ng-click="toggleManual();" onClick="window.switchers.use_manual.switcher.click();">
+                                    <span style="margin-right: 8px;">
+                                      <i class="fa fa-plus"></i>
+                                      <span>Enable</span>
+                                    </span>
+                                    <input type="checkbox" name="use_manual" id="use_manual" class="js-switch" data-color="#ff9700" data-size="small"/>
+                                  </div>
+                                </div>
+                                <div class="card-body text-center">
+                                  <div class="row">
+                                    <div class="col-lg-12">
+                                      
+                                    </div>
+                                    <div class="col-lg-12" style="margin-top: 25px;">
+                                      <div class="form-group row">
+                                        <label for="manual_arguments" class="col-sm-2 col-form-label">Raw Arguments</label>
+                                        <div class="col-sm-10 input-group">
+                                          <input id="manual_arguments" type="text" name="manual_arguments" class="form-control" ng-model="manual_arguments" ng-disabled="!use_manual">
+                                          <span class="input-group-append">
+                                            <div class="input-group-text">
+                                              <div type="button" class="badge badge-outline-secondary" data-toggle="tooltip" data-placement="top" data-original-title="Raw arguments to pass to hashcat.">
+                                                <i class="fa fa-question-circle"></i>
+                                              </div>
+                                            </div>
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-lg-12" style="margin-top: 25px;">
+                                      <div class="form-group row">
+                                        <label for="target_override" class="col-sm-2 col-form-label">Manual Mask</label>
+                                        <div class="col-sm-10 input-group">
+                                          <div class="input-group-prepend">
+                                            <div class="input-group-text">
+                                              <small>
+                                                ENABLE
+                                              </small>
+                                              <input type="checkbox" class="ml-2" ng-model="useTargetOverride">
+                                            </div>
+                                          </div>
+                                          <input id="target_override" type="text" name="target_override" class="form-control" ng-model="target_override" ng-disabled="!useTargetOverride">
+                                          <span class="input-group-append">
+                                            <div class="input-group-text">
+                                              <div type="button" class="badge badge-outline-secondary" data-toggle="tooltip" data-placement="top" data-original-title="Provide a target mask in any format supported by hashcat.">
+                                                <i class="fa fa-question-circle"></i>
+                                              </div>
+                                            </div>
+                                          </span>
+                                        </div>
+                                        <label for="target_override" class="col-sm-3 col-form-label" ng-show="useTargetOverride && (use_wordlist || use_mask)">&nbsp;</label>
+                                        <div class="alert alert-outline-danger col-sm-8 text-center mt-1" role="alert" ng-show="useTargetOverride && (use_wordlist || use_mask)">
+                                          <div class="alert-message p-0 pl-3">
+                                            <span>
+                                              Manual mask cannot be combined with mask builder or wordlists.
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-lg-12" style="margin-top: 25px;">
+                                      <div class="form-group row">
+                                        <div class="col-lg-12">
+                                          Manual Commands; Test locally before proceeding.
+                                        </div>
+                                      </div>
+                                      <div class="form-group row" ng-if="keyspace_command">
+                                        <div class="col-sm-12 input-group input-group-sm">
+                                          <div class="input-group-prepend">
+                                            <div class="input-group-text">
+                                              <small>
+                                                KEYSPACE COMMAND
+                                              </small>
+                                            </div>
+                                          </div>
+                                          <input id="keyspace_command" type="text" name="keyspace_command" class="form-control" ng-model="keyspace_command" readonly>
+                                          <span class="input-group-append">
+                                            <div class="input-group-text">
+                                              <div type="button" class="badge badge-outline-secondary" data-toggle="tooltip" data-placement="top" data-original-title="This command will be used to distribute the work across multiple nodes. Make sure the command succeeds locally before proceeding.">
+                                                <i class="fa fa-question-circle"></i>
+                                              </div>
+                                            </div>
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div class="form-group row">
+                                        <div class="col-sm-12 input-group input-group-sm">
+                                          <div class="input-group-prepend">
+                                            <div class="input-group-text">
+                                              <small>
+                                                CRACKING COMMAND
+                                              </small>
+                                            </div>
+                                          </div>
+                                          <input id="manual_command" type="text" name="manual_command" class="form-control" ng-model="manual_command" readonly>
+                                          <span class="input-group-append">
+                                            <div class="input-group-text">
+                                              <div type="button" class="badge badge-outline-secondary" data-toggle="tooltip" data-placement="top" data-original-title="This is the literal command that will be executed on each node. Before using new options for the first time, ensure that this command successfully executes when run locally.">
+                                                <i class="fa fa-question-circle"></i>
+                                              </div>
+                                            </div>
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <!-- End Manual Row -->
+
                         </div>
                         <div class="col-lg-3 text-left">
                           <div class="card border border-white shadow-none" style="min-height: 250px;">
@@ -537,7 +656,18 @@
                                 </div>
                               </div>
 
-                              <div class="form-group row">
+                              <div ng-show="useTargetOverride">
+                                <div class="form-group row">
+                                  <label class="col-sm-12 col-form-label">Manual Mask</label>
+                                  <div class="col-sm-12 text-right">
+                                    <small>
+                                      {{ target_override }}
+                                    </small>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="form-group row" ng-show="!useTargetOverride">
                                 <label class="col-sm-12 col-form-label">Total Keyspace</label>
                                 <div class="col-sm-12 text-right">
                                   <small>
@@ -546,7 +676,7 @@
                                 </div>
                               </div>
 
-                              <div class="form-group row">
+                              <div class="form-group row" ng-show="!useTargetOverride">
                                 <label class="col-sm-12 col-form-label">Total Duration</label>
                                 <div class="col-sm-12 text-right">
                                   <small>
@@ -682,7 +812,10 @@
         </div>
         <div class="row text-center" style="margin-top: 10px;">
           <div class="col-lg-6" style="padding-top: 18px;">
-            <h3>{{ totalCoverage | number:2 }}%<br />
+            <h3 ng-show="!useTargetOverride">{{ totalCoverage | number:2 }}%<br />
+              <small>Test Coverage</small>
+            </h3>
+            <h3 ng-show="useTargetOverride">Manual<br />
               <small>Test Coverage</small>
             </h3>
           </div>

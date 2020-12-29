@@ -130,7 +130,7 @@
                             </div>
                           </div>
                           <h6 class="text-white" ng-if="objLength(data.nodes) > 0">Nodes</h6>
-                          <div class="row" style="margin: 0px;">
+                          <div class="row" ng-if="objLength(data.nodes) > 0" style="margin: 0px;">
                              <div class="col-lg-12">
                               <div ng-repeat="(nid, node) in data.nodes" ng-if="objLength(data.nodes) > 0" class="text-left">
                                 <div class="row">
@@ -222,7 +222,7 @@
                    </tr>
                    </thead>
                    <tbody>
-                     <tr ng-repeat="(id, data) in campaigns | filterObj: {active: false}">
+                     <tr ng-repeat="(id, data) in campaigns | filterObj: {active: false} | filterObj: {deleted: false}">
                       <td><small>{{ data.startTime * 1000 | date:"MMM d @ H:mm" }}</small></td>
                       <td><small>{{ data.hashes | number }}</small></td>
                       <td><small>{{ data.hashType }}<small></td>

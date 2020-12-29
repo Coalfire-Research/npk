@@ -80,6 +80,10 @@ function getHashcatParams(manifest) {
 		"30"
 	];
 
+	if (manifest.manualArguments) {
+		param.concat(manifest.manualArguments.split(" "));
+	}
+
 	if (instance_count > 1) {
 		params.push("--skip");
 		params.push(skip);
@@ -104,7 +108,11 @@ function getHashcatParams(manifest) {
 	}
 
 	if ([3,6].indexOf(manifest.attackType) >= 0) {
-		params.push(manifest.mask);
+		if (manifest.manualMask) {
+			params.push(manifest.manualMask);
+		} else {
+			params.push(manifest.mask);
+		}
 	}
 
 	return params;
@@ -166,7 +174,10 @@ function runHashcat(params) {
 
 		hashcat.on('exit', function(code, signal) {
 
-			if (code == 0) {
+			/* 	Only treating negative numbers as actual errors, based on:
+				https://github.com/hashcat/hashcat/blob/master/docs/status_codes.txt	*/
+
+			if (code > -1) {
 				console.log("\n\nCracking job exited successfully.\n");
 				return success(sendFinished(true));
 			}

@@ -16,6 +16,10 @@ if [[ "$ERR" == "1" ]]; then
 	exit 1
 fi
 
+export AWS_DEFAULT_REGION=us-west-2
+export AWS_DEFAULT_OUTPUT=json
+export AWS_PROFILE=$(jq -r '.awsProfile' ../terraform/npk-settings.json)
+
 BUCKET1=${de1}
 REGION1="us-east-1"
 

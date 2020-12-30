@@ -87,6 +87,16 @@
             		<input class="form-control form-control-rounded" id="confirmpassword" type="password" autocomplete="new-password" placeholder="Confirm Password" ng-model="confirmpassword" ng-enter="adminCompleteAuth()" />
             	</form>
             </p>
+            <div ng-repeat="message in adminCompleteAuthErrors" class="alert alert-outline-danger" role="alert">
+				<div class="alert-icon">
+					<i class="icon-close"></i>
+				</div>
+				<div class="alert-message">
+					<span>
+						{{ message }}
+					</span>
+				</div>
+			</div>
             
 
           </div>

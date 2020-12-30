@@ -59,8 +59,10 @@ jq -r '.dictionaryFile' manifest.json | xargs -L1 -I'{}' aws s3 cp s3://$BUCKET/
 jq -r '.rulesFiles[]' manifest.json | xargs -L1 -I'{}' aws s3 cp s3://$BUCKET/{} ./npk-rules/
 
 # Unzip them
-7z x ./npk-wordlist/* -o./npk-wordlist/
-7z x ./npk-rules/* -o./npk-rules/
+# 7z x ./npk-wordlist/* -o./npk-wordlist/
+# 7z x ./npk-rules/* -o./npk-rules/
+jq -r '.dictionaryFile' manifest.json | xargs -L1 -I'{}' 7z x ./npk-{} -o./npk-wordlist/
+jq -r '.rulesFiles[]' manifest.json | xargs -L1 -I'{}' 7z x ./npk-{} -o./npk-rules/
 
 # Delete the originals
 jq -r '.dictionaryFile' manifest.json | xargs -L1 -I'{}' rm ./npk-{}
@@ -70,7 +72,8 @@ jq -r '.rulesFiles[]' manifest.json | xargs -L1 -I'{}' rm ./npk-{}
 ln -s /var/log/cloud-init-output.log /potfiles/$${INSTANCEID}-output.log
 
 # Create the crontab to sync s3
-echo "* * * * * root aws s3 sync s3://$USERDATA/$ManifestPath/potfiles/ /potfiles/ && aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/" >> /etc/crontab
+echo "* * * * * root aws s3 sync s3://$USERDATA/$ManifestPath/potfiles/ /potfiles/ --exclude \"*$${INSTANCEID}*\"" >> /etc/crontab
+echo "* * * * * root aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/ --include \"*$${INSTANCEID}*\"" >> /etc/crontab
 
 aws ec2 describe-spot-fleet-instances --region $REGION --spot-fleet-request-id $SpotFleet | jq '.ActiveInstances[].InstanceId' | sort > fleet_instances
 INSTANCECOUNT=$(cat fleet_instances | wc -l)
@@ -134,6 +137,7 @@ echo "export APIGATEWAY=$APIGATEWAY" >> envvars
 echo "export USERDATA=$USERDATA" >> envvars
 echo "export INSTANCEID=$INSTANCEID" >> envvars
 echo "export REGION=$REGION" >> envvars
+echo "export BUCKET=$BUCKET" >> envvars
 echo "export ManifestPath=$ManifestPath" >> envvars
 echo "export INSTANCECOUNT=$INSTANCECOUNT" >> envvars
 echo "export INSTANCENUMBER=$INSTANCENUMBER" >> envvars
@@ -147,5 +151,8 @@ node compute-node/hashcat_wrapper.js
 echo "[*] Hashcat wrapper finished with status code $?"
 aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
 sleep 30
-poweroff
 #/root/hashcat/hashcat.bin -O -w 4 -b --benchmark-all > benchmark-results.txt
+
+if [[ ! -f /root/nodeath ]]; then
+	poweroff
+fi

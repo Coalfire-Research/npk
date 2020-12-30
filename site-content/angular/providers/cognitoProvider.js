@@ -268,6 +268,7 @@ angular
                      },
 
                      onFailure: function(err) {
+                        console.log(err);
                         if (err == {}) {
                            return success(true);
                         }

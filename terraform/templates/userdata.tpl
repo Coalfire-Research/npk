@@ -72,7 +72,8 @@ jq -r '.rulesFiles[]' manifest.json | xargs -L1 -I'{}' rm ./npk-{}
 ln -s /var/log/cloud-init-output.log /potfiles/$${INSTANCEID}-output.log
 
 # Create the crontab to sync s3
-echo "* * * * * root aws s3 sync s3://$USERDATA/$ManifestPath/potfiles/ /potfiles/ && aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/" >> /etc/crontab
+echo "* * * * * root aws s3 sync s3://$USERDATA/$ManifestPath/potfiles/ /potfiles/ --exclude \"*$${INSTANCEID}*\"" >> /etc/crontab
+echo "* * * * * root aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/ --include \"*$${INSTANCEID}*\"" >> /etc/crontab
 
 aws ec2 describe-spot-fleet-instances --region $REGION --spot-fleet-request-id $SpotFleet | jq '.ActiveInstances[].InstanceId' | sort > fleet_instances
 INSTANCECOUNT=$(cat fleet_instances | wc -l)

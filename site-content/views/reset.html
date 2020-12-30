@@ -17,7 +17,8 @@
 			   </div>
 			  </div>
 			 
-			  <button type="button" class="btn btn-primary btn-round btn-block waves-effect waves-light mt-3" ng-click="resetPassword()">Reset Password</button>
+			  <button type="button" class="btn btn-primary btn-round btn-block waves-effect waves-light mt-3" ng-click="resetPassword()" ng-disabled="username.length < 5">Reset Password</button>
+        <button type="button" class="btn btn-primary btn-round btn-block waves-effect waves-light mt-3" ng-click="showResetModal()" ng-disabled="username.length < 5">Already Have a Code?</button>
 			  <div class="text-center pt-3">
 				<hr>
 				<p class="text-muted"><small>Return to <a ng-href="#/"> Sign In</a></small></p>

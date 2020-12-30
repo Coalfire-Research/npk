@@ -348,6 +348,10 @@ angular
         });
       };
 
+      $scope.showResetModal = function() {
+        $("#reset_modal").modal('show');
+      }
+
       $scope.confirmReset = function() {
 
         if ($scope.confirmpassword.length < 12) {
@@ -366,16 +370,17 @@ angular
         $("#adminCompleteAuth_submit").prop('disabled', true);
 
         $scope.$parent.cognitoSvc.resetPassword($scope.username, $scope.verificationcode, $scope.confirmpassword).then((data) => {
-          $('#adminCompleteAuth').effect('hide');
-          $scope.username = $scope.confirmpassword;
+          $("#reset_modal").modal('hide');
+          $scope.password = $scope.confirmpassword;
           $scope.signIn();
-        }).catch((e) => {
+        }, (e) => {
           $scope.$parent.ok_modal.set(
               'fa-exclamation-triangle',
               'Error Resetting Password',
               "The following error occured while attempting a password reset: " + JSON.stringify(e),
               "OK")
             .show();
+          $("#adminCompleteAuth_submit").prop('disabled', false);
         });
       };
 

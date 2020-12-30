@@ -144,6 +144,8 @@ angular
       $scope.cognitoSvc.onReady.then((data) => {
         $scope.ready = true;
         $scope.startApp();
+      }, (e) => {
+        console.log("User is not authenticated - unable to start app.");
       });
 
       $scope.appStarted = false;
@@ -157,9 +159,8 @@ angular
 
             if ($scope.cognitoSvc.isLoggedOn()) {
               $scope.handleLogin();
+              $scope.getSettings();
             }
-
-            $scope.getSettings();
          }
       };
       // END READY
@@ -300,18 +301,23 @@ angular
         });
       };
 
+      $scope.adminCompleteAuthErrors = [];
       $scope.adminCompleteAuth = function() {
+
+        $scope.adminCompleteAuthErrors = [];
 
         if ($scope.confirmpassword.length < 12) {
           $scope.newpassword = "";
           $scope.confirmpassword = "";
 
           $('#adminCompleteAuth_modal').effect('shake');
+          $scope.adminCompleteAuthErrors = ["Password must be at least 12 characters."];
           return false;
         }
 
         if ($scope.newpassword != $scope.confirmpassword) {
           $('#confirmpassword').addClass('error').effect('shake');
+          $scope.adminCompleteAuthErrors = ["Passwords must match."];
           return false;
         }
 
@@ -319,10 +325,12 @@ angular
 
         $scope.$parent.cognitoSvc.completeAdminChallenge($scope.confirmpassword).then((data) => {
           $('#adminCompleteAuth_modal').modal('hide');
+          $scope.adminCompleteAuthErrors = [];
           $scope.password = $scope.newpassword;
           $scope.signIn();
-        }).catch((e) => {
-          console.log(e);
+        }, (e) => {
+          $scope.adminCompleteAuthErrors = [e];
+          $scope.$digest();
         });
       };
 

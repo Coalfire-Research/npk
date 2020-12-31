@@ -78,7 +78,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Edit User Setting</h5>
-          <button type="button" class="close" data-dismiss="editUserSettingModal" aria-label="Close">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
@@ -100,7 +100,7 @@
             </tbody>
           </table>
           <div class="alert alert-outline-danger alert-dismissible" role="alert" ng-repeat="message in editMessages">
-            <button type="button" class="close" data-dismiss="alert">×</button>
+            <button type="button" class="close" data-dismiss="modal">×</button>
             <div class="alert-message">
               <span>
                 {{ message }}

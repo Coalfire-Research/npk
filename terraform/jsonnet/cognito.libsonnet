@@ -33,7 +33,7 @@
 				"generate_secret": false
 			} + if settings.useSAML == true then {
 				"allowed_oauth_flows_user_pool_client": "true",
-				"supported_identity_providers": ["NPKSAML"],
+				"supported_identity_providers": ["${aws_cognito_identity_provider.saml.provider_name}"],
 				"allowed_oauth_scopes": ["email", "openid"],
 				"allowed_oauth_flows": ["code"],
 				"callback_urls": if settings.useCustomDNS == true then [
@@ -82,9 +82,12 @@
 				"provider_type": "SAML",
 
 				"provider_details": {
-					"IDPSignout": "false",
+					"IDPSignout": "false"
+				} + if std.objectHas(settings, "sAMLMetadataUrl") then {
 					"MetadataURL": settings.sAMLMetadataUrl
-				},
+				} else {} + if std.objectHas(settings, "sAMLMetadataFile") then {
+					"MetadataFile": "${file(\"" + settings.sAMLMetadataFile + "\")}"
+				} else {},
 
 				"attribute_mapping": {
 					"email": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"

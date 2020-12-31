@@ -26,5 +26,8 @@ local manual_record(name, type, records) = {
 	"certificate": certificate,
 	"certificate_validation": certificate_validation,
 	"route53_record": route53_record,
-	"manual_record": manual_record
+	"manual_record": manual_record,
+	"lifecycle": {
+		"create_before_destroy": true
+	}
 }

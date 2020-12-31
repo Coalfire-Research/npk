@@ -13,7 +13,7 @@
 				},
 				"admin_create_user_config": {
 					"allow_admin_create_user_only": true,
-					"unused_account_validity_days": 3,
+					"temporary_password_validity_days": 3,
 					"invite_message_template": {
 						"email_subject": "NPK Invitation",
 						"email_message": "You've been invited to join an NPK deployment at https://${aws_cloudfront_distribution.npk.domain_name}. Use {username} and {####} to log in.",

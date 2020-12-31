@@ -73,6 +73,11 @@ export AWS_DEFAULT_REGION=us-west-2
 export AWS_DEFAULT_OUTPUT=json
 export AWS_PROFILE=$PROFILE
 
+# Disable Pager for AWS CLI v2
+if [[ $(aws --version | grep "aws-cli/2" | wc -l) -ge 1 ]]; then
+	export AWS_PAGER="";
+fi
+
 BUCKET=$(jq -r '.backend_bucket' ../terraform/npk-settings.json)
 
 if [[ "$BUCKET" == "" ]]; then
@@ -97,6 +102,26 @@ else
 		echo "$( echo $EXISTS | jq '.LocationConstraint' ) vs. $AWS_DEFAULT_REGION"
 		exit 1
 	fi
+fi
+
+# Get the availability zones for each region
+if [ ! -f ../terraform/regions.json ]; then
+	echo "[*] Getting availability zones from AWS"
+	while IFS= read -r region; do
+		echo "[*] - ${region}"
+		aws ec2 --region ${region} describe-availability-zones | jq -r '{"'${region}'": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > region-${region}.json
+	done <<< $(echo '["us-east-1", "us-east-2", "us-west-1", "us-west-2"]' | jq -r '.[]')
+
+	jq -rs 'reduce .[] as $item ({}; . * $item)' ./region-*.json > ../terraform/regions.json
+	rm region-*.json
+
+	if [[ "$(cat ../terraform/regions.json | wc -l)" -lt "4" ]]; then
+		echo -e "\n[!] Error retrieving AWS availability zones. Check the 'awsProfile' setting and try again"
+		rm ../terraform/regions.json
+		exit 1
+	fi
+else
+	echo "[*] Using known availability zones. Delete regions.json to force re-evaluation."
 fi
 
 # remove old configs silently:

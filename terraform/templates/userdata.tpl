@@ -86,7 +86,7 @@ mv maskprocessor-*/ maskprocessor
 
 MANUALARGS=""
 if [[ "$(jq '.manualArguments' manifest.json)" != "null" ]]; then
-	MANUALARGS=$(jq -r '.manualArguments |= split(" ") | .test[]' /root/manifest.json | xargs printf "%q\n")
+	MANUALARGS=$(jq -r '.manualArguments |= split(" ") | .manualArguments[]' /root/manifest.json | xargs -I {} sh -c "printf \"%q\n\" \"{}\"")
 fi
 
 echo "[*] using manual args [ $MANUALARGS ]"
@@ -97,12 +97,33 @@ echo "[*] using manual args [ $MANUALARGS ]"
 # el
 
 if [[ "$(jq -r '.attackType' manifest.json)" == "3" ]]; then
-	if [[ "$(jq '.manualMask' manifest.json)" == "null" ]]; then
-		KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a 3 $(jq -r '.mask' /root/manifest.json))
+
+	MASK=$(jq -r '.mask + .manualMask' manifest.json)
+
+	if  [[ $(echo $MANUALARGS | grep 'increment' | wc -l) -lt 1 ]]; then
+		KEYSPACE=$(hashcat --keyspace -a 3 $MANUALARGS $MASK)
 		KEYSPACERC=$?
 	else
-		KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a 3 $MANUALARGS $(jq -r '.manualMask' /root/manifest.json))
-		KEYSPACERC=$?
+		# --increment flag was provided
+		KEYSPACE=0
+		# n of "--increment-min n" or 2 if increment-min was not set 
+		ITERMIN=$(echo "$MANUALARGS" | grep -zoP '(?<=\--increment-min\n)\d{1,}(?=\n)' | sed 's/\x0//g') 
+		ITERMIN=$${ITERMIN:-1}
+
+		# n of "--increment-max n" or get it directly from the mask 
+		ITERMAX=$(echo "$MANUALARGS" | grep -zoP '(?<=\--increment-max\n)\d{1,}(?=\n)' | sed 's/\x0//g')
+		ITERMAX=$${ITERMAX:-$(($(echo $MASK | sed 's/\?//g' | wc -c)/2))}
+		
+		# iterate over each increment
+		for ITER in $(seq $ITERMIN $ITERMAX)		
+		do
+			ITEROFFSET=$(($ITER*2))
+			ITERMASK=$(echo $${MASK:0:$ITEROFFSET}) 
+
+			ITERKEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a 3 $ITERMASK)
+			KEYSPACERC=$?
+			KEYSPACE=$(($KEYSPACE + $ITERKEYSPACE))
+		done
 	fi
 else
 	KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a $(jq -r '.attackType' /root/manifest.json) $MANUALARGS npk-wordlist/*)

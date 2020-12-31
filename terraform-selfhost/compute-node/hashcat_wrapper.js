@@ -81,7 +81,8 @@ function getHashcatParams(manifest) {
 	];
 
 	if (manifest.manualArguments) {
-		param.concat(manifest.manualArguments.split(" "));
+		console.log("Adding manual arguments:", manifest.manualArguments.split(" "));
+		params = params.concat(manifest.manualArguments.split(" "));
 	}
 
 	if (instance_count > 1) {

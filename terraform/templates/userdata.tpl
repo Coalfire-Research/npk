@@ -86,7 +86,7 @@ mv maskprocessor-*/ maskprocessor
 
 MANUALARGS=""
 if [[ "$(jq '.manualArguments' manifest.json)" != "null" ]]; then
-	MANUALARGS=$(jq -r '.manualArguments |= split(" ") | .manualArguments[]' /root/manifest.json | xargs printf "%q\n")
+	MANUALARGS=$(jq -r '.manualArguments |= split(" ") | .manualArguments[]' /root/manifest.json | xargs -I {} sh -c "printf \"%q\n\" \"{}\"")
 fi
 
 echo "[*] using manual args [ $MANUALARGS ]"

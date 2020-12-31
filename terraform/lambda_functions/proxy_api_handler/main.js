@@ -316,7 +316,7 @@ function getNVidiaImage(region) {
                 Values: ["hvm"]
             },{
             	Name: "name",
-            	Values: ["amzn-ami-graphics-hvm-20*"]
+            	Values: ["amzn2-ami-graphics-hvm-2*"]
             },{
             	Name: "root-device-type",
             	Values: ["ebs"]

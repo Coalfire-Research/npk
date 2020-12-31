@@ -32,9 +32,11 @@ Take the guess-work out of your campaigns. See how far you'll get and how much i
 
 GPU instances are expensive. Runaway GPU instances are EXTREMELY expensive. NPK will enforce a maximum campaign price limit, and was designed to prevent runaway instances even with a complete failure of the management plane.
 
-### 5. Multi-Tenancy
+### 5. Multi-Tenancy & SAML-based single sign-on
 
-NPK supports multiple users, with strict separation of data, campaigns, and results between each user.
+NPK supports multiple users, with strict separation of data, campaigns, and results between each user. It can optionally integrate with SAML-based federated identity providers to enable large teams to use NPK with minimal effort.
+
+![Image](/readme-content/userManagement.png)
 
 ### 6. Data lifecycle management
 
@@ -43,7 +45,7 @@ Configure how long data will stay in NPK with configurable lifecycle durations d
 ## Install
 
 NPK requires that you have the following installed: 
-* **awscli** (> v1.16)
+* **awscli** (v2)
 * **terraform** (v0.11)
 * **jq**
 * **jsonnet**
@@ -68,6 +70,8 @@ aws_secret_access_key = ...
 ```sh
 npk/terraform$ ./deploy.sh
 ```
+
+Details about each setting, their effects, and allowed values, check out [the wiki](https://github.com/Coalfire-Research/npk/wiki/Detailed-NPK-Settings). For more details around custom installations, see [Detailed Instructions](https://github.com/Coalfire-Research/npk/wiki/Detailed-Usage-Instructions).
 
 NPK will use the specified AWS cli profile to fully deploy NPK and provision the first user. If you'd like to change the configuration, simply run `./deploy.sh` again afterward. While it's deploying, pay a visit to https://aws.amazon.com/marketplace/pp?sku=5rwcw3y2wbhixiw6qoi1gwdxt to subscribe and accept the terms of NVidia's AMIs. NPK uses these to ensure compatability with the GPUs. There is no cost associated with this step, but allows NPK to use these AMIs on your behalf.
 

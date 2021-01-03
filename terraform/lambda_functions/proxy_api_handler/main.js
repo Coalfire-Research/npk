@@ -1064,11 +1064,6 @@ exports.main = function(event, context, callback) {
 	// Hand off the callback function for later.
 	cb = callback;
 
-	var allowed_characters = /^[a-zA-Z0-9'"%\.\[\]\{\}\(\)\-\:\\\/\;\=\?\#\_+\s,&]+$/;
-	if (!allowed_characters.test(JSON.stringify(event))) {
-		return respond(400, "Illegal request", false);
-	}
-
 	// Try/Catch the whole thing. Cause why not.
 	try {
 
@@ -1094,6 +1089,11 @@ exports.main = function(event, context, callback) {
 
 		// Hand off the origin, too. Fix for weird case
 		origin = event.headers.origin || event.headers.Origin;
+
+		var allowed_characters = /^[a-zA-Z0-9'"%\.\[\]\{\}\(\)\-\:\\\/\;\=\?\#\_+\s,!@#\$\^\*&]+$/;
+		if (!allowed_characters.test(JSON.stringify(event))) {
+			return respond(400, "Request contains illegal characters", false);
+		}
 
 		if (event.requestContext.identity.cognitoAuthenticationType != "authenticated") {
 			return respond(401, "Authentication Required", false);

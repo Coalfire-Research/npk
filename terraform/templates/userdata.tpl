@@ -113,16 +113,16 @@ if [[ "$(jq -r '.attackType' manifest.json)" == "3" ]]; then
 		# n of "--increment-max n" or get it directly from the mask
 		ITERMAX=$(echo "$MANUALARGS" | grep -zoP '(?<=\--increment-max\n)\d{1,}(?=\n)' | sed 's/\x0//g')
 		IFS='?' read -ra MASKARR <<< "$MASK"
-		MASKARR=("${MASKARR[@]:1}")
-		ITERMAX=$${ITERMAX:-${#MASKARR[@]}}
+		MASKARR=("$${MASKARR[@]:1}")
+		ITERMAX=$${ITERMAX:-$${#MASKARR[@]}}
 
 		# iterate over each increment
 		for ITER in $(seq $ITERMIN $ITERMAX)
 		do
-        	ITERMASK=$(echo ${ARR[@]:0:$ITER} | sed 's/ /?/g; s/^/?/g')
-        	ITERKEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a 3 $ITERMASK)
-        	KEYSPACERC=$?
-        	KEYSPACE=$(($KEYSPACE + $ITERKEYSPACE))
+			ITERMASK=$(echo $${MASKARR[@]:0:$ITER} | sed 's/ /?/g; s/^/?/g')
+			ITERKEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a 3 $ITERMASK)
+			KEYSPACERC=$?
+			KEYSPACE=$(($KEYSPACE + $ITERKEYSPACE))
 		done
 	fi
 else

@@ -100,26 +100,26 @@ if [[ "$(jq -r '.attackType' manifest.json)" == "3" ]]; then
 
 	MASK=$(jq -r '.mask + .manualMask' manifest.json)
 
-	if  [[ $(echo $MANUALARGS | grep 'increment' | wc -l) -lt 1 ]]; then
+	if  [[ $(echo $MANUALARGS | grep -P '\--increment|\-i' | wc -l) -lt 1 ]]; then
 		KEYSPACE=$(hashcat --keyspace -a 3 $MANUALARGS $MASK)
 		KEYSPACERC=$?
 	else
 		# --increment flag was provided
 		KEYSPACE=0
-		# n of "--increment-min n" or 2 if increment-min was not set 
-		ITERMIN=$(echo "$MANUALARGS" | grep -zoP '(?<=\--increment-min\n)\d{1,}(?=\n)' | sed 's/\x0//g') 
+		# n of "--increment-min n" or 1 if increment-min was not set
+		ITERMIN=$(echo "$MANUALARGS" | grep -zoP '(?<=\--increment-min\n)\d{1,}(?=\n)' | sed 's/\x0//g')
 		ITERMIN=$${ITERMIN:-1}
 
-		# n of "--increment-max n" or get it directly from the mask 
+		# n of "--increment-max n" or get it directly from the mask
 		ITERMAX=$(echo "$MANUALARGS" | grep -zoP '(?<=\--increment-max\n)\d{1,}(?=\n)' | sed 's/\x0//g')
-		ITERMAX=$${ITERMAX:-$(($(echo $MASK | sed 's/\?//g' | wc -c)/2))}
-		
-		# iterate over each increment
-		for ITER in $(seq $ITERMIN $ITERMAX)		
-		do
-			ITEROFFSET=$(($ITER*2))
-			ITERMASK=$(echo $${MASK:0:$ITEROFFSET}) 
+		IFS='?' read -ra MASKARR <<< "$MASK"
+		MASKARR=("$${MASKARR[@]:1}")
+		ITERMAX=$${ITERMAX:-$${#MASKARR[@]}}
 
+		# iterate over each increment
+		for ITER in $(seq $ITERMIN $ITERMAX)
+		do
+			ITERMASK=$(echo $${MASKARR[@]:0:$ITER} | sed 's/ /?/g; s/^/?/g')
 			ITERKEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a 3 $ITERMASK)
 			KEYSPACERC=$?
 			KEYSPACE=$(($KEYSPACE + $ITERKEYSPACE))

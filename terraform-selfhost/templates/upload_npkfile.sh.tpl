@@ -38,10 +38,11 @@ BUCKET4=${dw2}
 REGION4="us-west-2"
 
 FILENAME=$(echo $${2##*/})
+echo "Processing $1 $FILENAME"
 ARCHIVE=$(echo $${FILENAME%.*}).7z
+echo "- Counting lines"
 FILELINES=$(wc -l $2 | cut -d" " -f1)
 SIZE=$(ls -al $2 | cut -d" " -f5)
-echo "Processing $1 $FILENAME"
 echo "- Compressing"
 7z a $ARCHIVE $2
 

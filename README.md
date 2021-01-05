@@ -73,7 +73,7 @@ npk/terraform$ ./deploy.sh
 
 Details about each setting, their effects, and allowed values, check out [the wiki](https://github.com/Coalfire-Research/npk/wiki/Detailed-NPK-Settings). For more details around custom installations, see [Detailed Instructions](https://github.com/Coalfire-Research/npk/wiki/Detailed-Usage-Instructions).
 
-NPK will use the specified AWS cli profile to fully deploy NPK and provision the first user. If you'd like to change the configuration, simply run `./deploy.sh` again afterward. While it's deploying, pay a visit to https://aws.amazon.com/marketplace/pp?sku=5rwcw3y2wbhixiw6qoi1gwdxt to subscribe and accept the terms of NVidia's AMIs. NPK uses these to ensure compatability with the GPUs. There is no cost associated with this step, but allows NPK to use these AMIs on your behalf.
+NPK will use the specified AWS cli profile to fully deploy NPK and provision the first user. If you'd like to change the configuration, simply run `./deploy.sh` again afterward. While it's deploying, pay a visit to https://aws.amazon.com/marketplace/pp/B07S5G9S1Z to subscribe and accept the terms of NVidia's AMIs. NPK uses these to ensure compatability with the GPUs. There is no cost associated with this step, but allows NPK to use these AMIs on your behalf.
 
 Once it's done, you'll receive an email with the URL and credentials to your deployment:
 

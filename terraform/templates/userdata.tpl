@@ -101,7 +101,7 @@ if [[ "$(jq -r '.attackType' manifest.json)" == "3" ]]; then
 	MASK=$(jq -r '.mask + .manualMask' manifest.json)
 
 	if  [[ $(echo $MANUALARGS | grep -P '\--increment|\-i' | wc -l) -lt 1 ]]; then
-		export KEYSPACE=$(hashcat --keyspace -a 3 $MANUALARGS $MASK)
+		export KEYSPACE=$(hashcat --keyspace -m $(jq -r '.hashType' /root/manifest.json) -a 3 $MANUALARGS $MASK)
 		KEYSPACERC=$?
 	else
 		# --increment flag was provided
@@ -120,13 +120,13 @@ if [[ "$(jq -r '.attackType' manifest.json)" == "3" ]]; then
 		for ITER in $(seq $ITERMIN $ITERMAX)
 		do
 			ITERMASK=$(echo $${MASKARR[@]:0:$ITER} | sed 's/ /?/g; s/^/?/g')
-			ITERKEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a 3 $ITERMASK)
+			ITERKEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -m $(jq -r '.hashType' /root/manifest.json) -a 3 $ITERMASK)
 			KEYSPACERC=$?
 			export KEYSPACE=$(($KEYSPACE + $ITERKEYSPACE))
 		done
 	fi
 else
-	export KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a $(jq -r '.attackType' /root/manifest.json) $MANUALARGS npk-wordlist/*)
+	export KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -m $(jq -r '.hashType' /root/manifest.json) -a $(jq -r '.attackType' /root/manifest.json) $MANUALARGS npk-wordlist/*)
 	KEYSPACERC=$?
 
 	if [[ "$(jq -r '.mask' manifest.json)" != "null" ]]; then

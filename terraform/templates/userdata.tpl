@@ -76,8 +76,8 @@ echo "* * * * * root aws s3 sync s3://$USERDATA/$ManifestPath/potfiles/ /potfile
 echo "* * * * * root aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/ --include \"*$${INSTANCEID}*\"" >> /etc/crontab
 
 aws ec2 describe-spot-fleet-instances --region $REGION --spot-fleet-request-id $SpotFleet | jq '.ActiveInstances[].InstanceId' | sort > fleet_instances
-INSTANCECOUNT=$(cat fleet_instances | wc -l)
-INSTANCENUMBER=$(cat fleet_instances | grep -nr $INSTANCEID - | cut -d':' -f1)
+export INSTANCECOUNT=$(cat fleet_instances | wc -l)
+export INSTANCENUMBER=$(cat fleet_instances | grep -nr $INSTANCEID - | cut -d':' -f1)
 
 7z x hashcat.7z
 7z x maskprocessor.7z
@@ -101,7 +101,7 @@ if [[ "$(jq -r '.attackType' manifest.json)" == "3" ]]; then
 	MASK=$(jq -r '.mask + .manualMask' manifest.json)
 
 	if  [[ $(echo $MANUALARGS | grep -P '\--increment|\-i' | wc -l) -lt 1 ]]; then
-		KEYSPACE=$(hashcat --keyspace -a 3 $MANUALARGS $MASK)
+		export KEYSPACE=$(hashcat --keyspace -a 3 $MANUALARGS $MASK)
 		KEYSPACERC=$?
 	else
 		# --increment flag was provided
@@ -122,11 +122,11 @@ if [[ "$(jq -r '.attackType' manifest.json)" == "3" ]]; then
 			ITERMASK=$(echo $${MASKARR[@]:0:$ITER} | sed 's/ /?/g; s/^/?/g')
 			ITERKEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a 3 $ITERMASK)
 			KEYSPACERC=$?
-			KEYSPACE=$(($KEYSPACE + $ITERKEYSPACE))
+			export KEYSPACE=$(($KEYSPACE + $ITERKEYSPACE))
 		done
 	fi
 else
-	KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a $(jq -r '.attackType' /root/manifest.json) $MANUALARGS npk-wordlist/*)
+	export KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a $(jq -r '.attackType' /root/manifest.json) $MANUALARGS npk-wordlist/*)
 	KEYSPACERC=$?
 
 	if [[ "$(jq -r '.mask' manifest.json)" != "null" ]]; then

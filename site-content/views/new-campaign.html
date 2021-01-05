@@ -232,7 +232,7 @@
                                   <h5 style="margin-bottom: 2px;">{{ instanceType }}</h5>
                                   <small>${{ pricingSvc.spotPrice[instanceType].price | number:2 }} /Hr @ {{ pricingSvc.spotPrice[instanceType].cheapestRegion }}</small>
                                   <br>
-                                  {{ (!pricingSvc[key][hashType]) ? "-" : (pricingSvc[key][hashType] / pricingSvc.spotPrice[instanceType].price) | toHs }}/$
+                                  {{ (!pricingSvc[key][hashType]) ? "-" : (pricingSvc[key][hashType] / pricingSvc.spotPrice[instanceType].price * pricingSvc.gpus[instanceType]) | toHs }}/$
                                 </div>
                                 <div ng-show="quotaFor(instanceType) == 0" class="card-header">
                                   <h5 style="margin-bottom: 2px;">{{ instanceType }}</h5>

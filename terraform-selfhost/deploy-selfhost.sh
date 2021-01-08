@@ -158,5 +158,8 @@ if [[ "$?" -eq "1" ]]; then
 	exit 1
 fi
 
+echo "[*] Marking custom components as assume-unchanged in git."
+git update-index --assume-unchanged ../terraform/dictionaries.auto.tfvars ../site-content/assets/js/dictionary-buckets.js
+
 cd ../terraform/
 ./deploy.sh

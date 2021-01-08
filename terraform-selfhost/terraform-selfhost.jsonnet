@@ -187,17 +187,6 @@ local regionKeys = std.objectFields(settings.regions);
 		}
 	},
 	'upload_npkcomponents.tf.json': {
-		data: {
-			archive_file: {
-				compute_node: {
-				  type: "zip",
-				  source_dir: "${path.module}/compute-node/",
-				  output_path: "${path.module}/components/compute-node.zip",
-
-				  depends_on: ["null_resource.npk_npm_install"]
-				}
-			}
-		},
 
 		resource: {
 			null_resource: {

@@ -45,6 +45,8 @@ REGION4="us-west-2"
 # 	wget -O ${basepath}/components/epel.rpm https://npk-dictionary-east-1-20181029005812833000000004.s3.us-east-1.amazonaws.com/components/epel.rpm
 # fi
 
+7z a components/compute-node.7z compute-node/
+
 echo "- Uploading to S3"
 aws s3 sync ${basepath}/components/ s3://$BUCKET1/components-v2/ $${@:1} --region $REGION1
 aws s3 sync ${basepath}/components/ s3://$BUCKET2/components-v2/ $${@:1} --region $REGION2

@@ -33,7 +33,7 @@ ln -s /xvdb/npk-wordlist /root/npk-wordlist
 aws s3 cp s3://$BUCKET/components-v2/epel.rpm .
 aws s3 cp s3://$BUCKET/components-v2/hashcat.7z .
 aws s3 cp s3://$BUCKET/components-v2/maskprocessor.7z .
-aws s3 cp s3://$BUCKET/components-v2/compute-node.zip .
+aws s3 cp s3://$BUCKET/components-v2/compute-node.7z .
 aws s3 cp s3://$USERDATA/$ManifestPath/manifest.json .
 rpm -Uvh epel.rpm
 yum install -y p7zip p7zip-plugins
@@ -84,74 +84,7 @@ export INSTANCENUMBER=$(cat fleet_instances | grep -nr $INSTANCEID - | cut -d':'
 mv hashcat-*/ hashcat
 mv maskprocessor-*/ maskprocessor
 
-MANUALARGS=""
-if [[ "$(jq '.manualArguments' manifest.json)" != "null" ]]; then
-	MANUALARGS=$(jq -r '.manualArguments |= split(" ") | .manualArguments[]' /root/manifest.json | xargs -I {} sh -c "printf \"%q\n\" \"{}\"")
-fi
-
-echo "[*] using manual args [ $MANUALARGS ]"
-
-# if [[ "$(jq -r '.attackType' manifest.json)" == "0" ]]; then
-# 	# KEYSPACE=$(aws s3api head-object --bucket $BUCKET --key $(jq -r '.dictionaryFile' manifest.json) | jq -r '.Metadata.lines')
-# 	KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -a $(jq -r '.attackType' /root/manifest.json) $MANUALARGS npk-wordlist/*)
-# el
-
-if [[ "$(jq -r '.attackType' manifest.json)" == "3" ]]; then
-
-	MASK=$(jq -r '.mask + .manualMask' manifest.json)
-
-	if  [[ $(echo $MANUALARGS | grep -P '\--increment|\-i' | wc -l) -lt 1 ]]; then
-		export KEYSPACE=$(hashcat --keyspace -m $(jq -r '.hashType' /root/manifest.json) -a 3 $MANUALARGS $MASK)
-		KEYSPACERC=$?
-	else
-		# --increment flag was provided
-		KEYSPACE=0
-		# n of "--increment-min n" or 1 if increment-min was not set
-		ITERMIN=$(echo "$MANUALARGS" | grep -zoP '(?<=\--increment-min\n)\d{1,}(?=\n)' | sed 's/\x0//g')
-		ITERMIN=$${ITERMIN:-1}
-
-		# n of "--increment-max n" or get it directly from the mask
-		ITERMAX=$(echo "$MANUALARGS" | grep -zoP '(?<=\--increment-max\n)\d{1,}(?=\n)' | sed 's/\x0//g')
-		IFS='?' read -ra MASKARR <<< "$MASK"
-		MASKARR=("$${MASKARR[@]:1}")
-		ITERMAX=$${ITERMAX:-$${#MASKARR[@]}}
-
-		# iterate over each increment
-		for ITER in $(seq $ITERMIN $ITERMAX)
-		do
-			ITERMASK=$(echo $${MASKARR[@]:0:$ITER} | sed 's/ /?/g; s/^/?/g')
-			ITERKEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -m $(jq -r '.hashType' /root/manifest.json) -a 3 $ITERMASK)
-			KEYSPACERC=$?
-			export KEYSPACE=$(($KEYSPACE + $ITERKEYSPACE))
-		done
-	fi
-else
-	export KEYSPACE=$(/root/hashcat/hashcat.bin --keyspace -m $(jq -r '.hashType' /root/manifest.json) -a $(jq -r '.attackType' /root/manifest.json) $MANUALARGS npk-wordlist/*)
-	KEYSPACERC=$?
-
-	if [[ "$(jq -r '.mask' manifest.json)" != "null" ]]; then
-		MASK=$(jq -r '.mask' manifest.json | sed 's/?/ $?/g')
-		MASK=$${MASK:1}
-
-		echo "[*] Manifest has mask of [$MASK]"
-
-		if [[ $(echo $MASK | wc -c) -gt 0 ]]; then
-			echo "/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule \"$MASK\""
-			/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule "$MASK"
-			echo : >> /root/npk-rules/npk-maskprocessor.rule
-			echo "Mask rule created with $(cat /root/npk-rules/npk-maskprocessor.rule | wc -l) entries"
-		fi
-	fi
-fi
-
-if [[ $KEYSPACERC -ne 0 ]]; then
-	echo "[!] Error determining keyspace. Got result [ $KEYSPACE ] and error code [ $KEYSPACERC ]. Hashcat will probably fail now."
-else
-	echo "[+] Got keyspace $KEYSPACE"
-fi
-
-unzip -qq -d compute-node compute-node.zip
-#node compute-node/maskprocessor.js
+7z x compute-node.7z
 
 # Put the envvars in a useful place, in case debugging is needed.
 echo "export APIGATEWAY=$APIGATEWAY" >> envvars
@@ -164,9 +97,6 @@ echo "export INSTANCECOUNT=$INSTANCECOUNT" >> envvars
 echo "export INSTANCENUMBER=$INSTANCENUMBER" >> envvars
 echo "export KEYSPACE=$KEYSPACE" >> envvars
 chmod +x envvars
-
-# Create the snitch
-# echo "* * * * * root /root/compute-node/kill_if_dead.sh" >> /etc/crontab
 
 node compute-node/hashcat_wrapper.js
 echo "[*] Hashcat wrapper finished with status code $?"

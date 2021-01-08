@@ -58,9 +58,6 @@ var getCredentials = function() {
 
 function getHashcatParams(manifest) {
 
-	var limit = Math.ceil(keyspace / instance_count);
-	var skip = limit * (instance_number - 1);
-
 	var params = [
 		"--quiet",
 		"-O",
@@ -85,16 +82,6 @@ function getHashcatParams(manifest) {
 		params = params.concat(manifest.manualArguments.split(" "));
 	}
 
-	if (instance_count > 1) {
-		params.push("--skip");
-		params.push(skip);
-	}
-
-	if (instance_number != instance_count) {
-		params.push("--limit");
-		params.push(limit);
-	}
-
 	if (manifest.attackType == 0) {
 		fs.readdirSync('/root/npk-rules/').forEach(function(e) {
 			params.push("-r");
@@ -116,7 +103,7 @@ function getHashcatParams(manifest) {
 		}
 	}
 
-	return params;
+	return getKeyspace(params);
 }
 
 var readOutput = function(output) {
@@ -150,6 +137,65 @@ var readOutput = function(output) {
 		performance: performance
 	});
 };
+
+function getKeyspace(params) {
+	return new Promise((success, failure) => {
+		console.log("Determining keyspace...");
+
+		// replaces the hashfile with '--keyspace'
+		var keyspaceIndex = params.indexOf("/root/hashes.txt") - params.length;
+		params.splice(keyspaceIndex, 1, "--keyspace");
+
+		const hashcat = spawn("/root/hashcat/hashcat.bin", params, {
+			name: 'xterm-color',
+			cols: 80,
+			rows: 30,
+			cwd: process.env.HOME,
+			env: process.env
+		});
+
+		var output = "";
+		hashcat.stdout.on('data', function(data) {
+			console.log("1> " + data.toString().replace("\n", ""));
+			output += data;
+		});
+
+		hashcat.stderr.on('data', function(data) {
+			console.log("2> " + data);
+		});
+
+		hashcat.on('exit', function(code, signal) {
+
+			console.log(" ");
+			output = output.split("\n").splice(-2, 1);
+
+			if (output / 1 == output) {
+				var limit = Math.ceil(output / instance_count);
+				var skip = limit * (instance_number - 1);
+
+				console.log("Got keyspace [ " + output.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') + " ].");
+				console.log("As node [ " + instance_number + " ] of [ " + instance_count + " ] I'll skip [ " + skip.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') + " ]." );
+
+				//Put the hashfile back.
+				params.splice(keyspaceIndex, 1, "/root/hashes.txt");
+
+				if (instance_count > 1) {
+					params.splice(keyspaceIndex, 0, "--skip");
+					params.splice(keyspaceIndex, 0, skip);
+				}
+
+				if (instance_number != instance_count) {
+					params.splice(keyspaceIndex, 0, "--limit");
+					params.splice(keyspaceIndex, 0, limit);
+				}
+
+				return success(params);
+			} else {
+				return failure(output);
+			}
+		});
+	});
+}
 
 function runHashcat(params) {
 	return new Promise((success, failure) => {
@@ -266,14 +312,17 @@ var sendFinished = function (completed) {
 
 getCredentials().then((data) => {
 	console.log('Credentials loaded');
-	var params = getHashcatParams(manifest);
-
-	console.log("Hashcat params: ", params);
-	return runHashcat(params);
+	return getHashcatParams(manifest)
 }, (e) => {
 	console.log("Fatal error retrieving credentials.", e);
 	process.exit();
-}).then((data) => {
+}).then((params) => {
+	console.log('Hashcat parameters:', params)
+	return runHashcat(params);
+}, (e) => {
+	console.log("Fatal error determining keyspace.", e);
+	process.exit();
+}).then((data) => {	
 	console.log("Final update delivered.");
 	process.exit();
 }, (e) => {

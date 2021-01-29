@@ -1247,7 +1247,7 @@ angular
     $scope.wordlistKeyspace = 0;
 
     $scope.gpus = {
-      // "g3s.xlarge": 1,
+      "g3s.xlarge": 1,
       "g3.4xlarge": 1,
       "g3.8xlarge": 2,
       "g3.16xlarge": 4,
@@ -1260,6 +1260,7 @@ angular
     };
 
     $scope.vcpus = {
+      "g3s.xlarge": 4,
       "g3.4xlarge": 16,
       "g3.8xlarge": 32,
       "g3.16xlarge": 64,
@@ -1272,7 +1273,7 @@ angular
     };
 
     $scope.view_layout = {
-      "g3": ["g3.4xlarge", "g3.8xlarge", "g3.16xlarge"],
+      "g3": ["g3s.xlarge","g3.4xlarge", "g3.8xlarge", "g3.16xlarge"],
       "p2": ["p2.xlarge", "p2.8xlarge", "p2.16xlarge"],
       "p3": ["p3.2xlarge", "p3.8xlarge", "p3.16xlarge"]
     };
@@ -1585,7 +1586,7 @@ angular
 
     $scope.processInstancePrices = function() {
       $scope.cheapest_g3 = $scope.getLowestPrice({
-        // "g3s.xlarge": 1,
+        "g3s.xlarge": 1,
         "g3.4xlarge": 1,
         "g3.8xlarge": 2,
         "g3.16xlarge": 4

@@ -39,7 +39,7 @@ var allowed_regions = [
 ];
 
 var allowed_instances = [
-	// "g3s.xlarge",
+	"g3s.xlarge",
 	"g3.4xlarge",
 	"g3.8xlarge",
 	"g3.16xlarge",
@@ -54,6 +54,7 @@ var allowed_instances = [
 ];
 
 var vcpus = {
+	"g3s.xlarge": 4,
 	"g3.4xlarge": 16,
 	"g3.8xlarge": 32,
 	"g3.16xlarge": 64,
@@ -316,13 +317,13 @@ function getNVidiaImage(region) {
                 Values: ["hvm"]
             },{
             	Name: "name",
-            	Values: ["amzn2-ami-graphics-hvm-2*"]
+            	Values: ["Deep Learning Base AMI (Amazon Linux 2) Version*"]
             },{
             	Name: "root-device-type",
             	Values: ["ebs"]
             },{
             	Name: "owner-id",
-            	Values: ["679593333241"]
+            	Values: ["898082745236"]
             }]
 		}, function (err, data) {
 			if (err) {

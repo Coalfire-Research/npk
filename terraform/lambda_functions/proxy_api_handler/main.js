@@ -50,7 +50,9 @@ var allowed_instances = [
 
 	"p3.2xlarge",
 	"p3.8xlarge",
-	"p3.16xlarge"
+	"p3.16xlarge",
+	
+	"g4dn.xlarge"
 ];
 
 var vcpus = {
@@ -65,7 +67,9 @@ var vcpus = {
 
 	"p3.2xlarge": 8,
 	"p3.8xlarge": 32,
-	"p3.16xlarge": 64
+	"p3.16xlarge": 64,
+	
+	"g4dn.xlarge": 4
 }
 
 process.on('unhandledRejection', error => {

@@ -159,6 +159,35 @@
                             </div>
                           </div>
                         </div>
+
+                         <div class="col-lg-4">
+                          <div ng-show="idealInstances.g4.price" class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'g4')}]" style="margin-bottom: 0px;" id="g4">
+                            <div class="card-header">
+                              <h5 style="margin-bottom: -4px;">{{ idealInstances.g4.instanceType }}</h5>
+                              <small>(Tesla T4)</small>
+                            </div>
+                            <div class="card-body text-center">
+                              {{ pricingSvc.g4[hashType] | toHs }}/GPU<br>
+                              {{ gpus[idealInstances.g4.instanceType] }} GPUs & {{ vcpus[idealInstances.g4.instanceType] }} vCPUs<br>
+                              ${{ pricingSvc.spotPrice[idealInstances.g4.instanceType].price | number:2 }} /Hr<br>
+                              <small>{{ idealInstances.g4.az }}</small>
+                              <hr width="60%" />
+                              {{ idealInstances.g4.pricePerformance | toHs }}/$
+                              <hr width="60%" />
+                              <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == idealInstances.g4.instanceType)}, {'btn-secondary': (selectedInstance != idealInstances.g4.instanceType)}]" ng-click="pickInstance(idealInstances.g4)">
+                                Select
+                              </button>
+                            </div>
+                          </div>
+
+                          <div ng-hide="idealInstances.g4.price || !pricesLoaded || forceRegion == false" class="card shadow-none text-center border border-bottom-sm border-top-sm" style="margin-bottom: 0px;">
+                            <div class="card-header">
+                              <h5 style="margin-bottom: -4px;">Not available</h5>
+                              <small>G4 Instances are not available in {{ forceRegion }}</small>
+                            </div>
+                          </div>
+                        </div>                     
+                     
                       </div>
                     </div>
                   </div>

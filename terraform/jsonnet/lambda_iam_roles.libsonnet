@@ -127,7 +127,9 @@
 						"ec2:DescribeImages",
 						"ec2:DescribeSpotFleetRequests",
 						"ec2:DescribeSpotPriceHistory",
-						"ec2:RequestSpotFleet"
+						"ec2:RequestSpotFleet",
+						"ec2:RunInstances",
+						"ec2:CreateTags"
 					],
 					"resources": ["*"]
 				},{

@@ -16,11 +16,7 @@ If you'd like to see it in action, check out the video here: https://www.youtube
 
 ### 1. Super easy install
 
-One config file, one command to run. That's about it. To start off, copy the `terraform/npk-settings.json.example` file to `terraform/npk-settings.json`, then modify the settings as necessary:
-
-
-
-Once the file is saved, just run `./deploy.sh` from within the `npk/terraform/` folder.
+One config file, one command to run. That's about it.
 
 ### 2. Intuitive campaign builder
 
@@ -65,18 +61,18 @@ npk/terraform$ cp npk-settings.json.sample npk-settings.json
 
 Edit `npk-settings.json` to taste:
 
-`backend_bucket`: Is the bucket to store the terraform state in. If it doesn't exist, NPK will create it for you. Replace '<somerandomcharacters>' with random characters to make it unique, or specify another bucket you own.
-`campaign_data_ttl`: This is the number of seconds that uploaded files and cracked hashes will last before they are automatically deleted. Default is 7 days.
-`campaign_max_price`: The maximum number of dollars allowed to be spent on a single campaign.
-`georestrictions`: An array of https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 country codes that access should be WHITELISTED for. Traffic originating from other countries will not be permitted.
-`useCustomDNS`: A boolean value for whether to use custom domain names for your NPK installation. if set to `true`, you must configure `route53Zone` and `dnsNames` below.
-`route53Zone`: The Route53 Zone ID for the domain or subdomain you're going to host NPK with. You must configure this zone yourself in the same account before installing NPK.
-`dnsNames`: This is where you configure the DNS names for the console and api endpoints for your NPK installation. Both domains must be at the same depth as one another; e.g. {www,api}.npk.yourdomain.com
-`awsProfile`: The profile name in `~/.aws/credentials` that you want to piggyback on for the installation.
-`criticalEventsSMS`: The cellphone number of a destination to receive critical events to. Only catastrophic errors are reported here, so use a real one.
-`adminEmail`: The email address of the administrator and first user of NPK. Once the installation is complete, this is where you'll receive your credentials.
-`useSAML`: Set to `true` if you want to enable SAML-based federated authentication.
-`sAMLMetadataFile` or `sAMLMetadataUrl`: Only one can be configured, and it's required if `useSAML` is `true`.
+* `backend_bucket`: Is the bucket to store the terraform state in. If it doesn't exist, NPK will create it for you. Replace '<somerandomcharacters>' with random characters to make it unique, or specify another bucket you own.
+* `campaign_data_ttl`: This is the number of seconds that uploaded files and cracked hashes will last before they are automatically deleted. Default is 7 days.
+* `campaign_max_price`: The maximum number of dollars allowed to be spent on a single campaign.
+* `georestrictions`: An array of https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 country codes that access should be WHITELISTED for. Traffic originating from other countries will not be permitted.
+* `useCustomDNS`: A boolean value for whether to use custom domain names for your NPK installation. if set to `true`, you must configure `route53Zone` and `dnsNames` below.
+* `route53Zone`: The Route53 Zone ID for the domain or subdomain you're going to host NPK with. You must configure this zone yourself in the same account before installing NPK.
+* `dnsNames`: This is where you configure the DNS names for the console and api endpoints for your NPK installation. Both domains must be at the same depth as one another; e.g. {www,api}.npk.yourdomain.com
+* `awsProfile`: The profile name in `~/.aws/credentials` that you want to piggyback on for the installation.
+* `criticalEventsSMS`: The cellphone number of a destination to receive critical events to. Only catastrophic errors are reported here, so use a real one.
+* `adminEmail`: The email address of the administrator and first user of NPK. Once the installation is complete, this is where you'll receive your credentials.
+* `useSAML`: Set to `true` if you want to enable SAML-based federated authentication.
+* `sAMLMetadataFile` or `sAMLMetadataUrl`: Only one can be configured, and it's required if `useSAML` is `true`.
 
 Here's an example of a completed config file with custom DNS and no SAML:
 

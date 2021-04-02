@@ -52,9 +52,13 @@ echo "- Compressing"
 
 echo "- Uploading to S3"
 aws s3 cp $ARCHIVE s3://$BUCKET1/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION1
-aws s3 cp $ARCHIVE s3://$BUCKET2/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION2
-aws s3 cp $ARCHIVE s3://$BUCKET3/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION3
-aws s3 cp $ARCHIVE s3://$BUCKET4/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION4
+aws s3 cp s3://$BUCKET1/$1/$ARCHIVE s3://$BUCKET2/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION2
+aws s3 cp s3://$BUCKET1/$1/$ARCHIVE s3://$BUCKET3/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION3
+aws s3 cp s3://$BUCKET1/$1/$ARCHIVE s3://$BUCKET4/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION4
+
+# aws s3 cp $ARCHIVE s3://$BUCKET2/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION2
+# aws s3 cp $ARCHIVE s3://$BUCKET3/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION3
+# aws s3 cp $ARCHIVE s3://$BUCKET4/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION4
 rm $ARCHIVE
 
 echo -e "Done.\n\n"

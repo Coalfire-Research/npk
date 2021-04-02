@@ -148,6 +148,7 @@
 						"iam:PassRole"
 					],
 					"resources": [
+						"${aws_iam_role.npk_instance_role.arn}",
 						"${aws_iam_role.npk_fleet_role.arn}"
 					]
 				},{

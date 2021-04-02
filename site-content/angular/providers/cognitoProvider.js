@@ -177,8 +177,6 @@ angular
                         return failure(err);
                      }                     
                   });
-               }).catch((err) => {
-                  console.log('retrieveCredentials() failed: ' + err);
                });
             },
 
@@ -298,6 +296,9 @@ angular
 
                         console.log("routeRequireAdmin failed login. Result: " + result);
                         return success(self.logonRoute);
+                     }, (e) => {
+                        console.log("onReady failed.");
+                        return success(self.logonRoute);
                      });
                   });
                }
@@ -314,11 +315,14 @@ angular
                      self.init();
                      self.onReady.then((result) => {
                         if (result === true) {
-                           console.log()
+                           console.log("Successfully initialized existing credential");
                            return success(undefined);
                         }
 
                         console.log("routeRequireLogon failed. Result: " + result);
+                        return success(self.logonRoute);
+                     }, (e) => {
+                        console.log("onReady failed.");
                         return success(self.logonRoute);
                      });
                   });
@@ -331,6 +335,7 @@ angular
                var self = this;
 
                if (this.isLoggedOn()) {
+                  console.log("User is logged on. Redirecting to " + routePath);
                   return (routePath);
                }
 

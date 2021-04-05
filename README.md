@@ -59,19 +59,55 @@ $ cd npk/terraform/
 npk/terraform$ cp npk-settings.json.sample npk-settings.json
 ```
 
-Edit `npk-settings.json` to taste. Most importantly, ensure that the 'awsProfile' value matches the profile name in `~/.aws/credentials`:
+Edit `npk-settings.json` to taste:
 
-```sh
-[profileName]
-aws_access_key_id = ...
-aws_secret_access_key = ...
+* `backend_bucket`: Is the bucket to store the terraform state in. If it doesn't exist, NPK will create it for you. Replace '<somerandomcharacters>' with random characters to make it unique, or specify another bucket you own.
+* `campaign_data_ttl`: This is the number of seconds that uploaded files and cracked hashes will last before they are automatically deleted. Default is 7 days.
+* `campaign_max_price`: The maximum number of dollars allowed to be spent on a single campaign.
+* `georestrictions`: An array of https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 country codes that access should be WHITELISTED for. Traffic originating from other countries will not be permitted.
+* `useCustomDNS`: A boolean value for whether to use custom domain names for your NPK installation. if set to `true`, you must configure `route53Zone` and `dnsNames` below.
+* `route53Zone`: The Route53 Zone ID for the domain or subdomain you're going to host NPK with. You must configure this zone yourself in the same account before installing NPK.
+* `dnsNames`: This is where you configure the DNS names for the console and api endpoints for your NPK installation. Both domains must be at the same depth as one another; e.g. {www,api}.npk.yourdomain.com
+* `awsProfile`: The profile name in `~/.aws/credentials` that you want to piggyback on for the installation.
+* `criticalEventsSMS`: The cellphone number of a destination to receive critical events to. Only catastrophic errors are reported here, so use a real one.
+* `adminEmail`: The email address of the administrator and first user of NPK. Once the installation is complete, this is where you'll receive your credentials.
+* `useSAML`: Set to `true` if you want to enable SAML-based federated authentication.
+* `sAMLMetadataFile` or `sAMLMetadataUrl`: Only one can be configured, and it's required if `useSAML` is `true`.
+
+Here's an example of a completed config file with custom DNS and no SAML:
+
+```json
+{
+  "backend_bucket": "backend-terraform-npkdev",
+  "campaign_data_ttl": 604800,
+  "campaign_max_price": 50,
+  "georestrictions": [],
+  "useCustomDNS": true,
+  "route53Zone": "Z05471496OWNC3E2EHCI",
+  "dnsNames": {
+    "www": [
+      "www.npk.yourdomain.com"
+    ],
+    "api": [
+      "api.npk.yourdomain.com"
+    ]
+  },
+  "awsProfile": "npkdev",
+  "criticalEventsSMS": "+12085551234",
+  "adminEmail": "you@yourdomain.com",
+  "debug_lambda": true,
+
+  "useSAML": false,
+  "sAMLMetadataFile": ""
+}
 ```
+After that, run the deploy!
 
 ```sh
 npk/terraform$ ./deploy.sh
 ```
 
-Details about each setting, their effects, and allowed values, check out [the wiki](https://github.com/Coalfire-Research/npk/wiki/Detailed-NPK-Settings). For more details around custom installations, see [Detailed Instructions](https://github.com/Coalfire-Research/npk/wiki/Detailed-Usage-Instructions).
+For more details about each setting, their effects, and allowed values, check out [the wiki](https://github.com/Coalfire-Research/npk/wiki/Detailed-NPK-Settings). For more details around custom installations, see [Detailed Instructions](https://github.com/Coalfire-Research/npk/wiki/Detailed-Usage-Instructions).
 
 NPK will use the specified AWS cli profile to fully deploy NPK and provision the first user. If you'd like to change the configuration, simply run `./deploy.sh` again afterward. While it's deploying, pay a visit to https://aws.amazon.com/marketplace/pp/B07S5G9S1Z to subscribe and accept the terms of NVidia's AMIs. NPK uses these to ensure compatability with the GPUs. There is no cost associated with this step, but allows NPK to use these AMIs on your behalf.
 

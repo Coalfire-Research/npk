@@ -310,10 +310,6 @@ angular
 				});
 			},
 
-			clearUnreadNotifications: function () {
-
-			},
-
 			getSignedUrl: function(action, params) {
 				return this.s3.getSignedUrl(action, params);
 			}

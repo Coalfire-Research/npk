@@ -1,3 +1,9 @@
+# NPK has moved
+
+This repo is no longer supported by the original author. Find the latest version at https://github.com/c6fc/npk
+
+---
+
 # NPK - Increase your cred yield!
 
 NPK is a distributed hash-cracking platform built entirely of serverless components in AWS including Cognito, DynamoDB, and S3. It was designed for easy deployment and the intuitive UI brings high-power hash-cracking to everyone.

@@ -29,7 +29,7 @@ angular
         return typeof what;
       };
 
-      $scope.settings = {};
+      $scope.settings = { self: {}, admin: {} };
       $scope.getSettings = function() {
 
         Promise.all([
@@ -67,6 +67,25 @@ angular
 
       $scope.$location = $location;
       $scope.notifications = [];
+
+      $scope.dateTime = Math.round(Date.now() / 1000);
+
+      $scope.clearUnreadNotifications = function() {
+        $scope.settings.notificationsRead = Math.round(Date.now() / 1000);
+        $scope.npkDB.putSetting('self:setting:notificationsRead', $scope.settings.notificationsRead);
+
+        $scope.notifications = [];
+      }
+
+      $scope.newerThanRead = function () {
+        return function(item) {
+          return item.datetime > ($scope.settings.self.notificationsRead || 0);
+        }
+      }
+
+      $.ajax("https://npkproject.io/news.json").done((data) => {
+        $scope.notifications = data;
+      });
 
       /*
       window.isLoggedOn = function() {
@@ -2038,8 +2057,9 @@ angular
         "favoriteHashTypes": "array"
       },
       self: {
-        "favoriteHashTypes": "array"
-      }
+        "favoriteHashTypes": "array",
+        "notificationsRead": "number"
+      },
     };
 
     $scope.updateSetting = function(user, setting, value) {
@@ -2062,7 +2082,7 @@ angular
         break;
 
         case "number":
-          if (value / 1 != value || value.length < 10) {
+          if (value / 1 != value) {
             return Promise.reject("Setting requires numeric value");
           }
         break;

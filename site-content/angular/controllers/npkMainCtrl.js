@@ -694,7 +694,12 @@ angular
         instanceType: "?",
         price: 0,
         az: ''
-      }
+      },
+      "g4": {
+        instanceType: "?",
+        price: 0,
+        az: ''
+      },
     };
 
     // $scope.instances = {};
@@ -1266,7 +1271,7 @@ angular
     $scope.wordlistKeyspace = 0;
 
     $scope.gpus = {
-      // "g3s.xlarge": 1,
+      "g3s.xlarge": 1,
       "g3.4xlarge": 1,
       "g3.8xlarge": 2,
       "g3.16xlarge": 4,
@@ -1275,10 +1280,12 @@ angular
       "p2.16xlarge": 16,
       "p3.2xlarge": 1,
       "p3.8xlarge": 4,
-      "p3.16xlarge": 8
+      "p3.16xlarge": 8,
+      "g4dn.xlarge": 1
     };
 
     $scope.vcpus = {
+      "g3s.xlarge": 4,
       "g3.4xlarge": 16,
       "g3.8xlarge": 32,
       "g3.16xlarge": 64,
@@ -1287,13 +1294,15 @@ angular
       "p2.16xlarge": 64,
       "p3.2xlarge": 8,
       "p3.8xlarge": 32,
-      "p3.16xlarge": 64
+      "p3.16xlarge": 64,
+      "g4dn.xlarge": 4
     };
 
     $scope.view_layout = {
-      "g3": ["g3.4xlarge", "g3.8xlarge", "g3.16xlarge"],
+      "g3": ["g3s.xlarge","g3.4xlarge", "g3.8xlarge", "g3.16xlarge"],
       "p2": ["p2.xlarge", "p2.8xlarge", "p2.16xlarge"],
-      "p3": ["p3.2xlarge", "p3.8xlarge", "p3.16xlarge"]
+      "p3": ["p3.2xlarge", "p3.8xlarge", "p3.16xlarge"],
+      "g4": ["g4dn.xlarge"]
     };
 
     $scope.quotaFor = function(instanceType) {
@@ -1604,7 +1613,7 @@ angular
 
     $scope.processInstancePrices = function() {
       $scope.cheapest_g3 = $scope.getLowestPrice({
-        // "g3s.xlarge": 1,
+        "g3s.xlarge": 1,
         "g3.4xlarge": 1,
         "g3.8xlarge": 2,
         "g3.16xlarge": 4
@@ -1621,17 +1630,23 @@ angular
         "p3.8xlarge": 4,
         "p3.16xlarge": 8
       });
+      
+      $scope.cheapest_g4 = $scope.getLowestPrice({
+        "g4dn.xlarge": 1
+      });
 
       $scope.idealInstances = {
         "g3": {},
         "p2": {},
-        "p3": {}
+        "p3": {},
+        "g4": {}
       }
 
       Promise.all([
         $scope.cheapest_g3,
         $scope.cheapest_p2,
-        $scope.cheapest_p3
+        $scope.cheapest_p3,
+        $scope.cheapest_g4
       ]).then((data) => {
         $scope.idealInstances.g3 = {
           instanceType: data[0].cheapestType,
@@ -1650,6 +1665,12 @@ angular
           price: data[2].price,
           az: data[2].cheapestRegion
         };
+        
+        $scope.idealInstances.g4 = {
+          instanceType: data[3].cheapestType,
+          price: data[3].price,
+          az: data[3].cheapestRegion
+        };
 
         $scope.setIdealInstance();
 
@@ -1661,7 +1682,7 @@ angular
 
     $scope.setIdealInstance = function() {
       $scope.idealInstance = null;
-      ["g3", "p2", "p3"].forEach(function(e) {
+      ["g3", "p2", "p3", "g4"].forEach(function(e) {
         $scope.idealInstances[e].pricePerformance = $scope.pricingSvc[e][$scope.hashType] / $scope.idealInstances[e].price;
 
         if (!$scope.idealInstances[e].price) {
@@ -1851,7 +1872,8 @@ angular
     $scope.gpuNames = {
       "G3": "Tesla M60",
       "P2": "Tesla K80",
-      "P3": "Tesla V100"
+      "P3": "Tesla V100",
+      "G4": "Tesla T4"
     };
 
     // Apply the tooltips after campaigns are loaded.

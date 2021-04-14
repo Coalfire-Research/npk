@@ -39,7 +39,7 @@ var allowed_regions = [
 ];
 
 var allowed_instances = [
-	// "g3s.xlarge",
+	"g3s.xlarge",
 	"g3.4xlarge",
 	"g3.8xlarge",
 	"g3.16xlarge",
@@ -50,10 +50,13 @@ var allowed_instances = [
 
 	"p3.2xlarge",
 	"p3.8xlarge",
-	"p3.16xlarge"
+	"p3.16xlarge",
+	
+	"g4dn.xlarge"
 ];
 
 var vcpus = {
+	"g3s.xlarge": 4,
 	"g3.4xlarge": 16,
 	"g3.8xlarge": 32,
 	"g3.16xlarge": 64,
@@ -64,7 +67,9 @@ var vcpus = {
 
 	"p3.2xlarge": 8,
 	"p3.8xlarge": 32,
-	"p3.16xlarge": 64
+	"p3.16xlarge": 64,
+	
+	"g4dn.xlarge": 4
 }
 
 process.on('unhandledRejection', error => {
@@ -316,13 +321,13 @@ function getNVidiaImage(region) {
                 Values: ["hvm"]
             },{
             	Name: "name",
-            	Values: ["amzn2-ami-graphics-hvm-2*"]
+            	Values: ["Deep Learning Base AMI (Amazon Linux 2) Version*"]
             },{
             	Name: "root-device-type",
             	Values: ["ebs"]
             },{
             	Name: "owner-id",
-            	Values: ["679593333241"]
+            	Values: ["898082745236"]
             }]
 		}, function (err, data) {
 			if (err) {

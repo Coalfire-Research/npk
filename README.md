@@ -134,3 +134,8 @@ You can completely turn down NPK and delete all of its data from AWS with a sing
 npk/terraform$ terraform destroy
 ```
 
+# Official Discord Channel
+
+Come hang out on Discord!
+
+[![Porchetta Industries](https://discordapp.com/api/guilds/736724457258745996/widget.png?style=banner3)](https://discord.gg/k5PQnqSNDF)

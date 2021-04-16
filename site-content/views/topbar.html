@@ -7,24 +7,73 @@
   <ul class="navbar-nav align-items-center right-nav-link">
     <li class="nav-item dropdown-lg">
       <a class="nav-link dropdown-toggle dropdown-toggle-nocaret waves-effect" data-toggle="dropdown" href="javascript:void();">
-	  <i class="icon-bell"></i><span class="badge badge-primary badge-up" ng-show="notifications.length > 0">{{ notifications | count }}</span></a>
-      <div class="dropdown-menu dropdown-menu-right" style="margin-right: 25px;">
+        <i class="icon-link"></i>
+        <span class="badge badge-danger badge-up" ng-show="dateTime < 1619822388">
+          !
+        </span>
+      </a>
+      <div class="dropdown-menu dropdown-menu-right" style="width: 360px; margin-right: 25px;">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <a ng-href="https://github.com/c6fc/npk/wiki">
+              <div class="media">
+                <div class="media-body">
+                  <h6 class="mt-0 msg-title" style="white-space: normal;">NPK Github Wiki</h6>
+                  <p class="msg-info" style="white-space: normal;">
+                    Find information about advanced configuration options, building campaigns, and troubleshooting issues.
+                    <br>
+                    https://github.com/c6fc/npk/wiki
+                  </p>
+                </div>
+              </div>
+            </a>
+          </li>
+          <li class="list-group-item">
+            <a ng-href="https://discord.gg/k5PQnqSNDF">
+              <div class="media">
+                <div class="media-body">
+                  <h6 class="mt-0 msg-title" style="white-space: normal;">Join the NPK Discord!</h6>
+                  <p class="msg-info" style="white-space: normal;">
+                    <img src="https://discordapp.com/api/guilds/736724457258745996/widget.png?style=banner3">
+                  </p>
+                </div>
+              </div>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </li>
+    <li class="nav-item dropdown-lg">
+      <a class="nav-link dropdown-toggle dropdown-toggle-nocaret waves-effect" data-toggle="dropdown" href="javascript:void();">
+        <i class="icon-bell"></i>
+        <span class="badge badge-primary badge-up" ng-show="(notifications | filter: newerThanRead() | count) > 0 ">
+          {{ notifications | filter: newerThanRead() | count }}
+        </span>
+      </a>
+      <div class="dropdown-menu dropdown-menu-right" style="width: 360px; margin-right: 25px;">
         <ul class="list-group list-group-flush">
           <li class="list-group-item d-flex justify-content-between align-items-center">
-          You have {{ notifications | count }} notifications
+            You have {{ notifications | filter: newerThanRead() | count }} notifications
           </li>
-          <li class="list-group-item" ng-repeat="notification in notifications">
+          <li class="list-group-item" ng-repeat="notification in notifications | filter: newerThanRead() ">
           <a ng-href="{{ notification.href }}">
            <div class="media">
-             <i class="icon-people fa-2x mr-3 text-info"></i>
+             <i class="fa-2x mr-3 text-info" ng-class="notification.icon"></i>
             <div class="media-body">
-            <h6 class="mt-0 msg-title" style="white-space: normal;">{{ notification.title }}</h6>
+            <h6 class="mt-0 msg-title" style="white-space: normal;">{{ notification.title }}
+              <br />
+              <small>{{ notification.datetime | momentfn:'fromNow' }}</small>
+            </h6>
             <p class="msg-info" style="white-space: normal;">{{ notification.message }}</p>
             </div>
           </div>
           </a>
           </li>
-          <li class="list-group-item"><a ng-href="#/events">See All Events</a></li>
+          <li class="list-group-item text-center">
+            <button ng-click="clearUnreadNotifications()" class="btn btn-sm btn-outline-primary">
+              Mark as read
+            </button>
+          </li>
         </ul>
       </div>
     </li>

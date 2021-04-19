@@ -1,5 +1,4 @@
 #!/bin/sh
 
-docker build -t coalfirelabs/npk:latest .
-
-# missing: docker push coalfirelabs/npk:latest
+docker build -t c6fc/npk:latest .
+docker run -it -v `pwd`:/npk -v ~/.aws/:/root/.aws c6fc/npk:latest

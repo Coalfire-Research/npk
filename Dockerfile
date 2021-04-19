@@ -17,7 +17,7 @@ RUN apk -v --no-cache add python py-pip groff less mailcap && \
     pip install --upgrade awscli s3cmd python-magic && \
     apk -v --purge del py-pip && \
     ## Installing other dependencies
-    apk -v --no-cache add jq npm
+    apk -v --no-cache add jq npm pwgen bash
 
 # Installing terraform
 RUN mkdir /build/terraform && \
@@ -30,21 +30,9 @@ RUN mkdir /build/terraform && \
 RUN apk -v --no-cache add nano
 
 RUN mkdir /npk
-WORKDIR /npk
-ADD . /npk
+VOLUME /npk
 
 RUN mkdir -p /root/.aws
-RUN echo "[npk]" >> /root/.aws/credentials
-RUN echo "aws_access_key_id = ..." >> /root/.aws/credentials
-RUN echo "aws_secret_access_key = ..." >> /root/.aws/credentials
-RUN cp /npk/terraform/npk-settings.json.sample /npk/terraform/npk-settings.json
+VOLUME /root/.aws/
 
-ENTRYPOINT [ "sh" ]
-
-# docker run -it npk:latest
-
-# To run once inside the container:
-# nano /root/.aws/credentials
-# nano /npk/terraform/npk-settings.json
-# cd /npk/terraform
-# sh deploy.sh
+ENTRYPOINT [ "bash" ]

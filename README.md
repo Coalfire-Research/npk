@@ -16,7 +16,7 @@ If you'd like to see it in action, check out the video here: https://www.youtube
 
 ### 1. Super easy install
 
-One config file, one command to run. That's about it.
+Build the Docker container and run the wizard. That's about it.
 
 ### 2. Intuitive campaign builder
 
@@ -42,7 +42,20 @@ NPK supports multiple users, with strict separation of data, campaigns, and resu
 
 Configure how long data will stay in NPK with configurable lifecycle durations during installation. Hashfiles and results are automatically removed after this much time to keep things nicely cleaned up.
 
-## Install
+## Easy Install (Docker)
+
+```sh
+$ git clone https://github.com/c6fc/npk
+$ cd npk
+npk$ ./build-docker-container.sh
+... Docker builds and runs.
+bash-5.0# cd /npk/terraform
+bash-5.0# ./quickdeploy.sh
+```
+
+The quickdeploy wizard will ask for a few basic things, then kick off the install on your behalf.
+
+## Advanced Install
 
 NPK requires that you have the following installed: 
 * **awscli** (v2)
@@ -51,10 +64,22 @@ NPK requires that you have the following installed:
 * **jsonnet**
 * **npm**
 
+You can skip these prerequisites by using the provided Docker image.
+```sh
+# Build the container if you haven't already;
+$ docker build -t c6fc/npk:latest .
+
+# Run the container.
+$ docker run -it -v `pwd`:/npk -v ~/.aws/:/root/.aws c6fc/npk:latest
+
+# Your 'npk' folder is passed through to the container at '/npk'
+bash-5.0# cd /npk/
+```
+
 **ProTip:** To keep things clean and distinct from other things you may have in AWS, it's STRONGLY recommended that you deploy NPK in a fresh account. You can create a new account easily from the 'Organizations' console in AWS. **By 'STRONGLY recommended', I mean 'seriously don't install this next to other stuff'.**
 
 ```sh
-$ git clone npk .
+$ git clone https://github.com/c6fc/npk
 $ cd npk/terraform/
 npk/terraform$ cp npk-settings.json.sample npk-settings.json
 ```

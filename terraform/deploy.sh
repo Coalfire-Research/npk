@@ -22,6 +22,11 @@ if [[ ! -f $(which aws) ]]; then
 	echo "Error: Must have AWSCLI installed.";
 fi
 
+if [[ $(aws --version | grep -c "aws-cli/2") != 1 ]]; then
+	ERR=1;
+	echo "Error: Wrong version of Terraform is installed. NPK requires AWSCLI version 2.";
+fi
+
 if [[ ! -f $(which npm) ]]; then
 	ERR=1;
 	echo "Error: Must have NPM installed.";
@@ -32,10 +37,10 @@ if [[ ! -f $(which terraform) ]]; then
 	echo "Error: Must have Terraform installed.";
 fi
 
-if [[ "$($TERBIN -v | grep v0.11 | wc -l)" != "1" ]]; then
+if [[ $($TERBIN -v | grep -c "Terraform v0.11") != 1 ]]; then
 	ERR=1;
 	echo "Error: Wrong version of Terraform is installed. NPK requires Terraform v0.11.";
-	echo "-> Note: A non-default binary can be specified as positional script parameter:"
+	echo "-> Note: A non-default binary can be specified as a positional script parameter:"
 	echo "-> e.g: ./deploy-selfhost.sh <terraform-v0.11-path>"
 	echo ""
 fi
@@ -213,7 +218,6 @@ fi
 # remove old configs silently:
 rm -f *.tf.json
 
-
 echo "[*] Generating Terraform configurations"
 jsonnet -m . terraform.jsonnet
 
@@ -236,4 +240,4 @@ if [[ ! -d .terraform || $ISINIT -ne 0 ]]; then
 	fi
 fi
 
-terraform apply -auto-approve
+ $TERBIN apply -auto-approve

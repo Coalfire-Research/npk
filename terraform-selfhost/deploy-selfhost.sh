@@ -22,9 +22,9 @@ if [[ ! -f $(which aws) ]]; then
 	echo "Error: Must have AWSCLI installed.";
 fi
 
-if [[ $(aws --version | grep "aws-cli/2" | wc -l) -lt 1 ]]; then
+if [[ $(aws --version | grep -c "aws-cli/2") != 1 ]]; then
 	ERR=1;
-	echo "Error: NPK Selfhost requires AWSCLI version 2.";
+	echo "Error: Wrong version of Terraform is installed. NPK requires AWSCLI version 2.";
 fi
 
 if [[ ! -f $(which npm) ]]; then
@@ -37,7 +37,7 @@ if [[ ! -f $(which terraform) ]]; then
 	echo "Error: Must have Terraform installed.";
 fi
 
-if [[ "$(terraform -v | grep v0.11 | wc -l)" != "1" ]]; then
+if [[ $($TERBIN -v | grep -c "Terraform v0.11") != 1 ]]; then
 	ERR=1;
 	echo "Error: Wrong version of Terraform is installed. NPK requires Terraform v0.11.";
 	echo "-> Note: A non-default binary can be specified as a positional script parameter:"

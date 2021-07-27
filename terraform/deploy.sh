@@ -78,7 +78,7 @@ if [[ $(aws --version | grep "aws-cli/2" | wc -l) -ge 1 ]]; then
 	export AWS_PAGER="";
 fi
 
-BUCKET=$(jq -r '.backend_bucket' npk-settings.json)
+BUCKET=$(jq -r '.backend_bucket' npk-settings.json 2> /dev/null)
 
 if [[ "$BUCKET" == "" ]]; then
 	echo "No backend bucket is specified in npk-settings.json. This is best practice and required for NPKv2."

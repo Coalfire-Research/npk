@@ -1127,8 +1127,6 @@ exports.main = function(event, context, callback) {
 			console.log("Finished with message", data);
 		}, (err) => {
 			console.log("Finished with error", err);
-		}).then(() => {
-			respond(500, "Events occurred out of order. This is a bug.", false);
 		});
 
 	} catch (e) {

@@ -39,19 +39,9 @@ jq -n --arg profile $profile --arg email $email --arg sms $sms --arg bucket $BUC
 	"backend_bucket": $bucket,
 	"campaign_data_ttl": 604800,
 	"campaign_max_price": 50,
-	"georestrictions": [],
-	"useCustomDNS": false,
-	"route53Zone": "",
-	"dnsNames": {
-    	"www": [],
-    	"api": []
-  	},
 	"awsProfile": $profile,
 	"criticalEventsSMS": $sms,
 	"adminEmail": $email,
-	"debug_lambda": false,
-
-	"useSAML": false,
 }' >>  npk-settings.json
 
 touch quickdeployed

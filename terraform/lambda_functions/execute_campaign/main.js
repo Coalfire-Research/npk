@@ -7,6 +7,8 @@ let variables = {};
 
 exports.main = async function(event, context, callback) {
 
+	console.log(JSON.stringify(event));
+
 	// Hand off the callback function for later.
 	cb = callback;
 
@@ -30,6 +32,8 @@ exports.main = async function(event, context, callback) {
 			console.log(`cognitoAuthenticationType ${event?.requestContext?.identity?.cognitoAuthenticationType} != "authenticated"`)
 			return respond(401, {}, "Authentication Required", false);
 		}
+
+		const entity = event.requestContext.identity.cognitoIdentityId;
 
 		var body = {};
 		// Unencode the body if necessary

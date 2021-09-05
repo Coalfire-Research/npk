@@ -1582,8 +1582,9 @@ angular
         $scope.campaignId = data.campaignId;
         $scope.$digest();
       
-
-      }).fail((data) => {
+      })
+      .fail((data) => {
+        $('#orderResponseModal').modal('hide');
         $scope.submittingOrder = false;
 
         var response = {};
@@ -1594,7 +1595,6 @@ angular
           response = {msg: "Unable to parse response as JSON", success: false};
         }
 
-        $('#orderResponseModal').modal('hide');
         $scope.orderErrors = [response.msg];
         $scope.orderWarnings = [];
         $scope.$digest();

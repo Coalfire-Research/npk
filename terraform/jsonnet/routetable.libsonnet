@@ -11,7 +11,10 @@ local routetable(region) = {
 		nat_gateway_id: "",
 		network_interface_id: "",
 		transit_gateway_id: "",
-		vpc_peering_connection_id: ""
+		vpc_peering_connection_id: "",
+		carrier_gateway_id: "",
+		destination_prefix_list_id: "",
+		vpc_endpoint_id: ""
 	}]
 };
 

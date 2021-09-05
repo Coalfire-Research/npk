@@ -4,7 +4,8 @@
   "description": "NPK execute_campaign Lambda",
   "main": "main.js",
   "dependencies": {
-    "aws-sdk": "^2.599.0"
+    "aws-sdk": "^2.599.0",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {},
   "scripts": {

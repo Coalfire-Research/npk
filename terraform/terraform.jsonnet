@@ -57,7 +57,7 @@ local regionKeys = std.objectFields(settings.regions);
   		},
   		root: {
   			children: [{
-  				pathPart: "api",
+  				pathPart: "userproxy",
   				methods: {
   					OPTIONS: {
   						optionsIntegration: true,
@@ -72,14 +72,8 @@ local regionKeys = std.objectFields(settings.regions);
   				children: [{
   					pathPart: "campaign",
   					methods: {
-  						GET: {
-  							lambdaIntegration: "list_campaigns",
-  							parameters: {
-  								authorization: "AWS_IAM"
-  							}
-  						},
-  						PUT: {
-  							lambdaIntegration: "execute_campaign",
+  						POST: {
+  							lambdaIntegration: "create_campaign",
   							parameters: {
   								authorization: "AWS_IAM"
   							}
@@ -106,13 +100,10 @@ local regionKeys = std.objectFields(settings.regions);
 									}
 	  							}
 	  						},
-	  						GET: {
-	  							lambdaIntegration: "get_campaign",
+	  						PUT: {
+	  							lambdaIntegration: "execute_campaign",
 	  							parameters: {
-	  								authorization: "AWS_IAM",
-	  								request_parameters: {
-										"method.request.path.campaign": true
-									}
+	  								authorization: "AWS_IAM"
 	  							}
 	  						},
 	  						OPTIONS: {
@@ -196,7 +187,7 @@ local regionKeys = std.objectFields(settings.regions);
 				npk: {
 					certificate_arn: "${aws_acm_certificate.main.arn}",
 					domain_name: "api.%s" % [settings.dnsBaseName],
-					depends_on: ["aws_acm_certificate.main"]
+					depends_on: ["aws_acm_certificate_validation.main"]
 				}
 			}
 		}
@@ -213,11 +204,7 @@ local regionKeys = std.objectFields(settings.regions);
 				cloudwatch_invoke_spot_monitor: {
 					statement: {
 						actions: ["lambda:Invoke"],
-						resources: ["${aws_lambda_function.spot_monitor.arn}"],
-						principals: {
-							type: "AWS",
-							identifiers: ["${aws_cloudfront_origin_access_identity.npk.iam_arn}"]
-						}
+						resources: ["${aws_lambda_function.spot_monitor.arn}"]
 					}
 				}
 			}
@@ -314,6 +301,84 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
+	'lambda-create_campaign.tf.json': lambda.lambda_function("create_campaign", {
+		handler: "main.main",
+		timeout: 20,
+		memory_size: 512,
+
+		environment: {
+			variables: {
+
+				www_dns_names: std.toString(settings.wwwEndpoint),
+				campaign_max_price: "${var.campaign_max_price}",
+				gQuota: settings.quotas.gquota,
+				pQuota: settings.quotas.pquota,
+				userdata_bucket: "${aws_s3_bucket.user_data.id}",
+				instanceProfile: "${aws_iam_instance_profile.npk_node.arn}",
+				iamFleetRole: "${aws_iam_role.npk_fleet_role.arn}",
+				availabilityZones: std.strReplace(std.manifestJsonEx({
+					[regionKeys[i]]: {
+						[settings.regions[regionKeys[i]][azi]]: "${aws_subnet." + settings.regions[regionKeys[i]][azi] + ".id}"
+							for azi in std.range(0, std.length(settings.regions[regionKeys[i]]) - 1)
+					}
+					for i in std.range(0, std.length(regionKeys) - 1)
+				}, ""), "\n", ""),
+				dictionaryBuckets: std.strReplace(std.manifestJsonEx({
+					[regionKeys[i]]: "${var.dictionary-" + regionKeys[i] + "-id}"
+					for i in std.range(0, std.length(regionKeys) - 1)
+				}, ""), "\n", ""),
+				apigateway: if settings.useCustomDNS then
+					settings.apiEndpoint
+				else
+					"${aws_api_gateway_rest_api.npk.id}.execute-api." + settings.defaultRegion + ".amazonaws.com"
+			}
+		},
+	}, {
+		statement: [{
+			sid: "s3Put",
+			actions: [
+				"s3:PutObject"
+			],
+			resources: [
+				"${aws_s3_bucket.user_data.arn}/*/campaigns/*/manifest.json",
+				"${aws_s3_bucket.logs.arn}/api_gateway_proxy/*",
+			]
+		},{
+			sid: "s3GetUserFile",
+			actions: [
+				"s3:GetObject"
+			],
+			resources: [
+				"${aws_s3_bucket.user_data.arn}/*"
+			]
+		},{
+			sid: "s3GetDictionaryFile",
+			actions: [
+				"s3:GetObject"
+			],
+			resources: [
+				"${var.dictionary-" + regionKeys[i] + "}/*"
+				for i in std.range(0, std.length(regionKeys) - 1)
+			]
+		},{
+			sid: "ddb",
+			actions: [
+				"dynamodb:Query",
+				"dynamodb:UpdateItem"
+			],
+			resources: [
+				"${aws_dynamodb_table.campaigns.arn}"
+			]
+		},{
+			sid: "adminGetUser",
+			actions: [
+				"cognito-idp:AdminGetUser"
+			],
+			resources: [
+				"${aws_cognito_user_pool.npk.arn}"
+			]
+		}]
+	}),
 	'lambda-delete_campaign.tf.json': lambda.lambda_function("delete_campaign", {
 		handler: "main.main",
 		timeout: 20,
@@ -322,6 +387,17 @@ local regionKeys = std.objectFields(settings.regions);
 		environment: {
 			variables: {
 				www_dns_names: std.toString([settings.wwwEndpoint]),
+				campaign_max_price: "${var.campaign_max_price}",
+				userdata_bucket: "${aws_s3_bucket.user_data.id}",
+				instanceProfile: "${aws_iam_instance_profile.npk_node.arn}",
+				iamFleetRole: "${aws_iam_role.npk_fleet_role.arn}",
+				availabilityZones: std.strReplace(std.manifestJsonEx({
+					[regionKeys[i]]: {
+						[settings.regions[regionKeys[i]][azi]]: "${aws_subnet." + settings.regions[regionKeys[i]][azi] + ".id}"
+							for azi in std.range(0, std.length(settings.regions[regionKeys[i]]) - 1)
+					}
+					for i in std.range(0, std.length(regionKeys) - 1)
+				}, ""), "\n", "")
 			}
 		}
 	}, {
@@ -414,66 +490,6 @@ local regionKeys = std.objectFields(settings.regions);
 			resources: [
 				"${aws_iam_role.npk_instance_role.arn}",
 				"${aws_iam_role.npk_fleet_role.arn}"
-			]
-		},{
-			sid: "adminGetUser",
-			actions: [
-				"cognito-idp:AdminGetUser"
-			],
-			resources: [
-				"${aws_cognito_user_pool.npk.arn}"
-			]
-		}]
-	}),
-	'lambda-get_campaign.tf.json': lambda.lambda_function("get_campaign", {
-		handler: "main.main",
-		timeout: 20,
-		memory_size: 512,
-
-		environment: {
-			variables: {
-				www_dns_names: std.toString([settings.wwwEndpoint]),
-			}
-		}
-	}, {
-		statement: [{
-			sid: "ddb",
-			actions: [
-				"dynamodb:Query",
-				"dynamodb:UpdateItem"
-			],
-			resources: [
-				"${aws_dynamodb_table.campaigns.arn}"
-			]
-		},{
-			sid: "adminGetUser",
-			actions: [
-				"cognito-idp:AdminGetUser"
-			],
-			resources: [
-				"${aws_cognito_user_pool.npk.arn}"
-			]
-		}]
-	}),
-	'lambda-list_campaigns.tf.json': lambda.lambda_function("list_campaigns", {
-		handler: "main.main",
-		timeout: 20,
-		memory_size: 512,
-
-		environment: {
-			variables: {
-				www_dns_names: std.toString([settings.wwwEndpoint]),
-			}
-		}
-	}, {
-		statement: [{
-			sid: "ddb",
-			actions: [
-				"dynamodb:Query",
-				"dynamodb:UpdateItem"
-			],
-			resources: [
-				"${aws_dynamodb_table.campaigns.arn}"
 			]
 		},{
 			sid: "adminGetUser",

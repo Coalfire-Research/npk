@@ -1,9 +1,9 @@
 {
-	"resource":	{
-		"aws_iam_role": {
-			"cognito_admins": {
-				"name_prefix": "cognito_admin_role_",
-				"assume_role_policy": '{"Version": "2012-10-17","Statement": [{
+	resource:	{
+		aws_iam_role: {
+			cognito_admins: {
+				name_prefix: "cognito_admin_role_",
+				assume_role_policy: '{"Version": "2012-10-17","Statement": [{
 			    	"Effect": "Allow",
 			    	"Principal": {"Federated": "cognito-identity.amazonaws.com"},
 			    	"Action": "sts:AssumeRoleWithWebIdentity",
@@ -12,9 +12,9 @@
 			    		"ForAnyValue:StringLike": {"cognito-identity.amazonaws.com:amr": "authenticated"}
 				}}]}'
 			},
-			"cognito_authenticated": {
-				"name_prefix": "cognito_authenticated_role_",
-				"assume_role_policy": '{"Version": "2012-10-17","Statement": [{
+			cognito_authenticated: {
+				name_prefix: "cognito_authenticated_role_",
+				assume_role_policy: '{"Version": "2012-10-17","Statement": [{
 			    	"Effect": "Allow",
 			    	"Principal": {"Federated": "cognito-identity.amazonaws.com"},
 			    	"Action": "sts:AssumeRoleWithWebIdentity",
@@ -23,54 +23,54 @@
 			    		"ForAnyValue:StringLike": {"cognito-identity.amazonaws.com:amr": "authenticated"}
 				}}]}'
 			},
-			"cognito_unauthenticated": {
-				"name_prefix": "cognito_unauthenticated_role_",
-				"assume_role_policy": '{"Version": "2012-10-17","Statement": [{
+			cognito_unauthenticated: {
+				name_prefix: "cognito_unauthenticated_role_",
+				assume_role_policy: '{"Version": "2012-10-17","Statement": [{
 					"Effect": "Allow","Principal": {"Federated": "cognito-identity.amazonaws.com"},
 					"Action": "sts:AssumeRoleWithWebIdentity"}
 				]}'
 			},
 		},
-		"aws_iam_role_policy": {
-			"cognito_admins": {
-				"name_prefix": "cognito_admins_policy_",
-				"role": "${aws_iam_role.cognito_admins.id}",
-				"policy": "${data.aws_iam_policy_document.cognito_admins.json}"
+		aws_iam_role_policy: {
+			cognito_admins: {
+				name_prefix: "cognito_admins_policy_",
+				role: "${aws_iam_role.cognito_admins.id}",
+				policy: "${data.aws_iam_policy_document.cognito_admins.json}"
 			},
-			"cognito_admins_baseline": {
-				"name_prefix": "cognito_baseline_policy_",
-				"role": "${aws_iam_role.cognito_admins.id}",
-				"policy": "${data.aws_iam_policy_document.cognito_authenticated.json}"
+			cognito_admins_baseline: {
+				name_prefix: "cognito_baseline_policy_",
+				role: "${aws_iam_role.cognito_admins.id}",
+				policy: "${data.aws_iam_policy_document.cognito_authenticated.json}"
 			},
-			"cognito_authenticated": {
-				"name_prefix": "cognito_authenticated_policy_",
-				"role": "${aws_iam_role.cognito_authenticated.id}",
-				"policy": "${data.aws_iam_policy_document.cognito_authenticated.json}"
+			cognito_authenticated: {
+				name_prefix: "cognito_authenticated_policy_",
+				role: "${aws_iam_role.cognito_authenticated.id}",
+				policy: "${data.aws_iam_policy_document.cognito_authenticated.json}"
 			},
-			"cognito_unauthenticated": {
-				"name_prefix": "cognito_authenticated_policy_",
-				"role": "${aws_iam_role.cognito_unauthenticated.id}",
-				"policy": "${data.aws_iam_policy_document.cognito_unauthenticated.json}"
+			cognito_unauthenticated: {
+				name_prefix: "cognito_authenticated_policy_",
+				role: "${aws_iam_role.cognito_unauthenticated.id}",
+				policy: "${data.aws_iam_policy_document.cognito_unauthenticated.json}"
 			}
 		},
-		"aws_cognito_identity_pool_roles_attachment": {
-			"default": {
-				"identity_pool_id": "${aws_cognito_identity_pool.main.id}",
-				"roles": {
-					"authenticated": "${aws_iam_role.cognito_authenticated.arn}",
-					"unauthenticated": "${aws_iam_role.cognito_unauthenticated.arn}"
+		aws_cognito_identity_pool_roles_attachment: {
+			default: {
+				identity_pool_id: "${aws_cognito_identity_pool.main.id}",
+				roles: {
+					authenticated: "${aws_iam_role.cognito_authenticated.arn}",
+					unauthenticated: "${aws_iam_role.cognito_unauthenticated.arn}"
 				},
 
-				"role_mapping": {
-					"identity_provider": "${aws_cognito_user_pool.npk.endpoint}:${aws_cognito_user_pool_client.npk.id}",
-					"ambiguous_role_resolution": "AuthenticatedRole",
-					"type": "Rules",
+				role_mapping: {
+					identity_provider: "${aws_cognito_user_pool.npk.endpoint}:${aws_cognito_user_pool_client.npk.id}",
+					ambiguous_role_resolution: "AuthenticatedRole",
+					type: "Rules",
 
-					"mapping_rule": [{
-						"claim": "cognito:groups",
-						"match_type": "Contains",
-						"value": "npk-admins",
-						"role_arn": "${aws_iam_role.cognito_admins.arn}"
+					mapping_rule: [{
+						claim: "cognito:groups",
+						match_type: "Contains",
+						value: "npk-admins",
+						role_arn: "${aws_iam_role.cognito_admins.arn}"
 					}]
 				}
 			}
@@ -79,44 +79,44 @@
 	data(settings)::
 	local regionKeys = std.objectFields(settings.regions);
 	{
-		"aws_iam_policy_document": {
-			"cognito_admins": {
-				"statement": [{
-					"sid": "adminSettings",
-					"actions": [
+		aws_iam_policy_document: {
+			cognito_admins: {
+				statement: [{
+					sid: "adminSettings",
+					actions: [
 						"dynamodb:PutItem",
 					],
-					"resources": [
+					resources: [
 						"${aws_dynamodb_table.settings.arn}"
 					],
-					"condition": [{
-							"test": "ForAllValues:StringEquals",
-							"variable": "dynamodb:LeadingKeys",
+					condition: [{
+							test: "ForAllValues:StringEquals",
+							variable: "dynamodb:LeadingKeys",
 
-							"values": [
+							values: [
 								"admin"
 							]
 					}, {
-							"test": "ForAllValues:StringEquals",
-							"variable": "dynamodb:Attributes",
+							test: "ForAllValues:StringEquals",
+							variable: "dynamodb:Attributes",
 
-							"values": [
+							values: [
 								"userid",
 								"keyid",
 								"value",
 							]
 					}]
 				}, {
-					"sid": "events",
-					"actions": [
+					sid: "events",
+					actions: [
 						"dynamodb:Query",
 					],
-					"resources": [
+					resources: [
 						"${aws_dynamodb_table.campaigns.arn}/index/Events"
 					]
 				}, {
-					"sid": "cognitoAdmin",
-					"actions": [
+					sid: "cognitoAdmin",
+					actions: [
 						"cognito-idp:AdminAddUserToGroup",
 						"cognito-idp:AdminCreateUser",
 						"cognito-idp:AdminDeleteUser",
@@ -128,152 +128,152 @@
 						"cognito-idp:ListUsers",
 						"cognito-idp:ListUsersInGroup"
 					],
-					"resources": [
+					resources: [
 						"${aws_cognito_user_pool.npk.arn}"
 					]
 				}, {
-					"sid": "cognitoIdentities",
-					"actions": [
+					sid: "cognitoIdentities",
+					actions: [
 						"cognito-idp:ListIdentities",
 						"cognito-idp:DescribeIdentity",
 					],
-					"resources": [
+					resources: [
 						"${aws_cognito_identity_pool.main.arn}"
 					]
 				}]
 			},
-			"cognito_authenticated": {
-				"statement": [{
-					"sid": "1",
-					"actions": [
+			cognito_authenticated: {
+				statement: [{
+					sid: "1",
+					actions: [
 						"cognito-identity:*",
 						"mobileanalytics:PutEvents",
 						"cognito-sync:*",
 						"ec2:describeSpotPriceHistory",
 						"pricing:*"
 					],
-					"resources": [
+					resources: [
 						"*"
 					]
 				},{
-					"sid": "2",
-					"actions": [
+					sid: "2",
+					actions: [
 						"s3:PutObject"
 					],
-					"resources": [
+					resources: [
 						"${aws_s3_bucket.user_data.arn}/&{cognito-identity.amazonaws.com:sub}/uploads/*"
 					]
 				},{
-					"sid": "3",
-					"actions": [
+					sid: "3",
+					actions: [
 						"s3:GetObject",
 						"s3:ListObjectVersions",
 						"s3:DeleteObject"
 					],
-					"resources": [
+					resources: [
 						"${aws_s3_bucket.user_data.arn}/&{cognito-identity.amazonaws.com:sub}",
 						"${aws_s3_bucket.user_data.arn}/&{cognito-identity.amazonaws.com:sub}/*"
 					]
 				},{
-					"sid": "4",
-					"actions": [
+					sid: "4",
+					actions: [
 						"s3:ListBucket"
 					],
-					"resources": [
+					resources: [
 						"${aws_s3_bucket.user_data.arn}",
 					],
-					"condition": [{
-							"test": "StringLike",
-							"variable": "s3:prefix",
+					condition: [{
+							test: "StringLike",
+							variable: "s3:prefix",
 
-							"values": [
+							values: [
 								"&{cognito-identity.amazonaws.com:sub}/",
 								"&{cognito-identity.amazonaws.com:sub}/*"
 							]
 					}]
 				},{
-					"sid": "5",
-					"actions": [
+					sid: "5",
+					actions: [
 						"dynamodb:GetItem",
 						"dynamodb:BatchGetItem",
 						"dynamodb:Query"
 					],
-					"resources": [
+					resources: [
 						"${aws_dynamodb_table.campaigns.arn}",
 						"${aws_dynamodb_table.settings.arn}"
 					],
-					"condition": [{
-							"test": "ForAllValues:StringEquals",
-							"variable": "dynamodb:LeadingKeys",
+					condition: [{
+							test: "ForAllValues:StringEquals",
+							variable: "dynamodb:LeadingKeys",
 
-							"values": [
+							values: [
 								"&{cognito-identity.amazonaws.com:sub}",
 								"admin"
 							]
 					}]
 				},{
-					"sid": "settings",
-					"actions": [
+					sid: "settings",
+					actions: [
 						"dynamodb:PutItem",
 					],
-					"resources": [
+					resources: [
 						"${aws_dynamodb_table.campaigns.arn}",
 						"${aws_dynamodb_table.settings.arn}"
 					],
-					"condition": [{
-							"test": "ForAllValues:StringEquals",
-							"variable": "dynamodb:LeadingKeys",
+					condition: [{
+							test: "ForAllValues:StringEquals",
+							variable: "dynamodb:LeadingKeys",
 
-							"values": [
+							values: [
 								"&{cognito-identity.amazonaws.com:sub}"
 							]
 					}, {
-							"test": "ForAllValues:StringEquals",
-							"variable": "dynamodb:Attributes",
+							test: "ForAllValues:StringEquals",
+							variable: "dynamodb:Attributes",
 
-							"values": [
+							values: [
 								"userid",
 								"keyid",
 								"value"
 							]
 					}]
 				},{
-					"sid": "6",
-					"actions": [
+					sid: "6",
+					actions: [
 						"s3:ListBucket"
 					],
-					"resources": [
+					resources: [
 						"${var.dictionary-" + regionKeys[i] + "}"
 						for i in std.range(0, std.length(regionKeys) - 1)
 					]
 				},{
-					"sid": "7",
-					"actions": [
+					sid: "7",
+					actions: [
 						"s3:GetObject"
 					],
-					"resources": [
+					resources: [
 						"${var.dictionary-" + regionKeys[i] + "}/*"
 						for i in std.range(0, std.length(regionKeys) - 1)
 					]
 				},{
-					"sid": "8",
-					"actions": [
+					sid: "8",
+					actions: [
 						"execute-api:Invoke"
 					],
-					"resources": [
+					resources: [
 						"${aws_api_gateway_deployment.npk.execution_arn}/*/userproxy/*"
 					]
 				}]
 			},
-			"cognito_unauthenticated": {
-				"statement": [{
-					"sid": "logs",
-					"actions": [
+			cognito_unauthenticated: {
+				statement: [{
+					sid: "logs",
+					actions: [
 						"cognito-identity:*",
 						"mobileanalytics:PutEvents",
 						"cognito-sync:*"
 					],
-					"resources": [
+					resources: [
 						"*"
 					]
 				}]

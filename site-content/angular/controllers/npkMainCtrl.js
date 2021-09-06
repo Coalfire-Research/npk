@@ -628,6 +628,8 @@ angular
           $scope.$digest();
 
           $('#messageModal').modal('show');
+          $('img#action-' + campaign_id).hide();
+          $('a#start-' + campaign_id).show();
         });
       };
 

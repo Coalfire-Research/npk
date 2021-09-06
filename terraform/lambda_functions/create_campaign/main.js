@@ -482,13 +482,14 @@ exports.main = async function(event, context, callback) {
 			startTime: Math.floor(new Date().getTime() / 1000),
 			spotFleetRequestId: "<none>",
 			cognitoUserEmail: email,
-			deleted: false
+			deleted: false,
+			lastuntil: Math.floor(new Date().getTime() / 1000) + 2700,
 		});
 
 		const updateCampaign = await ddb.updateItem({
 			Key: {
 				userid: {S: entity},
-				keyid: {S: `campaigns:${campaign}`}
+				keyid: {S: `campaigns:${campaignId}`}
 			},
 			TableName: "Campaigns",
 			AttributeUpdates: Object.keys(updateParams).reduce((attrs, entry) => {
@@ -515,8 +516,7 @@ exports.main = async function(event, context, callback) {
 function respond(statusCode, headers, body, success) {
 
 	// Include terraform dns names as allowed origins, as well as localhost.
-	const allowed_origins = [variables.www_dns_names];
-	allowed_origins.push("https://localhost");
+	const allowed_origins = [variables.www_dns_names, "https://localhost"];
 
 	headers['Content-Type'] = 'text/plain';
 

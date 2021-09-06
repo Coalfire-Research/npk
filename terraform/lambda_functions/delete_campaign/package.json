@@ -1,7 +1,7 @@
 {
-  "name": "execute_campaign",
+  "name": "delete_campaign",
   "version": "1.0.0",
-  "description": "NPK execute_campaign Lambda",
+  "description": "NPK delete_campaign Lambda",
   "main": "main.js",
   "dependencies": {
     "aws-sdk": "^2.599.0"

@@ -48,7 +48,7 @@ local lambda_function(name, config, role_policy) = {
 		local_file: {
 			["lambda-" + name + "_envvars"]: {
 				content: std.join("\n", [
-					"export %s=%s" % [key, config.environment.variables[key]]
+					"declare %s='%s'\nexport %s" % [key, config.environment.variables[key], key]
 					for key in std.objectFields(config.environment.variables)
 				]),
 				filename: "${path.module}/lambda_functions/" + name + "/ENVVARS",
@@ -61,7 +61,7 @@ local lambda_function(name, config, role_policy) = {
 			[name]: {
 				depends_on: [
 					"null_resource.npm_install-" + name
-				],
+				] + if std.objectHas(config, 'depends_on') then config.depends_on else [],
 				type: "zip",
 				source_dir: "${path.module}/lambda_functions/" + name + "/",
 				output_path: "${path.module}/lambda_functions/zip_files/" + name + ".zip",

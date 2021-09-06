@@ -55,7 +55,7 @@ local az(region) = {
 			},
 			userdata_template: {
 				content: "${data.template_file.userdata_template.rendered}",
-				filename: "${path.module}/lambda_functions/proxy_api_handler/userdata.sh",
+				filename: "${path.module}/lambda_functions/execute_campaign/userdata.sh",
 			}
 		}
 	},

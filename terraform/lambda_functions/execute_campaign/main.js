@@ -1,9 +1,12 @@
 const aws = require('aws-sdk');
 const ddb = new aws.DynamoDB({ region: "us-west-2" });
 const s3 = new aws.S3({ region: "us-west-2" });
+const fs = require('fs');
 
 let cb = "";
 let variables = {};
+
+const cognito = new aws.CognitoIdentityServiceProvider({region: "us-west-2", apiVersion: "2016-04-18"});
 
 exports.main = async function(event, context, callback) {
 
@@ -14,6 +17,10 @@ exports.main = async function(event, context, callback) {
 
 	// Get the available envvars into a usable format.
 	variables = JSON.parse(JSON.stringify(process.env));
+	variables.availabilityZones = JSON.parse(variables.availabilityZones);
+	variables.dictionaryBuckets = JSON.parse(variables.dictionaryBuckets);
+
+	let entity, UserPoolId, Username;
 
 	try {
 
@@ -33,27 +40,14 @@ exports.main = async function(event, context, callback) {
 			return respond(401, {}, "Authentication Required", false);
 		}
 
-		const entity = event.requestContext.identity.cognitoIdentityId;
-
-		var body = {};
-		// Unencode the body if necessary
-		if (!!event?.body) {
-			body = (event.requestContext.isBase64Encoded) ? atob(event.body) : event.body;
-
-			// Body will always be a JSON object.
-			try {
-				body = JSON.parse(body);
-			} catch (e) {
-				return respond(400, "Body must be JSON object", false);
-			}
-		}
+		entity = event.requestContext.identity.cognitoIdentityId;
 
 		// Associate the user identity.
-		const [ UserPoolId,, Username ] = event?.requestContext?.identity?.cognitoAuthenticationProvider?.split('/')[2]?.split(':');
+		[ UserPoolId,, Username ] = event?.requestContext?.identity?.cognitoAuthenticationProvider?.split('/')[2]?.split(':');
 
 		if (!UserPoolId || !Username) {
 			console.log(`UserPoolId or Username is missing from ${event?.requestContext?.identity?.cognitoAuthenticationProvider}`);
-			respond(401, "Authorization Required");
+			respond(401, {}, "Authorization Required", false);
 		}
 
 	} catch (e) {
@@ -61,17 +55,23 @@ exports.main = async function(event, context, callback) {
 		return respond(500, {}, "Failed to process request.", false);
 	}
 
+	let user, email;
+
 	try {
 		const user = await cognito.adminGetUser({ UserPoolId, Username }).promise();
 
 		// Restructure UserAttributes as an k:v
 		user.UserAttributes = user.UserAttributes.reduce((attrs, entry) => {
 			attrs[entry.Name] = entry.Value
+
+			return attrs;
 		}, {});
 
 		if (!user?.UserAttributes?.email) {
 			return respond(401, {}, "Unable to obtain user properties.", false);
 		}
+
+		email = user.UserAttributes.email;
 			
 	} catch (e) {
 		console.log("Unable to retrieve user context.", e);
@@ -85,8 +85,10 @@ exports.main = async function(event, context, callback) {
 	// Get the campaign entry from DynamoDB, and manifest from S3.
 	// * In parallel, to save, like, some milliseconds.
 
+	let campaign, manifestObject, manifest;
+
 	try {
-		const [campaign, manifestObject] = await Promise.all([
+		[campaign, manifestObject] = await Promise.all([
 			ddb.query({
 				ExpressionAttributeValues: {
 					':id': {S: entity},
@@ -98,47 +100,50 @@ exports.main = async function(event, context, callback) {
 
 			s3.getObject({
 				Bucket: variables.userdata_bucket,
-				Key: `${entity}/campaigns/${campaign}/manifest.json`
+				Key: `${entity}/campaigns/${campaignId}/manifest.json`
 			}).promise()
 		]);
 
-		const manifest = JSON.parse(manifestObject.Body.toString('ascii'));
+		manifest = JSON.parse(manifestObject.Body.toString('ascii'));
 	} catch (e) {
 		console.log("Failed to retrieve campaign details.", e);
-		return respond(500, {}, "Failed to retrieve campaign details.");
+		return respond(500, {}, "Failed to retrieve campaign details.", false);
 	}
 
 	if (campaign.Items?.[0]?.status?.S != "AVAILABLE") {
-		return respond(404, {}, "Campaign doesn't exist or is not in 'AVAILABLE' status.");
+		return respond(404, {}, "Campaign doesn't exist or is not in 'AVAILABLE' status.", false);
 	}
-
-	console.log(campaign, manifest);
 
 	// Test whether the provided presigned URL is expired.
 
-	try {
-		var expires = /Expires=([\d]+)&/.exec(manifest.hashFileUrl)[1];
-	} catch (e) {
-		return respond(400, "Invalid hashFileUrl; missing expiration");
-	}
+	let expires, duration;
 
-	var duration = expires - (new Date().getTime() / 1000);
-	if (duration < 900) {
-		return respond(400, {} `hashFileUrl must be valid for at least 900 seconds, got ${Math.floor(duration)}`);
+	try {
+		expires = /Expires=([\d]+)&/.exec(manifest.hashFileUrl)[1];
+
+		duration = expires - (new Date().getTime() / 1000);
+
+		if (duration < 900) {
+			return respond(400, {} `hashFileUrl must be valid for at least 900 seconds, got ${Math.floor(duration)}`, false);
+		}
+	} catch (e) {
+		return respond(400, {}, "Invalid hashFileUrl; missing expiration", false);
 	}
 
 	// Campaign is valid. Get AZ pricing and Image AMI
 	// * Again in parallel, to save, like, some more milliseconds.
 
+	const ec2 = new aws.EC2({region: manifest.region});
+	let pricing, image;
+
 	try {
-		const ec2 = new aws.EC2({region: manifest.region});
-		const [pricing, image] = await Promise.all([
+		[pricing, image] = await Promise.all([
 			ec2.describeSpotPriceHistory({
 				EndTime: Math.round(Date.now() / 1000),
 				ProductDescriptions: [ "Linux/UNIX (Amazon VPC)" ],
 				InstanceTypes: [ manifest.instanceType ],
 				StartTime: Math.round(Date.now() / 1000)
-			}),
+			}).promise(),
 
 			ec2.describeImages({
 				Filters: [{
@@ -154,12 +159,18 @@ exports.main = async function(event, context, callback) {
 	            	Name: "owner-id",
 	            	Values: ["679593333241"]
 	            }]
-			})
+			}).promise()
 		]);
 	} catch (e) {
 		console.log("Failed to retrieve price and image details.", e);
-		return respond(500, {}, "Failed to retrieve price and image details.");
+		return respond(500, {}, "Failed to retrieve price and image details.", false);
 	}
+
+	image = image.Images.reduce((newest, entry) => 
+		entry.CreationDate > newest.CreationDate ? entry : newest
+	, { CreationDate: '1980-01-01T00:00:00.000Z' });
+
+	let spotFleetParams;
 
 	try {
 
@@ -170,7 +181,7 @@ exports.main = async function(event, context, callback) {
 
 		// Build a launchSpecification for each AZ in the target region.
 
-		const instance_userdata = new Buffer(fs.readFileSync(__dirname + '/userdata.sh', 'utf-8')
+		const instance_userdata = new Buffer.from(fs.readFileSync(__dirname + '/userdata.sh', 'utf-8')
 			.replace("{{APIGATEWAY}}", process.env.apigateway))
 			.toString('base64');
 
@@ -223,12 +234,12 @@ exports.main = async function(event, context, callback) {
 		}, []);
 
 		// Get the average spot price across all AZs in the region.
-		const spotPrice = pricing.reduce((average, entry) => average + (entry / pricing.length), 0);
+		const spotPrice = pricing.SpotPriceHistory.reduce((average, entry) => average + (entry.SpotPrice / pricing.SpotPriceHistory.length), 0);
 		const maxDuration = (Number(manifest.instanceDuration) < variables.campaign_max_price / spotPrice) ? Number(manifest.instanceDuration) : variables.campaign_max_price / spotPrice;
 
-		console.log(spotPrice, maxDuration, variables.campaign_max_price);
+		console.log(`Setting Duration to ${maxDuration} (Spot average $${spotPrice} with limit of $${variables.campaign_max_price})`);
 
-		const spotFleetParams = {
+		spotFleetParams = {
 			SpotFleetRequestConfig: {
 				AllocationStrategy: "lowestPrice",
 				IamFleetRole: variables.iamFleetRole,
@@ -244,17 +255,19 @@ exports.main = async function(event, context, callback) {
 			}
 		};
 
-		console.log(JSON.stringify(spotFleetParams));
+		// console.log(JSON.stringify(spotFleetParams));
 	} catch (e) {
 		console.log("Failed to generate launch specifications.", e);
-		return respond(500, {}, "Failed to generate launch specifications.");
+		return respond(500, {}, "Failed to generate launch specifications.", false);
 	}
 
+	let spotFleetRequest;
+
 	try {
-		const spotFleetRequest = await ec2.requestSpotFleet(spotFleetParams).promise();
+		spotFleetRequest = await ec2.requestSpotFleet(spotFleetParams).promise();
 	} catch (e) {
 		console.log("Failed to request spot fleet.", e);
-		return respond(500, {}, "Failed to request spot fleet.");
+		return respond(500, {}, "Failed to request spot fleet.", false);
 	}
 
 	// Campaign created successfully.
@@ -262,19 +275,30 @@ exports.main = async function(event, context, callback) {
 	console.log(`Successfully requested spot fleet ${spotFleetRequest.SpotFleetRequestId}`);
 
 	try {
+		const updateParams = aws.DynamoDB.Converter.marshall({
+			active: true,
+			status: "STARTING",
+			spotFleetRequestId: spotFleetRequest.SpotFleetRequestId,
+			startTime: Math.floor(new Date().getTime() / 1000),
+			eventType: "CampaignStarted",
+			lastuntil: 0,
+		});
+
 		const updateCampaign = await ddb.updateItem({
 			Key: {
 				userid: {S: entity},
-				keyid: {S: `campaigns:${campaign}`}
+				keyid: {S: `campaigns:${campaignId}`}
 			},
 			TableName: "Campaigns",
-			AttributeUpdates: {
-				active: { Action: "PUT", Value: { BOOL: true }},
-				status: { Action: "PUT", Value: { S: "STARTING" }},
-				spotFleetRequestId: { Action: "PUT", Value: { S: data.SpotFleetRequestId }},
-				startTime: { Action: "PUT", Value: { N: Math.floor(new Date().getTime() / 1000) }},
-				eventType: { Action: "PUT", Value: { S: "CampaignStarted" }}
-			}
+			AttributeUpdates: Object.keys(updateParams).reduce((attrs, entry) => {
+				attrs[entry] = {
+					Action: "PUT",
+					Value: updateParams[entry]
+				};
+
+				return attrs;
+			}, {})
+			
 		}).promise();
 	} catch (e) {
 		console.log("Spot fleet submitted, but failed to mark Campaign as 'STARTING'. This is a catastrophic error.", e);
@@ -287,8 +311,7 @@ exports.main = async function(event, context, callback) {
 function respond(statusCode, headers, body, success) {
 
 	// Include terraform dns names as allowed origins, as well as localhost.
-	const allowed_origins = JSON.parse(variables.www_dns_names);
-	allowed_origins.push("https://localhost");
+	const allowed_origins = [variables.www_dns_names, "https://localhost"];
 
 	headers['Content-Type'] = 'text/plain';
 
@@ -319,9 +342,5 @@ function respond(statusCode, headers, body, success) {
 
 	cb(null, response);
 
-	if (success == true) {
-		return Promise.resolve(body.msg);
-	} else {
-		return Promise.reject(body.msg);
-	}
+	return Promise.resolve(body.msg);
 }

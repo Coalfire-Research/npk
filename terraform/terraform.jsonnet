@@ -386,18 +386,7 @@ local regionKeys = std.objectFields(settings.regions);
 
 		environment: {
 			variables: {
-				www_dns_names: std.toString([settings.wwwEndpoint]),
-				campaign_max_price: "${var.campaign_max_price}",
-				userdata_bucket: "${aws_s3_bucket.user_data.id}",
-				instanceProfile: "${aws_iam_instance_profile.npk_node.arn}",
-				iamFleetRole: "${aws_iam_role.npk_fleet_role.arn}",
-				availabilityZones: std.strReplace(std.manifestJsonEx({
-					[regionKeys[i]]: {
-						[settings.regions[regionKeys[i]][azi]]: "${aws_subnet." + settings.regions[regionKeys[i]][azi] + ".id}"
-							for azi in std.range(0, std.length(settings.regions[regionKeys[i]]) - 1)
-					}
-					for i in std.range(0, std.length(regionKeys) - 1)
-				}, ""), "\n", "")
+				www_dns_names: std.toString([settings.wwwEndpoint])
 			}
 		}
 	}, {
@@ -438,23 +427,35 @@ local regionKeys = std.objectFields(settings.regions);
 
 		environment: {
 			variables: {
-				www_dns_names: std.toString([settings.wwwEndpoint]),
+				www_dns_names: std.toString(settings.wwwEndpoint),
 				campaign_max_price: "${var.campaign_max_price}",
+				gQuota: settings.quotas.gquota,
+				pQuota: settings.quotas.pquota,
 				userdata_bucket: "${aws_s3_bucket.user_data.id}",
 				instanceProfile: "${aws_iam_instance_profile.npk_node.arn}",
 				iamFleetRole: "${aws_iam_role.npk_fleet_role.arn}",
-				availabilityZones: std.manifestJsonEx({
+				availabilityZones: std.strReplace(std.manifestJsonEx({
 					[regionKeys[i]]: {
 						[settings.regions[regionKeys[i]][azi]]: "${aws_subnet." + settings.regions[regionKeys[i]][azi] + ".id}"
 							for azi in std.range(0, std.length(settings.regions[regionKeys[i]]) - 1)
 					}
 					for i in std.range(0, std.length(regionKeys) - 1)
-				}, "")
+				}, ""), "\n", ""),
+				dictionaryBuckets: std.strReplace(std.manifestJsonEx({
+					[regionKeys[i]]: "${var.dictionary-" + regionKeys[i] + "-id}"
+					for i in std.range(0, std.length(regionKeys) - 1)
+				}, ""), "\n", ""),
+				apigateway: if settings.useCustomDNS then
+					settings.apiEndpoint
+				else
+					"${aws_api_gateway_rest_api.npk.id}.execute-api." + settings.defaultRegion + ".amazonaws.com"
 			}
-		}
+		},
+
+		depends_on: ["local_file.userdata_template"]
 	}, {
 		statement: [{
-			sid: "s3",
+			sid: "s3GetUserFile",
 			actions: [
 				"s3:GetObject"
 			],

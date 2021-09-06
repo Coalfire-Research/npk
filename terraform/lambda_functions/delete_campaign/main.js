@@ -5,6 +5,8 @@ const s3 = new aws.S3({ region: "us-west-2" });
 let cb = "";
 let variables = {};
 
+var cognito = new aws.CognitoIdentityServiceProvider({region: "us-west-2", apiVersion: "2016-04-18"});
+
 exports.main = async function(event, context, callback) {
 
 	console.log(JSON.stringify(event));
@@ -14,6 +16,8 @@ exports.main = async function(event, context, callback) {
 
 	// Get the available envvars into a usable format.
 	variables = JSON.parse(JSON.stringify(process.env));
+
+	let entity, UserPoolId, Username;
 
 	try {
 
@@ -33,27 +37,14 @@ exports.main = async function(event, context, callback) {
 			return respond(401, {}, "Authentication Required", false);
 		}
 
-		const entity = event.requestContext.identity.cognitoIdentityId;
-
-		var body = {};
-		// Unencode the body if necessary
-		if (!!event?.body) {
-			body = (event.requestContext.isBase64Encoded) ? atob(event.body) : event.body;
-
-			// Body will always be a JSON object.
-			try {
-				body = JSON.parse(body);
-			} catch (e) {
-				return respond(400, "Body must be JSON object", false);
-			}
-		}
+		entity = event.requestContext.identity.cognitoIdentityId;
 
 		// Associate the user identity.
-		const [ UserPoolId,, Username ] = event?.requestContext?.identity?.cognitoAuthenticationProvider?.split('/')[2]?.split(':');
+		[ UserPoolId,, Username ] = event?.requestContext?.identity?.cognitoAuthenticationProvider?.split('/')[2]?.split(':');
 
 		if (!UserPoolId || !Username) {
 			console.log(`UserPoolId or Username is missing from ${event?.requestContext?.identity?.cognitoAuthenticationProvider}`);
-			respond(401, "Authorization Required");
+			respond(401, {}, "Authorization Required", false);
 		}
 
 	} catch (e) {
@@ -61,17 +52,23 @@ exports.main = async function(event, context, callback) {
 		return respond(500, {}, "Failed to process request.", false);
 	}
 
+	let user, email;
+
 	try {
-		const user = await cognito.adminGetUser({ UserPoolId, Username }).promise();
+		user = await cognito.adminGetUser({ UserPoolId, Username }).promise();
 
 		// Restructure UserAttributes as an k:v
 		user.UserAttributes = user.UserAttributes.reduce((attrs, entry) => {
 			attrs[entry.Name] = entry.Value
+
+			return attrs;
 		}, {});
 
 		if (!user?.UserAttributes?.email) {
 			return respond(401, {}, "Unable to obtain user properties.", false);
 		}
+
+		email = user.UserAttributes.email;
 			
 	} catch (e) {
 		console.log("Unable to retrieve user context.", e);
@@ -85,201 +82,142 @@ exports.main = async function(event, context, callback) {
 	// Get the campaign entry from DynamoDB, and manifest from S3.
 	// * In parallel, to save, like, some milliseconds.
 
+	let campaign;
+
 	try {
-		const [campaign, manifestObject] = await Promise.all([
-			ddb.query({
-				ExpressionAttributeValues: {
-					':id': {S: entity},
-					':keyid': {S: `campaigns:${campaignId}`}
-				},
-				KeyConditionExpression: 'userid = :id and keyid = :keyid',
-				TableName: "Campaigns"
-			}).promise(),
+		campaign = await ddb.query({
+			ExpressionAttributeValues: {
+				':id': {S: entity},
+				':keyid': {S: `campaigns:${campaignId}`}
+			},
+			KeyConditionExpression: 'userid = :id and keyid = :keyid',
+			TableName: "Campaigns"
+		}).promise();
 
-			s3.getObject({
-				Bucket: variables.userdata_bucket,
-				Key: `${entity}/campaigns/${campaign}/manifest.json`
-			}).promise()
-		]);
-
-		const manifest = JSON.parse(manifestObject.Body.toString('ascii'));
 	} catch (e) {
 		console.log("Failed to retrieve campaign details.", e);
 		return respond(500, {}, "Failed to retrieve campaign details.");
 	}
 
-	if (campaign.Items?.[0]?.status?.S != "AVAILABLE") {
-		return respond(404, {}, "Campaign doesn't exist or is not in 'AVAILABLE' status.");
+	if (!campaign.Items?.[0]?.status?.S) {
+		return respond(404, {},  "Specified campaign does not exist.", false);
 	}
 
-	console.log(campaign, manifest);
+	var ec2 = new aws.EC2({region: campaign.Items[0].region.S});
 
-	// Test whether the provided presigned URL is expired.
+	switch (campaign.Items[0].status.S) {
+		case "STARTING":
+		case "RUNNING": 
 
-	try {
-		var expires = /Expires=([\d]+)&/.exec(manifest.hashFileUrl)[1];
-	} catch (e) {
-		return respond(400, "Invalid hashFileUrl; missing expiration");
-	}
+			let sfr;
 
-	var duration = expires - (new Date().getTime() / 1000);
-	if (duration < 900) {
-		return respond(400, {} `hashFileUrl must be valid for at least 900 seconds, got ${Math.floor(duration)}`);
-	}
+			try {
+				sfr = await ec2.describeSpotFleetRequests({
+					SpotFleetRequestIds: [campaign.spotFleetRequestId]
+				}).promise();
+			} catch(e) {
+				console.log("Failed to retrieve spot fleet request.", e);
+				return respond(500, {}, "Failed to retrieve spot fleet request.", false);
+			}
 
-	// Campaign is valid. Get AZ pricing and Image AMI
-	// * Again in parallel, to save, like, some more milliseconds.
+			if (!sfr.SpotFleetRequestConfigs?.[0]?.SpotFleetRequestId) {
+				return respond(404, "Error retrieving spot fleet data: not found.", false);
+			}
 
-	try {
-		const ec2 = new aws.EC2({region: manifest.region});
-		const [pricing, image] = await Promise.all([
-			ec2.describeSpotPriceHistory({
-				EndTime: Math.round(Date.now() / 1000),
-				ProductDescriptions: [ "Linux/UNIX (Amazon VPC)" ],
-				InstanceTypes: [ manifest.instanceType ],
-				StartTime: Math.round(Date.now() / 1000)
-			}),
+			if (sfr.SpotFleetRequestConfigs[0].SpotFleetRequestState == "active") {
+				let cancellation;
 
-			ec2.describeImages({
-				Filters: [{
-	                Name: "virtualization-type",
-	                Values: ["hvm"]
-	            },{
-	            	Name: "name",
-	            	Values: ["amzn2-ami-graphics-hvm-2*"]
-	            },{
-	            	Name: "root-device-type",
-	            	Values: ["ebs"]
-	            },{
-	            	Name: "owner-id",
-	            	Values: ["679593333241"]
-	            }]
-			})
-		]);
-	} catch (e) {
-		console.log("Failed to retrieve price and image details.", e);
-		return respond(500, {}, "Failed to retrieve price and image details.");
-	}
-
-	try {
-
-		// Calculate the necessary volume size
-
-		const volumeSize = Math.ceil(manifest.wordlistSize / 1073741824) + 1;
-		console.log(`Wordlist is ${manifest.wordlistSize / 1073741824}GiB. Allocating ${volumeSize}GiB`);
-
-		// Build a launchSpecification for each AZ in the target region.
-
-		const instance_userdata = new Buffer(fs.readFileSync(__dirname + '/userdata.sh', 'utf-8')
-			.replace("{{APIGATEWAY}}", process.env.apigateway))
-			.toString('base64');
-
-		const launchSpecificationTemplate = {
-			IamInstanceProfile: {
-				Arn: variables.instanceProfile
-			},
-			ImageId: image.ImageId,
-			KeyName: "npk-key",
-			InstanceType: manifest.instanceType,
-			BlockDeviceMappings: [{
-				DeviceName: '/dev/xvdb',
-				Ebs: {
-					DeleteOnTermination: true,
-					Encrypted: false,
-					VolumeSize: volumeSize,
-					VolumeType: "gp2"
+				try {
+					cancellation = await ec2.cancelSpotFleetRequests({
+						SpotFleetRequestIds: [sfr.SpotFleetRequestConfigs[0].SpotFleetRequestId],
+						TerminateInstances: true
+					}).promise();
+				} catch(e) {
+					console.log("Failed to request cancellation of spot fleet request.", e);
+					return respond(500, {}, "Failed to request cancellation of spot fleet request.", false);
 				}
-			}],
-			NetworkInterfaces: [{
-				AssociatePublicIpAddress: true,
-				DeviceIndex: 0,
-				// SubnetId: Gets populated below.
-			}],
-			Placement: {
-				// AvailabilityZone: Gets populated below.
-			},
-			TagSpecifications: [{
-				ResourceType: "instance",
-				Tags: [{
-					Key: "MaxCost",
-					Value: ((manifest.priceTarget < variables.campaign_max_price) ? manifest.priceTarget : variables.campaign_max_price).toString()
-				}, {
-					Key: "ManifestPath",
-					Value: `${entity}/campaigns/${campaignId}`
-				}]
-			}],
-			UserData: instance_userdata
-		};
 
-		// Create a copy of the launchSpecificationTemplate for each AvailabilityZone in the campaign's region.
-
-		const launchSpecifications = Object.keys(variables.availabilityZones[manifest.region]).reduce((specs, entry) => {
-			const az = JSON.parse(JSON.stringify(launchSpecificationTemplate)); // Have to deep-copy to avoid referential overrides.
-
-			az.Placement.AvailabilityZone = entry;
-			az.NetworkInterfaces[0].SubnetId = variables.availabilityZones[manifest.region][entry];
-
-			return specs.concat(az);
-		}, []);
-
-		// Get the average spot price across all AZs in the region.
-		const spotPrice = pricing.reduce((average, entry) => average + (entry / pricing.length), 0);
-		const maxDuration = (Number(manifest.instanceDuration) < variables.campaign_max_price / spotPrice) ? Number(manifest.instanceDuration) : variables.campaign_max_price / spotPrice;
-
-		console.log(spotPrice, maxDuration, variables.campaign_max_price);
-
-		const spotFleetParams = {
-			SpotFleetRequestConfig: {
-				AllocationStrategy: "lowestPrice",
-				IamFleetRole: variables.iamFleetRole,
-				InstanceInterruptionBehavior: "terminate",
-				LaunchSpecifications: launchSpecifications,
-				SpotPrice: (manifest.priceTarget / (manifest.instanceCount * manifest.instanceDuration) * 2).toString(),
-				TargetCapacity: manifest.instanceCount,
-				ReplaceUnhealthyInstances: false,
-				TerminateInstancesWithExpiration: true,
-				Type: "request",
-				ValidFrom: (new Date().getTime() / 1000),
-				ValidUntil: (new Date().getTime() / 1000) + (maxDuration * 3600)
+				if (cancellation?.SuccessfulFleetRequests?.[0].CurrentSpotFleetRequestState?.indexOf('cancelled') < 0) {
+					return respond(400, "Error cancelling spot fleet. Current state: " + cancallation.SuccessfulFleetRequests[0].CurrentSpotFleetRequestState, false);
+				}
 			}
-		};
 
-		console.log(JSON.stringify(spotFleetParams));
-	} catch (e) {
-		console.log("Failed to generate launch specifications.", e);
-		return respond(500, {}, "Failed to generate launch specifications.");
-	}
-
-	try {
-		const spotFleetRequest = await ec2.requestSpotFleet(spotFleetParams).promise();
-	} catch (e) {
-		console.log("Failed to request spot fleet.", e);
-		return respond(500, {}, "Failed to request spot fleet.");
-	}
-
-	// Campaign created successfully.
-
-	console.log(`Successfully requested spot fleet ${spotFleetRequest.SpotFleetRequestId}`);
-
-	try {
-		const updateCampaign = await ddb.updateItem({
-			Key: {
-				userid: {S: entity},
-				keyid: {S: `campaigns:${campaign}`}
-			},
-			TableName: "Campaigns",
-			AttributeUpdates: {
-				active: { Action: "PUT", Value: { BOOL: true }},
-				status: { Action: "PUT", Value: { S: "STARTING" }},
-				spotFleetRequestId: { Action: "PUT", Value: { S: data.SpotFleetRequestId }},
-				startTime: { Action: "PUT", Value: { N: Math.floor(new Date().getTime() / 1000) }},
-				eventType: { Action: "PUT", Value: { S: "CampaignStarted" }}
+			try {
+				let update = await ddb.updateItem({
+					Key: {
+						userid: {S: entity},
+						keyid: {S: `campaigns:${campaignId}`}
+					},
+					TableName: "Campaigns",
+					AttributeUpdates: {
+						active: { Action: 'PUT', Value: { BOOL: false }},
+						status: { Action: 'PUT', Value: { S: "CANCELLED" }}
+					}
+				}).promise();
+			} catch(e) {
+				console.log("Failed to deactivate campaign.", e);
+				return respond(500, {}, "Failed to deactivate campaign.", false);
 			}
-		}).promise();
-	} catch (e) {
-		console.log("Spot fleet submitted, but failed to mark Campaign as 'STARTING'. This is a catastrophic error.", e);
-		return respond(500, {}, "Spot fleet submitted, but failed to mark Campaign as 'STARTING'. This is a catastrophic error.", false);
+
+			return respond(200, {}, `Campaign ${campaignId} stopped.`, true);
+
+		break;
+
+		default:
+
+			try {
+				let entries = await ddb.query({
+					ExpressionAttributeValues: {
+						':id': {S: entity},
+						':keyid': {S: `${campaignId}:`}
+					},
+					KeyConditionExpression: 'userid = :id and begins_with(keyid, :keyid)',
+					TableName: "Campaigns"
+				}).promise();
+			} catch (e) {
+				console.log("Failed to retrieve events for campaign.", e);
+				return respond(500, {}, "Failed to retrieve events for campaign.", false);
+			}
+
+			try {
+
+				// Delete event entries for the campaign.
+				const promises = entries.Items.map((entry) => {
+					entry = aws.DynamoDB.Converter.unmarshall(entry);
+
+					return ddb.deleteItem({
+						Key: {
+							userid: {S: entity},
+							keyid: {S: entry.keyid}
+						},
+						TableName: "Campaigns"
+					}).promise();
+				});
+
+				promises.push(ddb.updateItem({
+					Key: {
+						userid: {S: entity},
+						keyid: {S: `campaigns:${campaignId}`}
+					},
+					TableName: "Campaigns",
+					AttributeUpdates: {
+						deleted: { Action: 'PUT', Value: { BOOL: true }}
+					}
+				}).promise());
+
+				let finished = await Promise.all(promises);
+
+			} catch (e) {
+				console.log("Failed to delete campaign", e);
+				return respond(500, {}, "Failed to delete campaign", false);
+			}
+
+			return respond(200, {}, `Campaign ${campaignId} deleted.`, true);
+
+		break;
 	}
+
+	
 
 	return respond(200, {}, { msg: "Campaign started successfully", campaignId: campaignId, spotFleetRequestId: spotFleetRequest.SpotFleetRequestId }, true);
 }
@@ -287,8 +225,7 @@ exports.main = async function(event, context, callback) {
 function respond(statusCode, headers, body, success) {
 
 	// Include terraform dns names as allowed origins, as well as localhost.
-	const allowed_origins = JSON.parse(variables.www_dns_names);
-	allowed_origins.push("https://localhost");
+	const allowed_origins = [variables.www_dns_names, "https://localhost"];
 
 	headers['Content-Type'] = 'text/plain';
 
@@ -319,9 +256,5 @@ function respond(statusCode, headers, body, success) {
 
 	cb(null, response);
 
-	if (success == true) {
-		return Promise.resolve(body.msg);
-	} else {
-		return Promise.reject(body.msg);
-	}
+	return Promise.resolve(body.msg);
 }

@@ -21,6 +21,7 @@ terraform/lambda_functions/proxy_api_handler/api_handler_variables.js
 terraform/lambda_functions/status_reporter/npk_settings.js
 terraform/lambda_functions/spot_monitor/npk_settings.js
 terraform/lambda_functions/proxy_api_handler/userdata.sh
+terraform/lambda_functions/execute_campaign/userdata.sh
 terraform/templates/api-handler-variables.tpl
 terraform/templates/npk_settings.tpl
 terraform-selfhost/components/

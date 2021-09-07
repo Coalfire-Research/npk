@@ -113,7 +113,9 @@ local regionKeys = std.objectFields(settings.regions);
 				["api-url-" + i]: api_gateway.domain_name(
 					settings.dnsNames.api[i],
 					"${aws_acm_certificate.api-" + i + ".arn}"
-				) for i in std.range(0, std.length(settings.dnsNames.api) - 1)
+				) + {
+					depends_on: ["aws_acm_certificate_validation.api-" + i]
+				} for i in std.range(0, std.length(settings.dnsNames.api) - 1)
 			},
 			"aws_api_gateway_base_path_mapping": {
 				["api-url-" + i]: api_gateway.base_path("${aws_api_gateway_domain_name.api-url-" + i + ".domain_name}")

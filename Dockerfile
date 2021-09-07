@@ -22,8 +22,8 @@ RUN apk -v --no-cache add python py-pip groff less mailcap && \
 # Installing terraform
 RUN mkdir /build/terraform && \
     cd /build/terraform && \
-    wget https://releases.hashicorp.com/terraform/0.11.15-oci/terraform_0.11.15-oci_linux_amd64.zip && \
-    unzip terraform_0.11.15-oci_linux_amd64.zip && \
+    wget https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip && \
+    unzip terraform_0.11.15_linux_amd64.zip && \
     ln -s /build/terraform/terraform /usr/bin/terraform
 
 # Installing a text editor

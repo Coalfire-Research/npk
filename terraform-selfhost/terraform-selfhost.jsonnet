@@ -20,7 +20,7 @@ local regionKeys = std.objectFields(settings.regions);
 			backend: {
 				s3: {
 					bucket: settings.backend_bucket,
-					key: "c6fc.io/npk/terraform-selfhost.tfstate",
+					key: "c6fc.io/npkv2.5/terraform-selfhost.tfstate",
 					profile: settings.awsProfile,
 					region: settings.defaultRegion
 				}

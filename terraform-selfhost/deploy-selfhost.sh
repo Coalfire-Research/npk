@@ -24,7 +24,7 @@ fi
 
 if [[ $(aws --version | grep -c "aws-cli/2") != 1 ]]; then
 	ERR=1;
-	echo "Error: Wrong version of Terraform is installed. NPK requires AWSCLI version 2.";
+	echo "Error: Wrong version of AWSCLI is installed. NPK requires AWSCLI version 2.";
 fi
 
 if [[ ! -f $(which npm) ]]; then
@@ -37,18 +37,18 @@ if [[ ! -f $(which terraform) ]]; then
 	echo "Error: Must have Terraform installed.";
 fi
 
-if [[ $($TERBIN -v | grep -c "Terraform v0.11") != 1 ]]; then
+if [[ $($TERBIN -v | grep -c "Terraform v0.15") != 1 ]]; then
 	ERR=1;
-	echo "Error: Wrong version of Terraform is installed. NPK requires Terraform v0.11.";
+	echo "Error: Wrong version of Terraform is installed. NPK requires Terraform v0.15.";
 	echo "-> Note: A non-default binary can be specified as a positional script parameter:"
-	echo "-> e.g: ./deploy-selfhost.sh <terraform-v0.11-path>"
+	echo "-> e.g: ./deploy-selfhost.sh <terraform-v0.15-path>"
 	echo ""
 fi
 
 if [[ -f $(which snap) ]]; then
 	if [[ $(snap list | grep $TERBIN | wc -l) -ne 0 ]]; then
 		ERR=1;
-		echo "Error: Terraform cannot be installed via snap. Download the v0.11 binary manually and place it in your path."
+		echo "Error: Terraform cannot be installed via snap. Download the v0.15 binary manually and place it in your path."
 	fi
 
 	if [[ $(snap list | grep jsonnet | wc -l) -ne 0 ]]; then

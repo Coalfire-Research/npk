@@ -6,12 +6,6 @@ local settings = npksettings + {
 	regions: regions
 };
 
-local defaultResource = {
-	"tags": {
-		"Project": "NPK"
-	}
-};
-
 local regionKeys = std.objectFields(settings.regions);
 
 {
@@ -28,14 +22,40 @@ local regionKeys = std.objectFields(settings.regions);
 		}
 	},
 	'provider.tf.json': {
+		terraform: {
+			required_providers: {
+				aws: {
+					source: "hashicorp/aws",
+					version: "~> 3.57.0"
+				},
+				archive: {
+					source: "hashicorp/archive",
+					version: "~> 2.2.0"
+				}
+			}
+		},
 		provider: [{
+			aws: {
+				profile: settings.awsProfile,
+				region: "us-west-2"
+			}
+		}] + [{
 			aws: {
 				alias: region,
 				profile: settings.awsProfile,
 				region: region
 			}
-		} for region in regionKeys ]
+		} for region in regionKeys]
 	},
+	# 'provider.tf.json': {
+	# 	provider: [{
+	# 		aws: {
+	# 			alias: region,
+	# 			profile: settings.awsProfile,
+	# 			region: region
+	# 		}
+	# 	} for region in regionKeys ]
+	# },
 	's3.tf.json': {
 		resource: {
 			aws_s3_bucket: {

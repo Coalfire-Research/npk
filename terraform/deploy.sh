@@ -1,5 +1,16 @@
 #! /bin/bash
 
+echo "***********************************************************"
+echo " Hello friend! Thanks for using NPK!"
+echo
+echo " Need help, want to contribute, or want to brag about a win?"
+echo " Join us on Discord! [ https://discord.gg/k5PQnqSNDF ]"
+echo 
+echo " Sincerely, @c6fc"
+echo "***********************************************************"
+echo
+echo
+
 if [[ $1 == "" ]]; then
 	TERBIN=terraform
 else
@@ -104,9 +115,32 @@ else
 	fi
 fi
 
-echo "[*] Checking account quotas..."
+echo "[*] Preparing to deploy NPK."
+
+ZONE=$(jq -r '.route53Zone' npk-settings.json)
+
+if [[ "$ZONE" != "" ]]; then
+	echo "[*] Getting Route53 Hosted Zone FQDN..."
+	ZONEFQDN=$(aws route53 get-hosted-zone --id $ZONE | jq -r '.HostedZone.Name')
+
+	# Chop off the trailing '.';
+	ZONEFQDN=${ZONEFQDN:0:-1}
+
+	if [[ $? -ne 0 ]]; then
+		echo "[-] Unable to retrieve Route53 Hosted Zone with ID [ $ZONE ]."
+		exit 1
+	fi
+
+	echo "[+] -> Using DNS Base Name of [ $ZONEFQDN ]"
+
+	jq -n --arg ZONEFQDN "$ZONEFQDN" '{ dnsBaseName: $ZONEFQDN }' > hostedZone.json
+else
+	echo "{}" > hostedZone.json
+fi
 
 if [[ ! -f quotas.json ]]; then
+
+	echo "[*] Checking account quotas..."
 
 	PQUOTA=$(aws service-quotas list-service-quotas --service-code ec2 | jq '.Quotas[] | select(.QuotaCode == "L-7212CCBC") | .Value')
 	GQUOTA=$(aws service-quotas list-service-quotas --service-code ec2 | jq '.Quotas[] | select(.QuotaCode == "L-3819A6DF") | .Value')
@@ -175,9 +209,9 @@ if [[ ! -f quotas.json ]]; then
 
 		jq -n --arg PQUOTA "$PQUOTA" --arg GQUOTA "$GQUOTA" '{pquota: $PQUOTA, gquota: $GQUOTA}' > quotas.json
 	fi
+else
+	echo "[*] Using known quotas. Delete quotas.json to force re-evaluation."
 fi
-
-echo "[*] Preparing to deploy NPK."
 
 # Get the availability zones for each region
 if [ ! -f regions.json ]; then
@@ -242,4 +276,11 @@ if [[ ! -d .terraform || $ISINIT -ne 0 ]]; then
 	fi
 fi
 
- $TERBIN apply -auto-approve
+$TERBIN apply -auto-approve
+
+echo
+if [[ $? -eq 0 ]]; then
+	echo "[+] Deployment complete. You're ready to go!"
+else
+	echo "[!] Deployment failed. If you're having trouble, hop in Discord for help."
+fi

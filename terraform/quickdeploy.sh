@@ -1,7 +1,10 @@
 #! /bin/bash
 
 if [[ -f quickdeployed ]]; then
-	"[+] You've already run the quickdeploy wizard."
+	"[!] You've already run the quickdeploy wizard."
+	echo
+
+	exit 1
 fi
 
 if [[ -f npk-settings.json ]]; then
@@ -9,7 +12,7 @@ if [[ -f npk-settings.json ]]; then
 
 	if [[ "$key" != "Yes" ]]; then
 		echo "Only 'Yes' will be accepted."
-		echo ""
+		echo
 
 		exit 1
 	fi
@@ -42,8 +45,22 @@ jq -n --arg profile $profile --arg email $email --arg sms $sms --arg bucket $BUC
 	"awsProfile": $profile,
 	"criticalEventsSMS": $sms,
 	"adminEmail": $email,
-}' >>  npk-settings.json
+}' > npk-settings.json
 
 touch quickdeployed
 
 ./deploy.sh
+
+if [[ "$?" -eq "0" ]]; then
+
+	# Setting file ownership to the user that cloned the repo.
+	OUID=`ls -n deploy.sh | cut -d" " -f3`
+
+	chown ${OUID}:${OUID} ./npk.pem
+	chown ${OUID}:${OUID} ../site-content/angular/npk_config.js
+	chown ${OUID}:${OUID} ./lambda_functions/proxy_api_handler/userdata.sh
+else
+	echo
+	echo "[!] NPK deployment failed. Please address the error above and try again."
+	echo
+fi

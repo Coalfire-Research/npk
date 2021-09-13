@@ -20,7 +20,7 @@ exports.main = async function(event, context, callback) {
 	variables.availabilityZones = JSON.parse(variables.availabilityZones);
 	variables.dictionaryBuckets = JSON.parse(variables.dictionaryBuckets);
 
-	let entity, UserPoolId, Username;
+	let entity, UserPoolId, sub;
 
 	try {
 
@@ -43,10 +43,10 @@ exports.main = async function(event, context, callback) {
 		entity = event.requestContext.identity.cognitoIdentityId;
 
 		// Associate the user identity.
-		[ UserPoolId,, Username ] = event?.requestContext?.identity?.cognitoAuthenticationProvider?.split('/')[2]?.split(':');
+		[ UserPoolId,, sub ] = event?.requestContext?.identity?.cognitoAuthenticationProvider?.split('/')[2]?.split(':');
 
-		if (!UserPoolId || !Username) {
-			console.log(`UserPoolId or Username is missing from ${event?.requestContext?.identity?.cognitoAuthenticationProvider}`);
+		if (!UserPoolId || !sub) {
+			console.log(`UserPoolId or sub is missing from ${event?.requestContext?.identity?.cognitoAuthenticationProvider}`);
 			respond(401, {}, "Authorization Required", false);
 		}
 
@@ -55,9 +55,19 @@ exports.main = async function(event, context, callback) {
 		return respond(500, {}, "Failed to process request.", false);
 	}
 
-	let user, email;
+	let user, email, Username;
 
 	try {
+		// Get the user based on 'sub'. This is needed when the IdP isn't Cognito itself.
+		let userList = await cognito.listUsers({ UserPoolId, Filter: `sub = "${sub}"` }).promise();
+
+		if (!userList.Users?.[0]?.Username) {
+			console.log("Unable to find Cognito user from Subscriber ID.", e);
+			return respond(500, {}, "Unable to find Cognito user from Subscriber ID.", false);
+		}
+
+		Username = userList.Users[0].Username;
+
 		const user = await cognito.adminGetUser({ UserPoolId, Username }).promise();
 
 		// Restructure UserAttributes as an k:v

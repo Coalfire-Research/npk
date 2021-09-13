@@ -17,7 +17,7 @@ local az(region) = {
 					user_pool_id: "${aws_cognito_user_pool.npk.id}",
 					identity_pool_id: "${aws_cognito_identity_pool.main.id}",
 					userdata_bucket: "${aws_s3_bucket.user_data.id}",
-					use_SAML: "${var.useSAML}",
+					use_SAML: settings.useSAML,
 					saml_domain: "",
 					saml_redirect: "",
 					g_quota: settings.quotas.gquota,

@@ -62,7 +62,7 @@
 					}
 				}
 			} + if settings.useCustomDNS then {
-				aliases: ["www.%s" % [settings.dnsBaseName]],
+				aliases: [settings.wwwEndpoint],
 				viewer_certificate: {
 					cloudfront_default_certificate: false,
 					acm_certificate_arn: "${aws_acm_certificate.main.arn}",

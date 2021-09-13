@@ -28,15 +28,22 @@ local vpc = import 'jsonnet/vpc.libsonnet';
 local npksettings = import 'npk-settings.json';
 local regions = import 'regions.json';
 local quotas = import 'quotas.json';
+local hostedZone = import 'hostedZone.json';
 
-local settings = npksettings + {
+local settings = {
+	georestrictions: [],
+	campaign_data_ttl: 604800,
+	campaign_max_price: 50,
+	awsProfile: "default"
+} + npksettings + {
 	defaultRegion: "us-west-2",
 	regions: regions,
 	quotas: quotas,
-	useCustomDNS: std.objectHas(npksettings, 'dnsBaseName'),
-	[if std.objectHas(npksettings, 'dnsBaseName') then 'wwwEndpoint']: "www.%s" % [npksettings.dnsBaseName],
-	[if std.objectHas(npksettings, 'dnsBaseName') then 'apiEndpoint']: "api.%s" % [npksettings.dnsBaseName],
-	[if std.objectHas(npksettings, 'dnsBaseName') then 'authEndpoint']: "auth.%s" % [npksettings.dnsBaseName],
+	useCustomDNS: std.objectHas(hostedZone, 'dnsBaseName'),
+	[if std.objectHas(hostedZone, 'dnsBaseName') then 'dnsBaseName']: hostedZone.dnsBaseName,
+	[if std.objectHas(hostedZone, 'dnsBaseName') then 'wwwEndpoint']: "%s" % [hostedZone.dnsBaseName],
+	[if std.objectHas(hostedZone, 'dnsBaseName') then 'apiEndpoint']: "api.%s" % [hostedZone.dnsBaseName],
+	[if std.objectHas(hostedZone, 'dnsBaseName') then 'authEndpoint']: "auth.%s" % [hostedZone.dnsBaseName],
 	useSAML: std.objectHas(npksettings, 'sAMLMetadataFile') || std.objectHas(npksettings, 'sAMLMetadataUrl')
 };
 
@@ -186,7 +193,7 @@ local regionKeys = std.objectFields(settings.regions);
 			aws_api_gateway_domain_name: {
 				npk: {
 					certificate_arn: "${aws_acm_certificate.main.arn}",
-					domain_name: "api.%s" % [settings.dnsBaseName],
+					domain_name: settings.apiEndpoint,
 					depends_on: ["aws_acm_certificate_validation.main"]
 				}
 			}
@@ -372,7 +379,8 @@ local regionKeys = std.objectFields(settings.regions);
 		},{
 			sid: "adminGetUser",
 			actions: [
-				"cognito-idp:AdminGetUser"
+				"cognito-idp:AdminGetUser",
+				"cognito-idp:ListUsers"
 			],
 			resources: [
 				"${aws_cognito_user_pool.npk.arn}"
@@ -413,7 +421,8 @@ local regionKeys = std.objectFields(settings.regions);
 		},{
 			sid: "adminGetUser",
 			actions: [
-				"cognito-idp:AdminGetUser"
+				"cognito-idp:AdminGetUser",
+				"cognito-idp:ListUsers"
 			],
 			resources: [
 				"${aws_cognito_user_pool.npk.arn}"
@@ -495,7 +504,8 @@ local regionKeys = std.objectFields(settings.regions);
 		},{
 			sid: "adminGetUser",
 			actions: [
-				"cognito-idp:AdminGetUser"
+				"cognito-idp:AdminGetUser",
+				"cognito-idp:ListUsers"
 			],
 			resources: [
 				"${aws_cognito_user_pool.npk.arn}"
@@ -678,7 +688,7 @@ local regionKeys = std.objectFields(settings.regions);
 				)
 			} + {
 				api: route53.record(
-					"api.%s" % [settings.dnsBaseName],
+					settings.apiEndpoint,
 					settings.route53Zone,
 					route53.alias(
 						"${aws_api_gateway_domain_name.npk.cloudfront_domain_name}",
@@ -688,16 +698,18 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
-	[if settings.useSAML then 'route53-saml.tf.json' else null]: {
+	'route53-auth.tf.json': {
 		resource: {
-			saml: route53.record(
-				settings.authEndpoint,
-				settings.route53Zone,
-				route53.alias(
-					"${aws_cognito_user_pool_domain.saml.cloudfront_distribution_arn}",
-					"Z2FDTNDATAQYW2"
+			aws_route53_record: {
+				saml: route53.record(
+					settings.authEndpoint,
+					settings.route53Zone,
+					route53.alias(
+						"${aws_cognito_user_pool_domain.saml.cloudfront_distribution_arn}",
+						"Z2FDTNDATAQYW2"
+					)
 				)
-			)
+			}
 		}
 	},
 	'routetable.tf.json': {
@@ -725,7 +737,7 @@ local regionKeys = std.objectFields(settings.regions);
 						[
 							"http://localhost"
 						] + if settings.useCustomDNS then
-								[ "https://www.%s" % [settings.dnsBaseName] ]
+								[ "https://%s" % [settings.wwwEndpoint] ]
 							else
 								[ "https://${aws_cloudfront_distribution.npk.domain_name}" ]
 					)

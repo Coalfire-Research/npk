@@ -57,7 +57,7 @@ exports.main = async function(event, context, callback) {
 	variables.availabilityZones = JSON.parse(variables.availabilityZones);
 	variables.dictionaryBuckets = JSON.parse(variables.dictionaryBuckets);
 
-	let entity, campaign, UserPoolId, Username;
+	let entity, campaign, UserPoolId, sub;
 
 	try {
 
@@ -95,10 +95,10 @@ exports.main = async function(event, context, callback) {
 		campaign = body;
 
 		// Associate the user identity.
-		[ UserPoolId,, Username ] = event?.requestContext?.identity?.cognitoAuthenticationProvider?.split('/')[2]?.split(':');
+		[ UserPoolId,, sub ] = event?.requestContext?.identity?.cognitoAuthenticationProvider?.split('/')[2]?.split(':');
 
-		if (!UserPoolId || !Username) {
-			console.log(`UserPoolId or Username is missing from ${event?.requestContext?.identity?.cognitoAuthenticationProvider}`);
+		if (!UserPoolId || !sub) {
+			console.log(`UserPoolId or sub is missing from ${event?.requestContext?.identity?.cognitoAuthenticationProvider}`);
 			respond(401, {}, "Authorization Required", false);
 		}
 
@@ -107,9 +107,19 @@ exports.main = async function(event, context, callback) {
 		return respond(500, {}, "Failed to process request.", false);
 	}
 
-	let user, email;
+	let user, email, Username;
 
 	try {
+		// Get the user based on 'sub'. This is needed when the IdP isn't Cognito itself.
+		let userList = await cognito.listUsers({ UserPoolId, Filter: `sub = "${sub}"` }).promise();
+
+		if (!userList.Users?.[0]?.Username) {
+			console.log("Unable to find Cognito user from Subscriber ID.", e);
+			return respond(500, {}, "Unable to find Cognito user from Subscriber ID.", false);
+		}
+
+		Username = userList.Users[0].Username;
+
 		user = await cognito.adminGetUser({ UserPoolId, Username }).promise();
 
 		// Restructure UserAttributes as an k:v
@@ -164,7 +174,7 @@ exports.main = async function(event, context, callback) {
 
 	verifiedManifest.hashType = campaign.hashType;
 
-	if (parseInt(campaign.instanceCount) < 1 || parseInt(campaign.instanceCount) > 6) {
+	if (parseInt(campaign.instanceCount) < 1) {
 		return respond(400, {}, "instanceCount must be greater than 1", false);
 	}
 

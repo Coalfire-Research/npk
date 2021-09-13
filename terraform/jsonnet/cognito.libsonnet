@@ -93,40 +93,39 @@
 				}
 			}
 		}
-	} else {}) + (if settings.useSAML && !settings.useCustomDNS then {
+	} else {}) + (if !settings.useCustomDNS then {
 		aws_cognito_user_pool_domain: {
 			saml: {
 				domain: "${random_string.saml_domain.result}",
 				user_pool_id: "${aws_cognito_user_pool.npk.id}"
 			}
 		}
-	} else {}) + (if settings.useSAML && settings.useCustomDNS then {
+	} else {
 		aws_cognito_user_pool_domain: {
 			saml: {
-				domain: "auth." + settings.wwwEndpoint,
-				certificate_arn: "${aws_acm_certificate.saml.arn}",
+				domain: settings.authEndpoint,
+				certificate_arn: "${aws_acm_certificate.main.arn}",
 				user_pool_id: "${aws_cognito_user_pool.npk.id}"
 			}
 		}
-	} else {}),
+	}),
 	output(settings): {
 		admin_create_user_command: {
 			value: "aws --region " + settings.defaultRegion + " --profile " + settings.awsProfile + " cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --user-attributes '[{\"Name\": \"email\", \"Value\": \"${random_string.admin_password.keepers.admin_email}\"}, {\"Name\": \"email_verified\", \"Value\": \"true\"}]' --temporary-password ${random_string.admin_password.result}"
 		},
 		admin_join_group_command: {
 			value: "aws --region " + settings.defaultRegion + " --profile " + settings.awsProfile + " cognito-idp admin-add-user-to-group --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --group npk-admins --user-attributes '[{\"Name\": \"email\", \"Value\": \"${random_string.admin_password.keepers.admin_email}\"}, {\"Name\": \"email_verified\", \"Value\": \"true\"}]' --temporary-password ${random_string.admin_password.result}"
-		}
-	} + (if settings.useSAML then {
+		},
 		saml_entity_id: {
 			value: "urn:amazon:cognito:sp:${aws_cognito_user_pool.npk.id}"
 		}
-	} else {}) + (if settings.useSAML && !settings.useCustomDNS then {
+	} + (if !settings.useCustomDNS then {
 		saml_acs_url: {
 			value: "https://${random_string.saml_domain.result}.auth.us-west-2.amazoncognito.com/saml2/idpresponse"
 		}
-	} else {}) + (if settings.useSAML && settings.useCustomDNS then {
+	} else {
 		saml_acs_url: {
-			value: "https://auth." + settings.wwwEndpoint + "/saml2/idpresponse"
+			value: "https://" + settings.authEndpoint + "/saml2/idpresponse"
 		}
-	} else {})
+	})
 }

@@ -252,7 +252,7 @@ angular
       $scope.confirmpassword;
       $scope.verificationcode;
 
-      $scope.useSamlSSO = (SAMLSSO.useSamlSSO == "1");
+      $scope.useSamlSSO = (SAMLSSO.useSamlSSO == "true");
       if ($scope.useSamlSSO == true) {
         $scope.samlSSOURL = "https://" + SAMLSSO.SAMLDomain + "/oauth2/authorize?identity_provider=" + SAMLSSO.SAMLIdp + "&redirect_uri=" + SAMLSSO.SAMLRedirectUrl + "&response_type=CODE&client_id=" + COGNITO_CONFIG.ClientId + "&scope=email%20openid"        
       }
@@ -579,6 +579,9 @@ angular
 
         $('a#start-' + campaign_id).hide();
         $('img#action-' + campaign_id).show();
+
+        $scope.modalMessages.error = [];
+        $scope.modalMessages.success = [];
 
         params = {
           method: 'PUT',
@@ -1565,6 +1568,10 @@ angular
     $scope.submittingOrder = true;
     $scope.orderResponse = {success: false};
     $scope.submitOrder = function() {
+
+      $scope.orderErrors = [];
+      $scope.orderWarnings = [];
+      $scope.submittingOrder = true;
 
       $('#orderModal').modal('hide');
       $('#orderResponseModal').modal('show');

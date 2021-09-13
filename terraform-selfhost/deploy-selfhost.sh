@@ -137,7 +137,7 @@ if [[ "$?" -eq "1" ]]; then
 	exit 1
 fi
 
-aws s3api head-object --bucket $BUCKET --key c6fc.io/npk/terraform-selfhost.tfstate >> /dev/null
+aws s3api head-object --bucket $BUCKET --key c6fc.io/npkv2.5/terraform-selfhost.tfstate 2&> /dev/null
 ISINIT="$?"
 
 if [[ ! -d .terraform || $ISINIT -ne 0 ]]; then
@@ -161,5 +161,9 @@ fi
 echo "[*] Marking custom components as assume-unchanged in git."
 git update-index --assume-unchanged ../terraform/dictionaries.auto.tfvars ../site-content/assets/js/dictionary-buckets.js
 
+echo "[*] Selfhost deployment complete. Running NPK primary deployment to capture the changes."
+echo
+echo
+
 cd ../terraform/
-./deploy.sh
+./deploy.sh $TERBIN

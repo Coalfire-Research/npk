@@ -13,6 +13,7 @@ terraform/quotas.json
 terraform/npk-settings.json
 terraform/generated-settings.jsonnet
 terraform/regions.json
+terraform/hostedZone.json
 terraform/*.tf.json
 terraform-selfhost/*.tf.json
 terraform/lambda_functions/zip_files/*
@@ -31,4 +32,3 @@ terraform-selfhost/upload_npkfile.sh
 terraform-selfhost/upload_npkcomponents.sh
 terraform-selfhost/sync_npkcomponents.sh
 quickdeployed
-quotas

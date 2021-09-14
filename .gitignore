@@ -32,3 +32,4 @@ terraform-selfhost/upload_npkfile.sh
 terraform-selfhost/upload_npkcomponents.sh
 terraform-selfhost/sync_npkcomponents.sh
 quickdeployed
+**.bak

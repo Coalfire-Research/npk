@@ -165,5 +165,8 @@ echo "[*] Selfhost deployment complete. Running NPK primary deployment to captur
 echo
 echo
 
+OUID=`ls -n deploy-selfhost.sh | cut -d" " -f3`
+chown -R ${OUID}:${OUID} *
+
 cd ../terraform/
 ./deploy.sh $TERBIN

@@ -1759,7 +1759,7 @@ angular
       $scope.onReady();
     });
   }])
-  .controller('filesCtrl', ['$scope', '$routeParams', '$location', 'USERDATA_BUCKET', function($scope, $routeParams, $location, USERDATA_BUCKET) {
+  .controller('filesCtrl', ['$scope', '$timeout', '$routeParams', '$location', 'USERDATA_BUCKET', function($scope, $timeout, $routeParams, $location, USERDATA_BUCKET) {
 
     $scope.files = {};
     $scope.pathTree = {};
@@ -1773,6 +1773,63 @@ angular
 
         $scope.pathTree = $scope.getPathTree(Object.keys($scope.files));
         $scope.files_loading = false;
+        $scope.$digest();
+      });
+    }
+
+    $scope.large_file_uploading = false;
+    $scope.largeFileSubmit = function() {
+      $scope.large_file_uploading = true;
+
+      var filename = $('#largeFileInput').val().split('\\').slice(-1)[0];
+      var key = AWS.config.credentials.identityId + "/uploads/" + filename
+      $scope.watchForFile(key);
+    }
+
+    $scope.delay = function(t, v) {
+       return new Promise(function(resolve) { 
+           setTimeout(resolve.bind(null, v), t)
+       });
+    }
+
+    $scope.watchForFile = function(key) {
+      return new Promise((success, failure) => {
+        if (Object.keys($scope.files).indexOf(key) < 0) {
+          $scope.populateFiles();
+
+          return $scope.delay(1000).then(() => $scope.watchForFile(key));
+        }
+
+        $scope.large_file_uploading = false;
+        $scope.$digest();
+
+        return success(true);
+      });
+    }
+
+
+    $scope.generatePresignedPost = function() {
+
+      var s3 = new AWS.S3({ region: "us-west-2" });
+      var filename = $('#largeFileInput').val().split('\\').slice(-1)[0];
+      var key = AWS.config.credentials.identityId + "/uploads/" + filename
+
+      s3.createPresignedPost({
+        Bucket: USERDATA_BUCKET,
+        Fields: {
+          key: key
+        },
+        ContentType: "text/plain"
+      }, (err, data) => {
+        $('form#largeFile').attr('action', data.url);
+
+        $('div#s3HiddenElems').empty();
+
+        data.fields['key'] = key;
+        Object.keys(data.fields).forEach((key) => {
+          $('div#s3HiddenElems').append(`<input type="hidden" name="${key}" value="${data.fields[key]}" />`);
+        });
+        console.log(data);
         $scope.$digest();
       });
     }

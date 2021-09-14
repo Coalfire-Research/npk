@@ -35,16 +35,8 @@
 				supported_identity_providers: ["${aws_cognito_identity_provider.saml.provider_name}"],
 				allowed_oauth_scopes: ["email", "openid"],
 				allowed_oauth_flows: ["code"],
-				callback_urls: if settings.useCustomDNS then [
-					"https://" + settings.wwwEndpoint
-				] else [
-					"https://${aws_cloudfront_distribution.npk.domain_name}"
-				],
-				logout_urls: if settings.useCustomDNS then [
-					"https://" + settings.wwwEndpoint
-				] else [
-					"https://${aws_cloudfront_distribution.npk.domain_name}"
-				]
+				callback_urls: ["https://" + settings.wwwEndpoint],
+				logout_urls: ["https://" + settings.wwwEndpoint]
 			} else {}
 		},
 		aws_cognito_identity_pool: {

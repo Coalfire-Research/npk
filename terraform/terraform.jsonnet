@@ -34,7 +34,8 @@ local settings = {
 	georestrictions: [],
 	campaign_data_ttl: 604800,
 	campaign_max_price: 50,
-	awsProfile: "default"
+	awsProfile: "default",
+	wwwEndpoint: "${aws_cloudfront_distribution.npk.domain_name}"
 } + npksettings + {
 	defaultRegion: "us-west-2",
 	regions: regions,
@@ -698,7 +699,7 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
-	'route53-auth.tf.json': {
+	[if settings.useCustomDNS then 'route53-auth.tf.json' else null]: {
 		resource: {
 			aws_route53_record: {
 				saml: route53.record(

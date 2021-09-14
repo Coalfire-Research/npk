@@ -85,8 +85,6 @@ exports.main = async function(event, context, callback) {
 		return respond(500, {}, "Unable to retrieve user context.", false);
 	}
 
-	console.log(event.pathParameters)
-
 	const campaignId = event?.pathParameters?.campaign;
 
 	// Get the campaign entry from DynamoDB, and manifest from S3.
@@ -104,18 +102,22 @@ exports.main = async function(event, context, callback) {
 			TableName: "Campaigns"
 		}).promise();
 
+		campaign = aws.DynamoDB.Converter.unmarshall(campaign.Items[0]);
+
 	} catch (e) {
 		console.log("Failed to retrieve campaign details.", e);
 		return respond(500, {}, "Failed to retrieve campaign details.");
 	}
 
-	if (!campaign.Items?.[0]?.status?.S) {
+	if (!campaign.status) {
 		return respond(404, {},  "Specified campaign does not exist.", false);
 	}
 
-	var ec2 = new aws.EC2({region: campaign.Items[0].region.S});
+	console.log(`[+] Campaign ${campaignId} is associated with SFR ${campaign.spotFleetRequestId}`);
 
-	switch (campaign.Items[0].status.S) {
+	var ec2 = new aws.EC2({region: campaign.region});
+
+	switch (campaign.status) {
 		case "STARTING":
 		case "RUNNING": 
 

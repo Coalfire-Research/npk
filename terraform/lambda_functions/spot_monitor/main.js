@@ -123,6 +123,10 @@ exports.main = async function(event, context, callback) {
 				return state;
 			}, false);
 
+			if (!hasOpenInstances) {
+				console.log(`[+] Fleet ${fleetId} with status ${fleet.SpotFleetRequestState} has open instances: ${hasOpenInstances}.`);
+			}
+
 			if (!hasOpenInstances && !/cancelled/.test(fleet.SpotFleetRequestState)) {
 				const ec2 = new aws.EC2({region: fleet.region});
 

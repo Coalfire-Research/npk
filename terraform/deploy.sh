@@ -78,6 +78,31 @@ if [[ "$ERR" == "1" ]]; then
 	exit 1
 fi
 
+## Check for v2 config, and exit if found.
+if [[ $(jq -r 'select(has("useCustomDNS")) | length' npk-settings.json) -gt 0 ]]; then
+	ERR=1
+fi
+
+if [[ $(jq -r 'select(has("useSAML")) | length' npk-settings.json) -gt 0 ]]; then
+	ERR=1
+fi
+
+if [[ $(jq -r 'select(has("dnsNames")) | length' npk-settings.json) -gt 0 ]]; then
+	ERR=1
+fi
+
+if [[ "$ERR" == "1" ]]; then
+	echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	echo "NPKv2.5 has different settings from v2, and is NOT capable of a direct upgrade."
+	echo "If you're upgrading from v2, you need to 'terraform destroy' the existing environment"
+	echo "using Terraform 0.11. After that, update npk-settings.json and redeploy using Terraform 0.15."
+	echo
+	echo "The safest way to proceed is to destroy everything, pull v2.5 to a new folder, and deploy from scratch."
+	echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	echo
+	exit 1
+fi
+
 PROFILE=$(jq -r '.awsProfile' npk-settings.json)
 
 export AWS_DEFAULT_REGION=us-west-2
@@ -89,7 +114,7 @@ if [[ $(aws --version | grep "aws-cli/2" | wc -l) -ge 1 ]]; then
 	export AWS_PAGER="";
 fi
 
-BUCKET=$(jq -r '.backend_bucket' npk-settings.json 2> /dev/null)
+BUCKET=$(jq -r '.backend_bucket' npk-settings.json)
 
 if [[ "$BUCKET" == "" ]]; then
 	echo "No backend bucket is specified in npk-settings.json. This is best practice and required for NPKv2."
@@ -117,9 +142,9 @@ fi
 
 echo "[*] Preparing to deploy NPK."
 
-ZONE=$(jq -r '.route53Zone' npk-settings.json)
+ZONE=$(jq -r 'select(has("route53Zone")) | .route53Zone' npk-settings.json)
 
-if [[ "$ZONE" != "" ]]; then
+if [[ $ZONE != "" ]]; then
 	echo "[*] Getting Route53 Hosted Zone FQDN..."
 	ZONEFQDN=$(aws route53 get-hosted-zone --id $ZONE | jq -r '.HostedZone.Name')
 
@@ -264,7 +289,7 @@ if [[ "$?" -eq "1" ]]; then
 	exit 1
 fi
 
-aws s3api head-object --bucket $BUCKET --key c6fc.io/npk/terraform.tfstate >> /dev/null
+aws s3api head-object --bucket $BUCKET --key c6fc.io/npk2.5/terraform.tfstate 2&> /dev/null
 ISINIT="$?"
 
 if [[ ! -d .terraform || $ISINIT -ne 0 ]]; then
@@ -278,9 +303,15 @@ fi
 
 $TERBIN apply -auto-approve
 
-echo
 if [[ $? -eq 0 ]]; then
+	echo
 	echo "[+] Deployment complete. You're ready to go!"
 else
+	echo
 	echo "[!] Deployment failed. If you're having trouble, hop in Discord for help."
+	exit 1
 fi
+
+# Setting file ownership to the user that cloned the repo.
+OUID=`ls -n deploy.sh | cut -d" " -f3`
+chown -R ${OUID}:${OUID} *

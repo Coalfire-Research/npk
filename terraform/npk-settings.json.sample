@@ -5,7 +5,6 @@
   "georestrictions": ["US", "CA", "GB", "DE"],
 
   "route53Zone": "E10SDSEFH1102DF",
-  "dnsBaseName": "dev.npkproject.io",
 
   "awsProfile": "npk",
   "criticalEventsSMS": "+13035551234",

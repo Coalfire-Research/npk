@@ -107,10 +107,12 @@ exports.main = async function(event, context, callback) {
 		Object.keys(spotFleets).forEach((fleetId) => {
 			const fleet = spotFleets[fleetId];
 
-			if (!Object.keys(fleet.instances).length) {
+			const instanceCount = Object.keys(fleet.instances).length;
+
+			if (!instanceCount) {
 				console.log(`[-] Found 0 instances for ${fleetId}`);
 			} else {
-				console.log(`[+] Found ${Object.keys(fleet.instances).length} instances for ${fleetId}`);
+				console.log(`[+] Found ${instanceCount} instances for ${fleetId}`);
 			}
 
 			const hasOpenInstances = Object.keys(fleet.instances).reduce((state, instanceId) => {
@@ -127,7 +129,7 @@ exports.main = async function(event, context, callback) {
 				console.log(`[+] Fleet ${fleetId} with status ${fleet.SpotFleetRequestState} has open instances: ${hasOpenInstances}.`);
 			}
 
-			if (!hasOpenInstances && !/cancelled/.test(fleet.SpotFleetRequestState)) {
+			if (!!instanceCount && !hasOpenInstances && !/cancelled/.test(fleet.SpotFleetRequestState)) {
 				const ec2 = new aws.EC2({region: fleet.region});
 
 				promises.push(ec2.cancelSpotFleetRequests({

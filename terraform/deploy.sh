@@ -148,13 +148,13 @@ if [[ $ZONE != "" ]]; then
 	echo "[*] Getting Route53 Hosted Zone FQDN..."
 	ZONEFQDN=$(aws route53 get-hosted-zone --id $ZONE | jq -r '.HostedZone.Name')
 
-	# Chop off the trailing '.';
-	ZONEFQDN=${ZONEFQDN:0:-1}
-
 	if [[ $? -ne 0 ]]; then
 		echo "[-] Unable to retrieve Route53 Hosted Zone with ID [ $ZONE ]."
 		exit 1
 	fi
+
+	# Chop off the trailing '.';
+	ZONEFQDN=${ZONEFQDN:0:-1}
 
 	echo "[+] -> Using DNS Base Name of [ $ZONEFQDN ]"
 

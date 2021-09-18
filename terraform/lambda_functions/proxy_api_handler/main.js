@@ -532,10 +532,10 @@ function createCampaign(entity, email, campaign) {
 
 	if (typeof campaign.rulesFiles != "undefined" && campaign.rulesFiles != null) {
 		console.log("Debug: Rules are enabled. Verifiying files.");
-		campaign.require({
+		/*campaign.require({
 			"rulesFiles": 0,
 			"dictionaryFile": 0
-		});
+		});*/
 
 		s3dict = new aws.S3({region: campaign.region});
 		var bucket = variables.dictionaryBuckets[campaign.region];

@@ -287,6 +287,7 @@ angular
 			cancelCampaign: function(campaign_id) {
 
 				$('a#cancel-' + campaign_id).hide();
+				$('a#delete-' + campaign_id).hide();
 				$('img#action-' + campaign_id).show();
 
 				params = {
@@ -307,6 +308,26 @@ angular
 					}
 
 					location.href = location.href.split('#')[0];
+				}).fail(function(xhr) {
+
+					data = xhr.responseText;
+
+					try {
+						data = JSON.parse(data);
+					} catch (e) {
+						data = {msg: "Error parsing response JSON.", success: false};
+					}
+
+					if (data.success == false) {
+						$scope.modalMessages.error = [data.msg];
+					} else {
+						$scope.modalMessages.success = [data.msg];
+					}
+
+					$scope.$digest();
+
+					$('#messageModal').modal('show');
+					$('img#action-' + campaign_id).hide();
 				});
 			},
 

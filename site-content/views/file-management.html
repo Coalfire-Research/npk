@@ -71,6 +71,36 @@
                 </div>
               </div>
             </form>
+
+            <!-- Start campaign form -->
+            <div class="row">
+              <div class="col-lg-12">
+                <div class="card border border-white shadow-none">
+                  <div class="card-header bg-dark text-white">Large File Upload</div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-lg-12">
+                        <h5 class="card-text text-dark" ng-show="!files_loading && objLength(pathTree) == 0">
+                          You have no files
+                        </h5>
+                        <div class="mb-3" ng-hide="large_file_uploading">
+                          <form id="largeFile" action="" method="POST" ng-submit="largeFileSubmit()" enctype="multipart/form-data">
+                            <div id="s3HiddenElems">
+                            </div>
+                            <input class="pb-3" id="largeFileInput" name="file" type="file" onchange="angular.element(this).scope().generatePresignedPost()">
+                            <input type="submit">
+                          </form>
+                        </div>
+                        <div class="bg-dark text-center" ng-show="large_file_uploading" style="padding: 25px;">
+                          <img height="50px" width="50px" src="assets/images/loading.gif">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- End large file upload form -->
           </div>
         </div>
       </div>

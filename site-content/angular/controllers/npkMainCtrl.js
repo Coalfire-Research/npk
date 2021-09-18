@@ -252,7 +252,7 @@ angular
       $scope.confirmpassword;
       $scope.verificationcode;
 
-      $scope.useSamlSSO = (SAMLSSO.useSamlSSO == "1");
+      $scope.useSamlSSO = (SAMLSSO.useSamlSSO == "true");
       if ($scope.useSamlSSO == true) {
         $scope.samlSSOURL = "https://" + SAMLSSO.SAMLDomain + "/oauth2/authorize?identity_provider=" + SAMLSSO.SAMLIdp + "&redirect_uri=" + SAMLSSO.SAMLRedirectUrl + "&response_type=CODE&client_id=" + COGNITO_CONFIG.ClientId + "&scope=email%20openid"        
       }
@@ -580,6 +580,9 @@ angular
         $('a#start-' + campaign_id).hide();
         $('img#action-' + campaign_id).show();
 
+        $scope.modalMessages.error = [];
+        $scope.modalMessages.success = [];
+
         params = {
           method: 'PUT',
           url: 'https://' + APIGATEWAY_URL + '/v1/userproxy/campaign/' + campaign_id,
@@ -628,6 +631,8 @@ angular
           $scope.$digest();
 
           $('#messageModal').modal('show');
+          $('img#action-' + campaign_id).hide();
+          $('a#start-' + campaign_id).show();
         });
       };
 
@@ -1564,6 +1569,10 @@ angular
     $scope.orderResponse = {success: false};
     $scope.submitOrder = function() {
 
+      $scope.orderErrors = [];
+      $scope.orderWarnings = [];
+      $scope.submittingOrder = true;
+
       $('#orderModal').modal('hide');
       $('#orderResponseModal').modal('show');
 
@@ -1582,8 +1591,9 @@ angular
         $scope.campaignId = data.campaignId;
         $scope.$digest();
       
-
-      }).fail((data) => {
+      })
+      .fail((data) => {
+        $('#orderResponseModal').modal('hide');
         $scope.submittingOrder = false;
 
         var response = {};
@@ -1594,7 +1604,6 @@ angular
           response = {msg: "Unable to parse response as JSON", success: false};
         }
 
-        $('#orderResponseModal').modal('hide');
         $scope.orderErrors = [response.msg];
         $scope.orderWarnings = [];
         $scope.$digest();
@@ -1750,7 +1759,7 @@ angular
       $scope.onReady();
     });
   }])
-  .controller('filesCtrl', ['$scope', '$routeParams', '$location', 'USERDATA_BUCKET', function($scope, $routeParams, $location, USERDATA_BUCKET) {
+  .controller('filesCtrl', ['$scope', '$timeout', '$routeParams', '$location', 'USERDATA_BUCKET', function($scope, $timeout, $routeParams, $location, USERDATA_BUCKET) {
 
     $scope.files = {};
     $scope.pathTree = {};
@@ -1764,6 +1773,63 @@ angular
 
         $scope.pathTree = $scope.getPathTree(Object.keys($scope.files));
         $scope.files_loading = false;
+        $scope.$digest();
+      });
+    }
+
+    $scope.large_file_uploading = false;
+    $scope.largeFileSubmit = function() {
+      $scope.large_file_uploading = true;
+
+      var filename = $('#largeFileInput').val().split('\\').slice(-1)[0];
+      var key = AWS.config.credentials.identityId + "/uploads/" + filename
+      $scope.watchForFile(key);
+    }
+
+    $scope.delay = function(t, v) {
+       return new Promise(function(resolve) { 
+           setTimeout(resolve.bind(null, v), t)
+       });
+    }
+
+    $scope.watchForFile = function(key) {
+      return new Promise((success, failure) => {
+        if (Object.keys($scope.files).indexOf(key) < 0) {
+          $scope.populateFiles();
+
+          return $scope.delay(1000).then(() => $scope.watchForFile(key));
+        }
+
+        $scope.large_file_uploading = false;
+        $scope.$digest();
+
+        return success(true);
+      });
+    }
+
+
+    $scope.generatePresignedPost = function() {
+
+      var s3 = new AWS.S3({ region: "us-west-2" });
+      var filename = $('#largeFileInput').val().split('\\').slice(-1)[0];
+      var key = AWS.config.credentials.identityId + "/uploads/" + filename
+
+      s3.createPresignedPost({
+        Bucket: USERDATA_BUCKET,
+        Fields: {
+          key: key
+        },
+        ContentType: "text/plain"
+      }, (err, data) => {
+        $('form#largeFile').attr('action', data.url);
+
+        $('div#s3HiddenElems').empty();
+
+        data.fields['key'] = key;
+        Object.keys(data.fields).forEach((key) => {
+          $('div#s3HiddenElems').append(`<input type="hidden" name="${key}" value="${data.fields[key]}" />`);
+        });
+        console.log(data);
         $scope.$digest();
       });
     }

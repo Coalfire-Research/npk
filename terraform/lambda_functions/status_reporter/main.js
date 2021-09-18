@@ -113,12 +113,14 @@ function putNode(user, campaign, node, body) {
 			eventType: "NodeFinished",
 			status: 'COMPLETED',
 			progress: 100,
-			recoveredHashes: body.recoveredHashes
+			recoveredHashes: body.recoveredHashes,
+			startTime: (lambdaEvent.requestContext.requestTimeEpoch / 1000).toFixed(0)
 		};
 	} else {
 		params = {
 			eventType: "NodeFinished",
-			status: 'ERROR'
+			status: 'ERROR',
+			startTime: (lambdaEvent.requestContext.requestTimeEpoch / 1000).toFixed(0)
 		};
 	}
 

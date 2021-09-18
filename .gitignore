@@ -13,13 +13,16 @@ terraform/quotas.json
 terraform/npk-settings.json
 terraform/generated-settings.jsonnet
 terraform/regions.json
+terraform/hostedZone.json
 terraform/*.tf.json
 terraform-selfhost/*.tf.json
 terraform/lambda_functions/zip_files/*
+terraform/lambda_functions/*/ENVVARS
 terraform/lambda_functions/proxy_api_handler/api_handler_variables.js
 terraform/lambda_functions/status_reporter/npk_settings.js
 terraform/lambda_functions/spot_monitor/npk_settings.js
 terraform/lambda_functions/proxy_api_handler/userdata.sh
+terraform/lambda_functions/execute_campaign/userdata.sh
 terraform/templates/api-handler-variables.tpl
 terraform/templates/npk_settings.tpl
 terraform-selfhost/components/
@@ -29,3 +32,4 @@ terraform-selfhost/upload_npkfile.sh
 terraform-selfhost/upload_npkcomponents.sh
 terraform-selfhost/sync_npkcomponents.sh
 quickdeployed
+**.bak

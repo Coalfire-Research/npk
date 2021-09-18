@@ -6,6 +6,23 @@ NPK is a distributed hash-cracking platform built entirely of serverless compone
 
 'NPK' is an initialism for the three primary atomic elements in fertilizer (Nitrogen, Phosphorus, and Potassium). Add it to your hashes to increase your cred yield!
 
+## Upgrading from v2
+
+NPK v2.5 is designed to be more resilient, easier to use, and more flexible.
+
+NPK v2.5 now uses Terraform 0.15, which is a significant jump from 0.11 without any direct upgrade paths. As a result, NPK v2.5 is not compatible with previous versions. In order to upgrade to v2.5 you must completely destroy your previous installation before deploying v2.5. Note that this will remove all campaigns, hash files, results, users, settings, and everything else you have in NPK. *This must be done BEFORE you switch to the v2.5 branch.*
+
+```sh
+npk/terraform$ terraform destroy
+
+# If you're configured to selfhost, you'll need to remove that as well.
+npk/terraform-selfhost$ terraform destroy
+
+npk/terraform$ git checkout api_rewrite
+npk/terraform$ vim npk-settings.json # Edit the settings to conform with the new format.
+npk/terraform$ ./deploy.sh
+```
+
 ## How it works
 
 Lets face it - even the beastliest cracking rig spends a lot of time at idle. You sink a ton of money up front on hardware, then have the electricity bill to deal with. NPK lets you leverage extremely powerful hash cracking with the 'pay-as-you-go' benefits of AWS. For example, you can crank out as much as 1.2TH/s of NTLM for a mere $14.70/hr. NPK was also designed to fit easily within the free tier while you're not using it! Without the free tier, it'll still cost less than 25 CENTS per MONTH to have online!
@@ -59,7 +76,7 @@ The quickdeploy wizard will ask for a few basic things, then kick off the instal
 
 NPK requires that you have the following installed: 
 * **awscli** (v2)
-* **terraform** (v0.11)
+* **terraform** (v0.15)
 * **jq**
 * **jsonnet**
 * **npm**
@@ -89,41 +106,24 @@ Edit `npk-settings.json` to taste:
 * `backend_bucket`: Is the bucket to store the terraform state in. If it doesn't exist, NPK will create it for you. Replace '<somerandomcharacters>' with random characters to make it unique, or specify another bucket you own.
 * `campaign_data_ttl`: This is the number of seconds that uploaded files and cracked hashes will last before they are automatically deleted. Default is 7 days.
 * `campaign_max_price`: The maximum number of dollars allowed to be spent on a single campaign.
-* `georestrictions`: An array of https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 country codes that access should be WHITELISTED for. Traffic originating from other countries will not be permitted.
-* `useCustomDNS`: A boolean value for whether to use custom domain names for your NPK installation. if set to `true`, you must configure `route53Zone` and `dnsNames` below.
-* `route53Zone`: The Route53 Zone ID for the domain or subdomain you're going to host NPK with. You must configure this zone yourself in the same account before installing NPK.
-* `dnsNames`: This is where you configure the DNS names for the console and api endpoints for your NPK installation. Both domains must be at the same depth as one another; e.g. {www,api}.npk.yourdomain.com
+* `georestrictions`: An array of https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 country codes that access should be WHITELISTED for. Traffic originating from other countries will not be permitted. Remove the entry entirely if you don't wish to use it.
+* `route53Zone`: The Route53 Zone ID for the domain or subdomain you're going to host NPK with. You must configure this zone yourself in the same account before installing NPK. *The NPK console will be hosted at the root of this zone* with the API endpoint being created as a subdomain.
 * `awsProfile`: The profile name in `~/.aws/credentials` that you want to piggyback on for the installation.
 * `criticalEventsSMS`: The cellphone number of a destination to receive critical events to. Only catastrophic errors are reported here, so use a real one.
 * `adminEmail`: The email address of the administrator and first user of NPK. Once the installation is complete, this is where you'll receive your credentials.
-* `useSAML`: Set to `true` if you want to enable SAML-based federated authentication.
-* `sAMLMetadataFile` or `sAMLMetadataUrl`: Only one can be configured, and it's required if `useSAML` is `true`.
+* `sAMLMetadataFile` or `sAMLMetadataUrl`: Only one can be configured. Leave them out entirely if you're not using SAML.
 
-Here's an example of a completed config file with custom DNS and no SAML:
+Here's an example of a completed config file with custom DNS, no GeoRestrictions, and no SAML:
 
 ```json
 {
   "backend_bucket": "backend-terraform-npkdev",
   "campaign_data_ttl": 604800,
   "campaign_max_price": 50,
-  "georestrictions": [],
-  "useCustomDNS": true,
   "route53Zone": "Z05471496OWNC3E2EHCI",
-  "dnsNames": {
-    "www": [
-      "www.npk.yourdomain.com"
-    ],
-    "api": [
-      "api.npk.yourdomain.com"
-    ]
-  },
   "awsProfile": "npkdev",
   "criticalEventsSMS": "+12085551234",
   "adminEmail": "you@yourdomain.com",
-  "debug_lambda": true,
-
-  "useSAML": false,
-  "sAMLMetadataFile": ""
 }
 ```
 After that, run the deploy!
@@ -161,6 +161,6 @@ npk/terraform$ terraform destroy
 
 # Official Discord Channel
 
-Come hang out on Discord!
+Have questions, need help, want to contribute or brag about a win? Come hang out on Discord!
 
 [![Porchetta Industries](https://discordapp.com/api/guilds/736724457258745996/widget.png?style=banner3)](https://discord.gg/k5PQnqSNDF)

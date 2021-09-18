@@ -22,9 +22,9 @@ if [[ ! -f $(which aws) ]]; then
 	echo "Error: Must have AWSCLI installed.";
 fi
 
-if [[ $(aws --version | grep "aws-cli/2" | wc -l) -lt 1 ]]; then
+if [[ $(aws --version | grep -c "aws-cli/2") != 1 ]]; then
 	ERR=1;
-	echo "Error: NPK Selfhost requires AWSCLI version 2.";
+	echo "Error: Wrong version of AWSCLI is installed. NPK requires AWSCLI version 2.";
 fi
 
 if [[ ! -f $(which npm) ]]; then
@@ -37,18 +37,18 @@ if [[ ! -f $(which terraform) ]]; then
 	echo "Error: Must have Terraform installed.";
 fi
 
-if [[ "$(terraform -v | grep v0.11 | wc -l)" != "1" ]]; then
+if [[ $($TERBIN -v | grep -c "Terraform v0.15") != 1 ]]; then
 	ERR=1;
-	echo "Error: Wrong version of Terraform is installed. NPK requires Terraform v0.11.";
+	echo "Error: Wrong version of Terraform is installed. NPK requires Terraform v0.15.";
 	echo "-> Note: A non-default binary can be specified as a positional script parameter:"
-	echo "-> e.g: ./deploy-selfhost.sh <terraform-v0.11-path>"
+	echo "-> e.g: ./deploy-selfhost.sh <terraform-v0.15-path>"
 	echo ""
 fi
 
 if [[ -f $(which snap) ]]; then
 	if [[ $(snap list | grep $TERBIN | wc -l) -ne 0 ]]; then
 		ERR=1;
-		echo "Error: Terraform cannot be installed via snap. Download the v0.11 binary manually and place it in your path."
+		echo "Error: Terraform cannot be installed via snap. Download the v0.15 binary manually and place it in your path."
 	fi
 
 	if [[ $(snap list | grep jsonnet | wc -l) -ne 0 ]]; then
@@ -137,7 +137,7 @@ if [[ "$?" -eq "1" ]]; then
 	exit 1
 fi
 
-aws s3api head-object --bucket $BUCKET --key c6fc.io/npk/terraform-selfhost.tfstate >> /dev/null
+aws s3api head-object --bucket $BUCKET --key c6fc.io/npkv2.5/terraform-selfhost.tfstate 2&> /dev/null
 ISINIT="$?"
 
 if [[ ! -d .terraform || $ISINIT -ne 0 ]]; then
@@ -161,5 +161,12 @@ fi
 echo "[*] Marking custom components as assume-unchanged in git."
 git update-index --assume-unchanged ../terraform/dictionaries.auto.tfvars ../site-content/assets/js/dictionary-buckets.js
 
+echo "[*] Selfhost deployment complete. Running NPK primary deployment to capture the changes."
+echo
+echo
+
+OUID=`ls -n deploy-selfhost.sh | cut -d" " -f3`
+chown -R ${OUID}:${OUID} *
+
 cd ../terraform/
-./deploy.sh
+./deploy.sh $TERBIN

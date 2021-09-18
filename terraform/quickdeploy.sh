@@ -1,7 +1,10 @@
 #! /bin/bash
 
 if [[ -f quickdeployed ]]; then
-	"[+] You've already run the quickdeploy wizard."
+	echo "[!] You've already run the quickdeploy wizard."
+	echo "Use 'deploy.sh' to continue from here."
+
+	exit 1
 fi
 
 if [[ -f npk-settings.json ]]; then
@@ -9,7 +12,7 @@ if [[ -f npk-settings.json ]]; then
 
 	if [[ "$key" != "Yes" ]]; then
 		echo "Only 'Yes' will be accepted."
-		echo ""
+		echo
 
 		exit 1
 	fi
@@ -39,20 +42,10 @@ jq -n --arg profile $profile --arg email $email --arg sms $sms --arg bucket $BUC
 	"backend_bucket": $bucket,
 	"campaign_data_ttl": 604800,
 	"campaign_max_price": 50,
-	"georestrictions": [],
-	"useCustomDNS": false,
-	"route53Zone": "",
-	"dnsNames": {
-    	"www": [],
-    	"api": []
-  	},
 	"awsProfile": $profile,
 	"criticalEventsSMS": $sms,
 	"adminEmail": $email,
-	"debug_lambda": false,
-
-	"useSAML": false,
-}' >>  npk-settings.json
+}' > npk-settings.json
 
 touch quickdeployed
 

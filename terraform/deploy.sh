@@ -223,9 +223,9 @@ if [[ ! -f quotas.json ]]; then
 
 			exit 1
 		fi
-
-		jq -n --arg PQUOTA "$PQUOTA" --arg GQUOTA "$GQUOTA" '{pquota: $PQUOTA, gquota: $GQUOTA}' > quotas.json
 	fi
+
+	jq -n --arg PQUOTA "$PQUOTA" --arg GQUOTA "$GQUOTA" '{pquota: $PQUOTA, gquota: $GQUOTA}' > quotas.json
 else
 	echo "[*] Using known quotas. Delete quotas.json to force re-evaluation."
 fi

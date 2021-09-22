@@ -18,7 +18,7 @@ npk/terraform$ terraform destroy
 # If you're configured to selfhost, you'll need to remove that as well.
 npk/terraform-selfhost$ terraform destroy
 
-npk/terraform$ git checkout api_rewrite
+npk/terraform$ git pull
 npk/terraform$ vim npk-settings.json # Edit the settings to conform with the new format.
 npk/terraform$ ./deploy.sh
 ```

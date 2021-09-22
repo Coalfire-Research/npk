@@ -170,18 +170,10 @@ if [[ ! -f quotas.json ]]; then
 	PQUOTA=$(aws service-quotas list-service-quotas --service-code ec2 | jq '.Quotas[] | select(.QuotaCode == "L-7212CCBC") | .Value')
 	GQUOTA=$(aws service-quotas list-service-quotas --service-code ec2 | jq '.Quotas[] | select(.QuotaCode == "L-3819A6DF") | .Value')
 
-	if [[ $PQUOTA -eq 0 ]]; then
-		PQUOTA=384
-	fi
-
-	if [[ $GQUOTA -eq 0 ]]; then
-		GQUOTA=384
-	fi
-
 	QUOTAERR=0
 	if [[ $PQUOTA -lt 16 ]]; then
 		QUOTAERR=1
-		echo "The target account is limited to fewer than 384 vCPUs in us-west-2 for P-type instances."
+		echo "The target account is limited to fewer than 16 vCPUs in us-west-2 for P-type instances."
 		echo "-> Current limit: $PQUOTA"
 		echo ""
 	fi

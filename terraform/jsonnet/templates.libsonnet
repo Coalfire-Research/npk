@@ -20,8 +20,9 @@ local az(region) = {
 					use_SAML: settings.useSAML,
 					saml_domain: "",
 					saml_redirect: "",
-					g_quota: settings.quotas.gquota,
-					p_quota: settings.quotas.pquota,
+					families: std.strReplace(std.manifestJsonEx(settings.families, ""), "\n", ""),
+					quotas: std.strReplace(std.manifestJsonEx(settings.quotas, ""), "\n", ""),
+					regions: std.strReplace(std.manifestJsonEx(settings.regions, ""), "\n", ""),
 					api_gateway_url: if settings.useCustomDNS then
 							settings.apiEndpoint
 						else

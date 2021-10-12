@@ -12,6 +12,7 @@ local cognito_iam_roles = import 'jsonnet/cognito_iam_roles.libsonnet';
 local dynamodb = import 'jsonnet/dynamodb.libsonnet';
 local dynamodb_settings = import 'jsonnet/dynamodb_settings.libsonnet';
 local ec2_iam_roles = import 'jsonnet/ec2_iam_roles.libsonnet';
+local gpu_instance_families = import 'jsonnet/gpu_instance_families.json';
 local keepers = import 'jsonnet/keepers.libsonnet';
 local lambda = import 'jsonnet/lambda.libsonnet';
 // local lambda_functions = import 'jsonnet/lambda_functions.libsonnet';
@@ -38,6 +39,7 @@ local settings = {
 	wwwEndpoint: "${aws_cloudfront_distribution.npk.domain_name}"
 } + npksettings + {
 	defaultRegion: "us-west-2",
+	families: gpu_instance_families,
 	regions: regions,
 	quotas: quotas,
 	useCustomDNS: std.objectHas(hostedZone, 'dnsBaseName'),
@@ -317,10 +319,9 @@ local regionKeys = std.objectFields(settings.regions);
 		environment: {
 			variables: {
 
-				www_dns_names: std.toString(settings.wwwEndpoint),
+				www_dns_names: settings.wwwEndpoint,
 				campaign_max_price: "${var.campaign_max_price}",
-				gQuota: settings.quotas.gquota,
-				pQuota: settings.quotas.pquota,
+				quotas: std.strReplace(std.manifestJsonEx(settings.quotas, ""), "\n", ""),
 				userdata_bucket: "${aws_s3_bucket.user_data.id}",
 				instanceProfile: "${aws_iam_instance_profile.npk_node.arn}",
 				iamFleetRole: "${aws_iam_role.npk_fleet_role.arn}",
@@ -439,8 +440,7 @@ local regionKeys = std.objectFields(settings.regions);
 			variables: {
 				www_dns_names: std.toString(settings.wwwEndpoint),
 				campaign_max_price: "${var.campaign_max_price}",
-				gQuota: settings.quotas.gquota,
-				pQuota: settings.quotas.pquota,
+				quotas: std.strReplace(std.manifestJsonEx(settings.quotas, ""), "\n", ""),
 				userdata_bucket: "${aws_s3_bucket.user_data.id}",
 				instanceProfile: "${aws_iam_instance_profile.npk_node.arn}",
 				iamFleetRole: "${aws_iam_role.npk_fleet_role.arn}",

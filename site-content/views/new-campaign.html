@@ -77,10 +77,10 @@
                     <div class="card-body bg-dark" style="padding: 4px;">
                       <div class="row">
                         <div class="col-lg-4" >
-                          <div ng-show="idealInstances.g3.price" class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'g3')}]" style="margin-bottom: 0px;" id="g3">
+                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" style="margin-bottom: 0px;">
                             <div class="card-header">
                               <h5 style="margin-bottom: -4px;">{{ idealInstances.g3.instanceType }}</h5>
-                              <small>(Tesla M60)</small>
+                              <small>{{instance.type}}</small>
                             </div>
                             <div class="card-body text-center">
                               {{ pricingSvc.g3[hashType] | toHs }}/GPU<br>
@@ -149,13 +149,6 @@
                               <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == idealInstances.p3.instanceType)}, {'btn-secondary': (selectedInstance != idealInstances.p3.instanceType)}]" ng-click="pickInstance(idealInstances.p3)">
                                 Select
                               </button>
-                            </div>
-                          </div>
-
-                          <div ng-hide="idealInstances.p3.price || !pricesLoaded || forceRegion == false" class="card shadow-none text-center border border-bottom-sm border-top-sm" style="margin-bottom: 0px;">
-                            <div class="card-header">
-                              <h5 style="margin-bottom: -4px;">Not available</h5>
-                              <small>P3 Instances are not available in {{ forceRegion }}</small>
                             </div>
                           </div>
                         </div>

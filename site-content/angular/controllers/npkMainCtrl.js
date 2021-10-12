@@ -655,7 +655,7 @@ angular
 
       });
    }])
-  .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKETS', 'USERDATA_BUCKET', 'APIGATEWAY_URL', 'QUOTAS', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKETS, USERDATA_BUCKET, APIGATEWAY_URL, QUOTAS) {
+  .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKETS', 'USERDATA_BUCKET', 'APIGATEWAY_URL', 'QUOTAS', 'FAMILIES', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKETS, USERDATA_BUCKET, APIGATEWAY_URL, QUOTAS, FAMILIES) {
 
     $scope.pricingSvc = pricingSvc;
     // window.campaignCtrl = $scope;
@@ -684,23 +684,7 @@ angular
     $scope.uploadProgress = 30;
     $scope.upload_finished = false;
 
-    $scope.idealInstances = {
-      "g3": {
-        instanceType: "?",
-        price: 0,
-        az: ''
-      },
-      "p2": {
-        instanceType: "?",
-        price: 0,
-        az: ''
-      },
-      "p3": {
-        instanceType: "?",
-        price: 0,
-        az: ''
-      }
-    };
+    $scope.instanceOptions = [];
 
     // $scope.instances = {};
 
@@ -713,6 +697,25 @@ angular
       $scope.selectedInstance = 'none';
 
       $scope.processInstancePrices();
+    };
+
+    $scope.determineInstanceOptions = function() {
+      $scope.instanceOptions = Object.keys(FAMILIES).reduce((instances, gpu) => {
+        Object.keys(FAMILIES[gpu].instances).forEach((instance) => {
+          let quota = $scope.quotaFor(instance);
+
+          if (quota == 0) return instances;
+
+          instances.push({
+            instance,
+            gpus: FAMILIES[gpu].instances[instance][0],
+            vcpus: gpus: FAMILIES[gpu].instances[instance][0],
+            performance: pricingSvc.gpuSpeeds[gpu][$scope.hashType] ?? 0
+          });
+
+          return instances;
+        });
+      }, []);
     };
 
     $scope.pricesLoaded = false;
@@ -1270,55 +1273,31 @@ angular
 
     $scope.wordlistKeyspace = 0;
 
-    $scope.gpus = {
-      // "g3s.xlarge": 1,
-      "g3.4xlarge": 1,
-      "g3.8xlarge": 2,
-      "g3.16xlarge": 4,
-      "p2.xlarge": 1,
-      "p2.8xlarge": 8,
-      "p2.16xlarge": 16,
-      "p3.2xlarge": 1,
-      "p3.8xlarge": 4,
-      "p3.16xlarge": 8
-    };
-
-    $scope.vcpus = {
-      "g3.4xlarge": 16,
-      "g3.8xlarge": 32,
-      "g3.16xlarge": 64,
-      "p2.xlarge": 4,
-      "p2.8xlarge": 32,
-      "p2.16xlarge": 64,
-      "p3.2xlarge": 8,
-      "p3.8xlarge": 32,
-      "p3.16xlarge": 64
-    };
-
-    $scope.view_layout = {
-      "g3": ["g3.4xlarge", "g3.8xlarge", "g3.16xlarge"],
-      "p2": ["p2.xlarge", "p2.8xlarge", "p2.16xlarge"],
-      "p3": ["p3.2xlarge", "p3.8xlarge", "p3.16xlarge"]
-    };
+    $scope.view_layout = QUOTAS;
 
     $scope.quotaFor = function(instanceType) {
       if (typeof instanceType == "undefined") {
         return false;
       }
 
-      switch (instanceType.split("")[0]) {
-        case 'g':
-          return Math.floor(QUOTAS.gQuota / $scope.vcpus[instanceType]);
-        break;
-
-        case 'p':
-          return Math.floor(QUOTAS.pQuota / $scope.vcpus[instanceType]);
-        break;
-
-        case 'n': // This is to match 'none';
-          return 0;
-        break;
+      if (typeof instanceType == "n") {
+        return 0;
       }
+
+      return Object.keys(FAMILIES).reduce((limit, gpu) => {
+        if (!FAMILIES[gpu].instances?.[instanceType]) return limit;
+
+        let cpus = FAMILIES[gpu].instances?.[instanceType][1];
+        let code = FAMILIES[gpu].quotaCode;
+        limit = Object.keys(QUOTAS).reduce((acc, cur) => {
+          if (!QUOTAS[cur]?.[code]) return acc;
+
+          acc[cur] = QUOTAS[cur]?.[code]
+          return acc;
+        }, {});
+
+        return limit;
+      });
     }
 
     $scope.quotas = QUOTAS;
@@ -1611,78 +1590,6 @@ angular
       });
     }
 
-    $scope.processInstancePrices = function() {
-      $scope.cheapest_g3 = $scope.getLowestPrice({
-        // "g3s.xlarge": 1,
-        "g3.4xlarge": 1,
-        "g3.8xlarge": 2,
-        "g3.16xlarge": 4
-      });
-
-      $scope.cheapest_p2 = $scope.getLowestPrice({
-        "p2.xlarge": 1,
-        "p2.8xlarge": 8,
-        "p2.16xlarge": 16
-      });
-
-      $scope.cheapest_p3 = $scope.getLowestPrice({
-        "p3.2xlarge": 1,
-        "p3.8xlarge": 4,
-        "p3.16xlarge": 8
-      });
-
-      $scope.idealInstances = {
-        "g3": {},
-        "p2": {},
-        "p3": {}
-      }
-
-      Promise.all([
-        $scope.cheapest_g3,
-        $scope.cheapest_p2,
-        $scope.cheapest_p3
-      ]).then((data) => {
-        $scope.idealInstances.g3 = {
-          instanceType: data[0].cheapestType,
-          price: data[0].price,
-          az: data[0].cheapestRegion
-        };
-
-        $scope.idealInstances.p2 = {
-          instanceType: data[1].cheapestType,
-          price: data[1].price,
-          az: data[1].cheapestRegion
-        };
-
-        $scope.idealInstances.p3 = {
-          instanceType: data[2].cheapestType,
-          price: data[2].price,
-          az: data[2].cheapestRegion
-        };
-
-        $scope.setIdealInstance();
-
-        $scope.$apply()
-      }).catch((err) => {
-        throw Error(err);
-      });
-    }
-
-    $scope.setIdealInstance = function() {
-      $scope.idealInstance = null;
-      ["g3", "p2", "p3"].forEach(function(e) {
-        $scope.idealInstances[e].pricePerformance = $scope.pricingSvc[e][$scope.hashType] / $scope.idealInstances[e].price;
-
-        if (!$scope.idealInstances[e].price) {
-          return false;
-        }
-
-        if ($scope.idealInstance == null || $scope.idealInstances[e].pricePerformance > $scope.idealInstances[$scope.idealInstance].pricePerformance) {
-          $scope.idealInstance = e;
-        }
-      });
-    }
-
     $scope.maxInstances = "0";
     $scope.buildSliders = function() {
 
@@ -1705,7 +1612,7 @@ angular
           max: 0,
           block: true
         });
-      }      
+      }  
     };
 
     $scope.onReady = function() {

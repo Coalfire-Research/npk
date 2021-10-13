@@ -11,6 +11,10 @@ angular.module('app')
 			'cognito-idp.us-west-2.amazonaws.com/${user_pool_id}': ""
 		}
 	})
+	.constant('DICTIONARY_BUCKET', {
+		name: "${dictionary_bucket}",
+		region: "${primary_region}"
+	})
 	.constant('SAMLSSO', {
 		"useSamlSSO": "${use_SAML}",
 		"SAMLDomain": "${saml_domain}",
@@ -20,6 +24,9 @@ angular.module('app')
 	.constant('FAMILIES', ${families})
 	.constant('QUOTAS', ${quotas})
 	.constant('REGIONS', ${regions})
-	.constant('USERDATA_BUCKET', "${userdata_bucket}")
+	.constant('USERDATA_BUCKET', {
+		name: "${userdata_bucket}",
+		region: "${primary_region}"
+	})
 	.constant('APIGATEWAY_URL', "${api_gateway_url}")
 	;

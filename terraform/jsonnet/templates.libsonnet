@@ -17,6 +17,8 @@ local az(region) = {
 					user_pool_id: "${aws_cognito_user_pool.npk.id}",
 					identity_pool_id: "${aws_cognito_identity_pool.main.id}",
 					userdata_bucket: "${aws_s3_bucket.user_data.id}",
+					dictionary_bucket: "${var.dictionaryBucket}",
+					primary_region: if (settings.primaryRegion == "us-east-1") then null else settings.primaryRegion,
 					use_SAML: settings.useSAML,
 					saml_domain: "",
 					saml_redirect: "",
@@ -39,10 +41,7 @@ local az(region) = {
 				template: "${file(\"${path.module}/templates/userdata.tpl\")}",
 
 				vars: {
-					dictionaryBuckets: std.strReplace(std.manifestJsonEx({
-						[regionKeys[i]]: "${var.dictionary-" + regionKeys[i] + "-id}"
-						for i in std.range(0, std.length(regionKeys) - 1)
-					}, ""), "\n", ""),
+					dictionaryBucket: "${var.dictionaryBucket}",
 					userdata: "${aws_s3_bucket.user_data.id}"
 				}
 			}

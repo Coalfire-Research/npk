@@ -135,15 +135,26 @@ fi
 
 EXISTS=$(aws s3api get-bucket-location --bucket $BUCKET)
 if [[ $? -ne 0 ]]; then
-	aws s3api create-bucket --bucket $BUCKET --create-bucket-configuration LocationConstraint=$AWS_DEFAULT_REGION
+	LOCATIONCONSTRAINT="--create-bucket-configuration LocationConstraint=$AWS_DEFAULT_REGION"
+
+	if [[ "$AWS_DEFAULT_REGION" == "us-east-1" ]]; then
+		LOCATIONCONSTRAINT=""
+	fi
+
+	aws s3api create-bucket --bucket $BUCKET $LOCATIONCONSTRAINT > /dev/null
 
 	if [[ $? -ne 0 ]]; then
 		echo "Error creating backend_bucket. Fix that^ error then try again."
 		$EXIT 1
 	fi
 else
-	if [[ "$( echo $EXISTS | jq -r '.LocationConstraint' )" != "$AWS_DEFAULT_REGION" ]]; then
-		echo "The backend_bucket you specified doesn't reside in the defaultRegion. Specify a bucket in us-west-2, then try again."
+	EXPECTEDCONSTRAINT="$AWS_DEFAULT_REGION"
+	if [[ "$AWS_DEFAULT_REGION" == "us-east-1" ]]; then
+		EXPECTEDCONSTRAINT="null"
+	fi
+
+	if [[ "$( echo $EXISTS | jq -r '.LocationConstraint' )" != "$EXPECTEDCONSTRAINT" ]]; then
+		echo "The backendBucket you specified doesn't reside in your primary region. Specify a bucket in $AWS_DEFAULT_REGION, then try again."
 		echo "$( echo $EXISTS | jq '.LocationConstraint' ) vs. $AWS_DEFAULT_REGION"
 		$EXIT 1
 	fi
@@ -313,7 +324,7 @@ if [[ "$?" -eq "1" ]]; then
 	$EXIT 1
 fi
 
-aws s3api head-object --bucket $BUCKET --key c6fc.io/npk2.5/terraform.tfstate 2&> /dev/null
+aws s3api head-object --bucket $BUCKET --key c6fc.io/npk3/terraform.tfstate 2&> /dev/null
 ISINIT="$?"
 
 if [[ ! -d .terraform || $ISINIT -ne 0 ]]; then

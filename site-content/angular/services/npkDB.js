@@ -1,25 +1,13 @@
 angular
 	.module('app')
-	.service('npkDB', ['cognito', 'APIGATEWAY_URL', function(cognitoSvc, APIGATEWAY_URL) {
+	.service('npkDB', ['cognito', 'APIGATEWAY_URL', 'DICTIONARY_BUCKET', function(cognitoSvc, APIGATEWAY_URL, DICTIONARY_BUCKET) {
 		return {
-			ddb: {},
-			s3: {},
-			s3w1: {},
-			s3w2: {},
-			s3e1: {},
-			s3e2: {},
-
 			init: function() {
 				this.ddb = new AWS.DynamoDB({
 					apiVersion: '2012-10-08'
 				});
 
-				this.s3 = new AWS.S3();
-				this.s3w1 = new AWS.S3({region: 'us-west-1'});
-				this.s3w2 = new AWS.S3({region: 'us-west-2'});
-				this.s3e1 = new AWS.S3({region: 'us-east-1'});
-				this.s3e2 = new AWS.S3({region: 'us-east-2'});
-
+				this.s3 = new AWS.S3({region: DICTIONARY_BUCKET.region});
 			},
 
 			create: function(table,record) {
@@ -40,11 +28,14 @@ angular
 			},
 
 			get: function(table, key) {
-				var self = this;
+
+				const ddb = new AWS.DynamoDB({
+					apiVersion: '2012-10-08'
+				});
 
 				return new Promise((success, failure) => {
 					// TODO: figure out why this is PUT
-					self.ddb.putItem({
+					ddb.putItem({
 						TableName: table,
 						Item: record
 					}, function(err, data) {
@@ -58,7 +49,10 @@ angular
 			},
 
 			putSetting: function(compound_key, value) {
-				var self = this;
+
+				const ddb = new AWS.DynamoDB({
+					apiVersion: '2012-10-08'
+				});
 
 				var keys = compound_key.split(":");
 				switch (keys[0]) {
@@ -77,7 +71,7 @@ angular
 
 
 
-				return self.ddb.putItem({
+				return ddb.putItem({
 					TableName: 'Settings',
 					Item: AWS.DynamoDB.Converter.marshall({
 						userid: owner,
@@ -92,10 +86,12 @@ angular
 			},
 
 			query: function(params) {
-				var self = this;
+				const ddb = new AWS.DynamoDB({
+					apiVersion: '2012-10-08'
+				});
 
 				return new Promise((success, failure) => {
-					self.ddb.query(params, function(err, data) {
+					ddb.query(params, function(err, data) {
 						if (err) {
 							return failure(err);
 						}
@@ -178,37 +174,9 @@ angular
 				});
 			},
 
-			s3ForRegion: function(region) {
-				switch(region) {
-					case null:
-						return 's3'
-					break;
-
-					case 'us-west-1':
-						return 's3w1'
-					break;
-
-					case 'us-west-2':
-						return 's3w2'
-					break;
-
-					case 'us-east-1':
-						return 's3e1'
-					break;
-
-					case 'us-east-2':
-						return 's3e2'
-					break;
-
-					default:
-						return 's3';
-					break;
-				}
-			},
-
 			listBucketContents: function(bucket, path, region) {
 
-				var self = this;
+				const s3 = new AWS.S3({ region });
 
 				path = path.replace('self', AWS.config.credentials.identityId);
 
@@ -219,7 +187,7 @@ angular
 				};
 
 				return new Promise((success, failure) => {
-					self[self.s3ForRegion(region)].listObjects(params, function(err, data) {
+					s3.listObjects(params, function(err, data) {
 						if (err) {
 							return failure(err);
 						}
@@ -231,7 +199,7 @@ angular
 
 			getObject: function(bucket, key, region) {
 
-				var self = this;
+				const s3 = new AWS.S3({ region });
 
 				key = key.replace('self', AWS.config.credentials.identityId);
 
@@ -241,7 +209,7 @@ angular
 				};
 
 				return new Promise((success, failure) => {
-					self[self.s3ForRegion(region)].getObject(params, function(err, data) {
+					s3.getObject(params, function(err, data) {
 						if (err) {
 							return failure(err);
 						}
@@ -253,7 +221,7 @@ angular
 
 			headObject: function(bucket, key, region) {
 
-				var self = this;
+				const s3 = new AWS.S3({ region });
 
 				key = key.replace('self', AWS.config.credentials.identityId);
 
@@ -263,7 +231,7 @@ angular
 				};
 
 				return new Promise((success, failure) => {
-					self[self.s3ForRegion(region)].headObject(params, function(err, data) {
+					s3.headObject(params, function(err, data) {
 						if (err) {
 							return failure(err);
 						}

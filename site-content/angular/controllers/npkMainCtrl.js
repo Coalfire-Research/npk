@@ -655,7 +655,7 @@ angular
 
       });
    }])
-  .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKETS', 'USERDATA_BUCKET', 'APIGATEWAY_URL', 'QUOTAS', 'FAMILIES', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKETS, USERDATA_BUCKET, APIGATEWAY_URL, QUOTAS, FAMILIES) {
+  .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKET', 'USERDATA_BUCKET', 'APIGATEWAY_URL', 'QUOTAS', 'FAMILIES', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKET, USERDATA_BUCKET, APIGATEWAY_URL, QUOTAS, FAMILIES) {
 
     $scope.pricingSvc = pricingSvc;
     // window.campaignCtrl = $scope;
@@ -667,8 +667,9 @@ angular
 
     $scope.bestPrice = null;
     $scope.idealInstance = 'none';
-    $scope.selectedInstance = 'none';
+    $scope.selectedFamily = false;
     $scope.selectedRegion = false;
+    $scope.selectedInstance = false;
     $scope.forceRegion = false;
 
     $scope.rulesFiles = {Contents: [{Key: 0, Name: 'Select an Instance'}]};
@@ -686,124 +687,84 @@ angular
 
     $scope.instanceOptions = [];
 
+    $scope.families = FAMILIES;
+
     // $scope.instances = {};
 
     $scope.toggleAdvancedView = function() {
       $scope.showAdvanced = $('#use_advanced').prop('checked');
     }
 
-    $scope.pickForcedRegion = function(region) {
-      $scope.forceRegion = ($scope.forceRegion == region) ? false : region;
-      $scope.selectedInstance = 'none';
+    $scope.selectFamily = function(instance) {
+      $scope.selectedFamily = instance;
 
-      $scope.processInstancePrices();
-    };
+      $scope.selectedRegion = false;
+    }
 
-    $scope.determineInstanceOptions = function() {
-      $scope.instanceOptions = Object.keys(FAMILIES).reduce((instances, gpu) => {
-        Object.keys(FAMILIES[gpu].instances).forEach((instance) => {
-          let quota = $scope.quotaFor(instance);
+    $scope.selectRegion = function(region) {
+      $scope.selectedRegion = region;
 
-          if (quota == 0) return instances;
+      $scope.selectedInstance = false;
+    }
 
-          instances.push({
-            instance,
-            gpus: FAMILIES[gpu].instances[instance][0],
-            vcpus: gpus: FAMILIES[gpu].instances[instance][0],
-            performance: pricingSvc.gpuSpeeds[gpu][$scope.hashType] ?? 0
-          });
+    $scope.selectInstance = function(instance) {
+      $scope.selectedInstance = instance;
 
-          return instances;
+      $scope.updateTotalKeyspace();
+      $scope.buildSliders();
+    }
+
+    $scope.getInstanceOptions = async function() {
+      $scope.instanceOptions = [];
+
+      // await pricingSvc.getSpotPriceHistory('g4ad.xlarge', 'us-west-2');
+
+      // console.log(pricingSvc.spotPrice['g4ad.xlarge']);
+
+      await Promise.all(Object.keys(FAMILIES).map(async (gpu) => {
+        console.log(gpu);
+
+        pricingSvc.getFamilySpotPriceHistory(gpu).then((data) => {
+          if (data[gpu].length > 0) {
+            $scope.instanceOptions.push({
+              gpu,
+              cost: data[gpu],
+              performance: pricingSvc.gpuSpeeds[gpu][$scope.hashType] ?? 0,
+            });
+
+            $scope.$digest();
+            $scope.pricesLoaded = true;
+
+            console.log($scope.instanceOptions);
+          }
         });
-      }, []);
+      }));
     };
 
     $scope.pricesLoaded = false;
-    $scope.getLowestPrice = function(list) {
+    $scope.rules_loading = true;
+    $scope.wordlist_loading = true;
 
-      var promises = [];
-
-      Object.keys(list).forEach(function(e) {
-        promises.push($scope.pricingSvc.getSpotPriceHistory(e, $scope.forceRegion));
+    $scope.$parent.npkDB.listBucketContents(DICTIONARY_BUCKET.name, "rules/", DICTIONARY_BUCKET.region).then((data) => {
+      Object.keys(data.Contents).forEach(function (e) {
+        data.Contents[e].Name = data.Contents[e].Key.split('/')[1].split('.').slice(0, -1).join('.');
       });
 
-      return Promise.all(promises).then((data) => {
-        $scope.pricesLoaded = true;
+      $scope.rulesFiles = data;
+      $scope.rules_loading = false;
+      $scope.$digest();
+      $('#rules_select').multiSelect('refresh');
+    });
 
-        var result = {
-          cheapestRegion: '',
-          cheapestType: '',
-          price: null,
-          gpus: 0
-        };
-
-        Object.keys(data).forEach(function(i) {
-          if (data[i].price == null) {
-            return false;
-          }
-
-          if ($scope.forceRegion !== false && data[i].price == null) {
-            return false;
-          }
-
-          // Skip instances too large for our deployment.
-          if ($scope.quotaFor(data[i].instanceType) == 0) {
-            return result;
-          }
-
-          if (data[i].price == 0) {
-            return result;
-          }
-
-          // TODO: Switch '<' at 551:115 to '>' to pick bigger instances.
-          // Is better if cheaper or same price with more GPUs
-          if ((data[i].price / list[data[i].instanceType]) < result.price ||
-             ((data[i].price / list[data[i].instanceType]) < (result.price + 0.01) && list[data[i].instanceType] < result.gpus) ||
-             result.price == null) {
-            result = {
-              cheapestRegion: data[i].cheapestRegion,
-              cheapestType: data[i].instanceType,
-              price: (data[i].price / list[data[i].instanceType]),
-              gpus: list[data[i].instanceType]
-            };
-          }
-        });
-
-        return result;
-      }).catch((err) => {
-        console.trace(err);
+    $scope.$parent.npkDB.listBucketContents(DICTIONARY_BUCKET.name, "wordlist/", DICTIONARY_BUCKET.region).then((data) => {
+      Object.keys(data.Contents).forEach(function (e) {
+        data.Contents[e].Name = data.Contents[e].Key.split('/')[1].split('.').slice(0, -1).join('.');
       });
 
-      return success(result);
-    };
-
-    $scope.$watch('selectedRegion', function() {
-      if ($scope.selectedRegion != false) {
-        $scope.rules_loading = true;
-        $scope.wordlist_loading = true;
-
-        $scope.$parent.npkDB.listBucketContents(DICTIONARY_BUCKETS[$scope.selectedRegion], "rules/", $scope.selectedRegion).then((data) => {
-          Object.keys(data.Contents).forEach(function (e) {
-            data.Contents[e].Name = data.Contents[e].Key.split('/')[1].split('.').slice(0, -1).join('.');
-          });
-
-          $scope.rulesFiles = data;
-          $scope.rules_loading = false;
-          $scope.$digest();
-          $('#rules_select').multiSelect('refresh');
-        });
-
-        $scope.$parent.npkDB.listBucketContents(DICTIONARY_BUCKETS[$scope.selectedRegion], "wordlist/", $scope.selectedRegion).then((data) => {
-          Object.keys(data.Contents).forEach(function (e) {
-            data.Contents[e].Name = data.Contents[e].Key.split('/')[1].split('.').slice(0, -1).join('.');
-          });
-
-          $scope.wordlistFiles = data;
-          $scope.wordlist_loading = false;
-          $scope.$digest();
-          // $('#wordlist_select').multiSelect('refresh');
-        });
-      }
+      $scope.wordlistFiles = data;
+      $scope.wordlist_loading = false;
+      $scope.$digest();
+      // $('#wordlist_select').multiSelect('refresh');
     });
 
     $scope.$watch('selectedInstance', function() {
@@ -822,60 +783,12 @@ angular
       return result;
     };
 
-/*    $scope.updateInstances = function() {
-      var empty = {
-        hashes: "-",
-        hashprice: "?"
-      };
-
-      ['g3', 'p2', 'p3'].forEach(function(e) {
-        if ($scope.hashType == null) {
-          $scope.instances[e] = empty;
-        }
-
-        var price = 0;
-        if (typeof $scope.pricingSvc[e] == "undefined" || typeof $scope.pricingSvc[e][$scope.hashType] == "undefined") {
-
-          $scope.instances[e] = empty;
-
-          return true;
-        }
-
-        $scope.instances[e] = {
-          hashes: $scope.pricingSvc[e][$scope.hashType]
-        };
-      });
-    };*/
-
-    $scope.selectedAZ = "";
-    $scope.pickInstance = function(which) {
-      $scope.selectedInstance = which.instanceType;
-      $scope.selectedInstanceGeneration = which.instanceType.slice(0, 2);
-      $scope.selectedRegion = which.az.slice(0, -1);
-      $scope.selectedAZ = which.az;
-
-      $scope.totalPrice = $scope.pricingSvc.spotPrice[$scope.selectedInstance].price * $scope.instanceCount * $scope.instanceDuration;
-      $scope.updateTotalKeyspace();
-    };
-
-    $scope.pickInstanceFromSpot = function(type) {
-      var spot = $scope.pricingSvc.spotPrice[type];
-      
-      $scope.selectedInstance = type;
-      $scope.selectedInstanceGeneration = type.slice(0, 2);
-      $scope.selectedRegion = spot.cheapestRegion.slice(0, -1);
-      $scope.selectedAZ = spot.cheapestRegion;
-
-      $scope.totalPrice = spot.price * $scope.instanceCount * $scope.instanceDuration;
-      $scope.updateTotalKeyspace();
-    };
-
     $scope.knownMetadata = {};
     $scope.retrievingMetadata = 0;
     $scope.retrieveS3Metadata = function(bucket, key, region) {
 
-      bucket = (bucket == "self") ? USERDATA_BUCKET : bucket;
-      bucket = (bucket == "dict" && $scope.selectedRegion != "") ? DICTIONARY_BUCKETS[$scope.selectedRegion] : bucket;
+      bucket = (bucket == "self") ? USERDATA_BUCKET.name : bucket;
+      bucket = (bucket == "dict") ? DICTIONARY_BUCKET.name : bucket;
 
       if (typeof $scope.knownMetadata[bucket + ":" + key] != "undefined") {
         return new Promise((success, failure) => {
@@ -936,11 +849,10 @@ angular
 
     $scope.$watch('hashType', function() {
       // $scope.updateInstances();
-      $scope.setIdealInstance();
       $scope.updateWordlistAttack();
 
-      if ($scope.selectedInstance != "none") {
-        $scope.maskDuration = Math.floor($scope.maskKeyspace / $scope.pricingSvc[$scope.selectedInstanceGeneration][$scope.hashType] / $scope.gpus[$scope.selectedInstance])
+      if ($scope.selectedInstance != "none" && !!$scope.selectedInstance) {
+        $scope.maskDuration = Math.floor($scope.maskKeyspace / (pricingSvc.gpuSpeeds?.[$scope.selectedFamily.gpu]?.[$scope.hashType] || 1) / FAMILIES[$scope.selectedFamily.gpu].instances[$scope.selectedInstance.instanceType][0])
       }
 
       $scope.updateTotalKeyspace();
@@ -955,14 +867,14 @@ angular
     $scope.updateWordlistAttack = function() {
       var promises = [];
       $scope.selectedWordlist.forEach(function(e) {
-        promises.push($scope.retrieveS3Metadata('dict', e.Key, $scope.selectedRegion));
+        promises.push($scope.retrieveS3Metadata('dict', e.Key, DICTIONARY_BUCKET.region));
       });
 
       $scope.selectedRules.forEach(function(e) {
-        promises.push($scope.retrieveS3Metadata('dict', e.Key, $scope.selectedRegion));
+        promises.push($scope.retrieveS3Metadata('dict', e.Key, DICTIONARY_BUCKET.region));
       });
 
-      if ($scope.selectedInstance == "none") {
+      if (!$scope.selectedInstance) {
         return Promise.resolve(true);
       }
 
@@ -973,7 +885,7 @@ angular
           total: {keyspace: 0, size: 0, requiredDuration: 0}
         };
 
-        bucket = DICTIONARY_BUCKETS[$scope.selectedRegion];
+        bucket = DICTIONARY_BUCKET.name;
 
         $scope.selectedWordlist.forEach(function(e) {
           var metadata = $scope.knownMetadata[bucket + ":" + e.Key];
@@ -994,7 +906,7 @@ angular
         $scope.wordlistAttackStats.total.keyspace = $scope.wordlistAttackStats.wordlist.lines * $scope.wordlistAttackStats.rules.keyspace;
         $scope.wordlistAttackStats.total.size = $scope.wordlistAttackStats.wordlist.size + $scope.wordlistAttackStats.rules.size;
 
-        $scope.wordlistAttackStats.total.requiredDuration = Math.floor($scope.wordlistAttackStats.total.keyspace / $scope.pricingSvc[$scope.selectedInstanceGeneration][$scope.hashType] / $scope.gpus[$scope.selectedInstance])
+        $scope.wordlistAttackStats.total.requiredDuration = Math.floor($scope.wordlistAttackStats.total.keyspace / (pricingSvc.gpuSpeeds?.[$scope.selectedFamily.gpu]?.[$scope.hashType] || 1) / FAMILIES[$scope.selectedFamily.gpu].instances[$scope.selectedInstance.instanceType][0])
 
         $scope.$digest();
       });
@@ -1020,8 +932,11 @@ angular
     $scope.totalKeyspace = 0;
     $scope.totalDuration = 0;
     $scope.updateTotalKeyspace = function() {
+
+      if (!$scope.selectedInstance) return false;
+
       $scope.totalKeyspace = (($scope.use_mask) ? $scope.maskKeyspace : 1) * (($scope.use_wordlist) ? $scope.wordlistAttackStats.total.keyspace : 1);
-      $scope.totalDuration = $scope.totalKeyspace / (($scope.selectedInstance != "none") ? ($scope.gpus[$scope.selectedInstance] * ($scope.pricingSvc[$scope.selectedInstanceGeneration][$scope.hashType] /4)) : 1);
+      $scope.totalDuration = $scope.totalKeyspace / (($scope.selectedInstance != "none") ? (FAMILIES[$scope.selectedFamily.gpu].instances[$scope.selectedInstance.instanceType][0] * (pricingSvc.gpuSpeeds[$scope.selectedFamily.gpu][$scope.hashType] /4)) : 1);
 
       $scope.updateCoverage();
       $scope.compileManualCommands();
@@ -1074,7 +989,7 @@ angular
 
       var countDuration = $scope.totalDuration / $scope.instanceCount;
       $scope.totalCoverage =  (($scope.instanceDuration * 60 * 60) / countDuration) * 100;
-      $scope.totalPrice = $scope.pricingSvc.spotPrice[$scope.selectedInstance].price * $scope.instanceCount * $scope.instanceDuration;
+      $scope.totalPrice = $scope.selectedInstance.price * $scope.instanceCount * $scope.instanceDuration;
     };
 
     $scope.use_mask = false;
@@ -1248,8 +1163,8 @@ angular
         break;
       }
 
-      if ($scope.selectedInstance != "none") {
-        $scope.maskDuration = Math.floor($scope.maskKeyspace / $scope.pricingSvc[$scope.selectedInstanceGeneration][$scope.hashType] / $scope.gpus[$scope.selectedInstance])
+      if ($scope.selectedInstance) {
+        $scope.maskDuration = Math.floor($scope.maskKeyspace / (pricingSvc.gpuSpeeds?.[$scope.selectedFamily.gpu]?.[$scope.hashType] || 1) / FAMILIES[$scope.selectedFamily.gpu].instances[$scope.selectedInstance.instanceType][0])
       }
 
       $scope.mask += value;
@@ -1316,7 +1231,7 @@ angular
 
       reader.onloadend = function() {
         var uploader = new AWS.S3.ManagedUpload({
-          params: {Bucket: USERDATA_BUCKET, Key: AWS.config.credentials.identityId + "/uploads/" + file.name, Body: reader.result, ContentType: "text/plain"}
+          params: {Bucket: USERDATA_BUCKET.name, Key: AWS.config.credentials.identityId + "/uploads/" + file.name, Body: reader.result, ContentType: "text/plain"}
         })
         .on('httpUploadProgress', function(evt) {
           $scope.uploadProgress = Math.floor(evt.loaded / evt.total * 100);
@@ -1356,7 +1271,7 @@ angular
       $scope.uploading_hashes = true;
 
       var uploader = new AWS.S3.ManagedUpload({
-        params: {Bucket: USERDATA_BUCKET, Key: AWS.config.credentials.identityId + "/uploads/" + filename, Body: body, ContentType: "text/plain"}
+        params: {Bucket: USERDATA_BUCKET.name, Key: AWS.config.credentials.identityId + "/uploads/" + filename, Body: body, ContentType: "text/plain"}
       })
       .on('httpUploadProgress', function(evt) {
         $scope.uploadProgress = Math.floor(evt.loaded / evt.total * 100);
@@ -1380,7 +1295,7 @@ angular
     $scope.uploadedFile = null;
 
     $scope.getHashFiles = function() {
-      $scope.$parent.npkDB.listBucketContents(USERDATA_BUCKET, "self/uploads/").then((data) => {
+      $scope.$parent.npkDB.listBucketContents(USERDATA_BUCKET.name, "self/uploads/", USERDATA_BUCKET.region).then((data) => {
         Object.keys(data.Contents).forEach(function (e) {
           if (data.Contents[e].Key.indexOf('.') > 0) {
             data.Contents[e].Name = data.Contents[e].Key.split('/')[2].split('.').slice(0, -1).join('.');
@@ -1406,7 +1321,7 @@ angular
       $scope.orderErrors = [];
       $scope.orderWarnings = [];
 
-      if ($scope.selectedInstance == "none") {
+      if (!$scope.selectedInstance) {
         $scope.orderErrors.push("Select an instance.")
       }
 
@@ -1475,7 +1390,7 @@ angular
         }
       }
 
-      if ($scope.instanceCount < 1 || $scope.instanceCount > $scope.maxInstances) {
+      if ($scope.instanceCount < 1 || $scope.instanceCount > $scope.selectedInstance.limit) {
         $scope.orderErrors.push("Invalid instance count.");
       }
 
@@ -1499,9 +1414,8 @@ angular
       }
 
       $scope.order = {
-        region: $scope.selectedRegion,
-        availabilityZone: $scope.selectedAZ,
-        instanceType: $scope.selectedInstance,
+        region: $scope.selectedRegion.region,
+        instanceType: $scope.selectedInstance.instanceType,
         hashFile: $scope.selectedHashes[0].Key.split('/').slice(1).join('/'),
         hashFileUrl: "...",
         hashType: $scope.hashType,
@@ -1530,7 +1444,7 @@ angular
       }
 
       $scope.$parent.npkDB.s3.getSignedUrl('getObject', {
-        Bucket: USERDATA_BUCKET,
+        Bucket: USERDATA_BUCKET.name,
         Key: AWS.config.credentials.identityId + '/' + $scope.order.hashFile,
         Expires: 3600
       }, function(err, url) {
@@ -1593,17 +1507,16 @@ angular
     $scope.maxInstances = "0";
     $scope.buildSliders = function() {
 
-      var maxInstances = $scope.quotaFor($scope.selectedInstance);
+      if (!$scope.selectedInstance) return false;
 
-      $scope.maxInstances = maxInstances;
-      if ($scope.instanceCount > $scope.maxInstances) {
-        $scope.instanceCount = $scope.maxInstances;
+      if ($scope.instanceCount > $scope.selectedInstance.limit) {
+        $scope.instanceCount = $scope.selectedInstance.limit;
       }
 
-      if (maxInstances > 0) {
+      if ($scope.selectedInstance.limit > 0) {
         $("#instance_count").data("ionRangeSlider").update({
           min: 0,
-          max: maxInstances,
+          max: $scope.selectedInstance.limit,
           block: false
         });
       } else {
@@ -1623,7 +1536,7 @@ angular
       $scope.toggleWordlist();
       $scope.toggleManual();
 
-      $scope.processInstancePrices();
+      $scope.getInstanceOptions();
 
       $scope.getHashFiles();
 
@@ -1673,7 +1586,7 @@ angular
     $scope.files_loading = false;
     $scope.populateFiles = function() {
       $scope.files_loading = true;
-      $scope.$parent.npkDB.listBucketContents(USERDATA_BUCKET, "self/").then((data) => {
+      $scope.$parent.npkDB.listBucketContents(USERDATA_BUCKET.name, "self/", USERDATA_BUCKET.region).then((data) => {
         Object.keys(data.Contents).forEach(function (e) {
           $scope.files[data.Contents[e].Key] = data.Contents[e];
         });
@@ -1717,12 +1630,12 @@ angular
 
     $scope.generatePresignedPost = function() {
 
-      var s3 = new AWS.S3({ region: "us-west-2" });
+      var s3 = new AWS.S3({ region: USERDATA_BUCKET.region });
       var filename = $('#largeFileInput').val().split('\\').slice(-1)[0];
       var key = AWS.config.credentials.identityId + "/uploads/" + filename
 
       s3.createPresignedPost({
-        Bucket: USERDATA_BUCKET,
+        Bucket: USERDATA_BUCKET.name,
         Fields: {
           key: key
         },
@@ -1752,7 +1665,7 @@ angular
     $scope.deleteS3Item = function(key) {
       console.log(key);
       $scope.$parent.npkDB.s3.deleteObject({
-        Bucket: USERDATA_BUCKET,
+        Bucket: USERDATA_BUCKET.name,
         Key: key
       }, function(err, data) {
         if (err) {
@@ -1791,7 +1704,7 @@ angular
 
     $scope.signedUrlOf = function(file) {
       return $scope.$parent.npkDB.getSignedUrl('getObject', {
-        Bucket: USERDATA_BUCKET,
+        Bucket: USERDATA_BUCKET.name,
         Key: file,
         ResponseContentType: "text/plain"
       });
@@ -1980,7 +1893,7 @@ angular
 
     $scope.getManifest = function(campaign) {
       
-      $scope.$parent.npkDB.getObject(USERDATA_BUCKET, "self/campaigns/" + campaign + "/manifest.json").then((data) => {
+      $scope.$parent.npkDB.getObject(USERDATA_BUCKET.name, "self/campaigns/" + campaign + "/manifest.json", USERDATA_BUCKET.region).then((data) => {
         try {
           $scope.manifest = JSON.parse(data.Body.toString('ascii'));
         } catch (e) {

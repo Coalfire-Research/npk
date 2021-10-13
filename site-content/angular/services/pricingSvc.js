@@ -1,6 +1,6 @@
 angular
 	.module('app')
-	.service('pricingSvc', ['REGIONS', function(REGIONS) {
+	.service('pricingSvc', ['REGIONS', 'FAMILIES', 'QUOTAS', function(REGIONS, FAMILIES, QUOTAS) {
 		return {
 			hashTypes: {"MD5":0,"md5($pass.$salt)":10,"md5($salt.$pass)":20,"md5(utf16le($pass).$salt)":30,"md5($salt.utf16le($pass))":40,"HMAC-MD5 (key = $pass)":50,"HMAC-MD5 (key = $salt)":60,"SHA1":100,"sha1($pass.$salt)":110,"sha1($salt.$pass)":120,"sha1(utf16le($pass).$salt)":130,"sha1($salt.utf16le($pass))":140,"HMAC-SHA1 (key = $pass)":150,"HMAC-SHA1 (key = $salt)":160,"MySQL323":200,"MySQL4.1/MySQL5":300,"phpass, WordPress (MD5),":400,"phpass, phpBB3 (MD5)":400,"md5crypt, MD5 (Unix), Cisco-IOS $1$ (MD5)":500,"Juniper IVE":501,"BLAKE2b-512":600,"MD4":900,"NTLM":1000,"Domain Cached Credentials (DCC), MS Cache":1100,"SHA-224":1300,"SHA-256":1400,"sha256($pass.$salt)":1410,"sha256($salt.$pass)":1420,"sha256(utf16le($pass).$salt)":1430,"sha256($salt.utf16le($pass))":1440,"HMAC-SHA256 (key = $pass)":1450,"HMAC-SHA256 (key = $salt)":1460,"descrypt, DES (Unix), Traditional DES":1500,"Apache $apr1$ MD5, md5apr1, MD5 (APR)":1600,"SHA-512":1700,"sha512($pass.$salt)":1710,"sha512($salt.$pass)":1720,"sha512(utf16le($pass).$salt)":1730,"sha512($salt.utf16le($pass))":1740,"HMAC-SHA512 (key = $pass)":1750,"HMAC-SHA512 (key = $salt)":1760,"sha512crypt $6$, SHA512 (Unix)":1800,"STDOUT":2000,"Domain Cached Credentials 2 (DCC2), MS Cache 2":2100,"Cisco-PIX MD5":2400,"Cisco-ASA MD5":2410,"WPA/WPA2":2500,"WPA/WPA2 PMK":2501,"md5(md5($pass))":2600,"LM":3000,"Oracle H: Type (Oracle 7+), DES(Oracle)":3100,"bcrypt $2*$, Blowfish (Unix)":3200,"md5($salt.md5($pass))":3710,"md5($salt.$pass.$salt)":3800,"md5(md5($pass).md5($salt))":3910,"md5($salt.md5($salt.$pass))":4010,"md5($salt.md5($pass.$salt))":4110,"md5(strtoupper(md5($pass)))":4300,"md5(sha1($pass))":4400,"sha1(sha1($pass))":4500,"sha1($salt.sha1($pass))":4520,"sha1(md5($pass))":4700,"sha1(md5($pass).$salt)":4710,"iSCSI CHAP authentication, MD5(CHAP)":4800,"sha1($salt.$pass.$salt)":4900,"Half MD5":5100,"Password Safe v3":5200,"IKE-PSK MD5":5300,"IKE-PSK SHA1":5400,"NetNTLMv1 / NetNTLMv1+ESS":5500,"NetNTLMv2":5600,"Cisco-IOS type 4 (SHA256)":5700,"Samsung Android Password/PIN":5800,"RIPEMD-160":6000,"Whirlpool":6100,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + AES":6211,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Serpent":6211,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Twofish":6211,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + AES-Twofish":6212,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + AES-Twofish-Serpent":6213,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Serpent-AES":6212,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Serpent-Twofish-AES":6213,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Twofish-Serpent":6212,"TrueCrypt 5.0+ SHA512 + AES":6221,"TrueCrypt 5.0+ SHA512 + Serpent":6221,"TrueCrypt 5.0+ SHA512 + Twofish":6221,"TrueCrypt 5.0+ SHA512 + AES-Twofish":6222,"TrueCrypt 5.0+ SHA512 + AES-Twofish-Serpent":6223,"TrueCrypt 5.0+ SHA512 + Serpent-AES":6222,"TrueCrypt 5.0+ SHA512 + Serpent-Twofish-AES":6223,"TrueCrypt 5.0+ SHA512 + Twofish-Serpent":6222,"TrueCrypt 5.0+ Whirlpool + AES":6231,"TrueCrypt 5.0+ Whirlpool + Serpent":6231,"TrueCrypt 5.0+ Whirlpool + Twofish":6231,"TrueCrypt 5.0+ Whirlpool + AES-Twofish":6232,"TrueCrypt 5.0+ Whirlpool + AES-Twofish-Serpent":6233,"TrueCrypt 5.0+ Whirlpool + Serpent-AES":6232,"TrueCrypt 5.0+ Whirlpool + Serpent-Twofish-AES":6233,"TrueCrypt 5.0+ Whirlpool + Twofish-Serpent":6232,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + AES + boot":6241,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Serpent + boot":6241,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Twofish + boot":6241,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + AES-Twofish + boot":6242,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + AES-Twofish-Serpent + boot":6243,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Serpent-AES + boot":6242,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Serpent-Twofish-AES + boot":6243,"TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Twofish-Serpent + boot":6242,"AIX {smd5}":6300,"AIX {ssha256}":6400,"AIX {ssha512}":6500,"1Password, agilekeychain":6600,"AIX {ssha1}":6700,"LastPass + LastPass sniffed":6800,"GOST R 34.11-94":6900,"FortiGate (FortiOS)":7000,"OSX v10.8+ (PBKDF2-SHA512)":7100,"GRUB 2":7200,"IPMI2 RAKP HMAC-SHA1":7300,"sha256crypt $5$, SHA256 (Unix)":7400,"Kerberos 5 AS-REQ Pre-Auth etype 23":7500,"SAP CODVN B (BCODE)":7700,"SAP CODVN B (BCODE) mangled from":7701,"SAP CODVN F/G (PASSCODE)":7800,"SAP CODVN F/G (PASSCODE) mangled from":7801,"Drupal7":7900,"Sybase ASE":8000,"Citrix NetScaler":8100,"1Password, cloudkeychain":8200,"DNSSEC (NSEC3)":8300,"WBB3 (Woltlab Burning Board)":8400,"RACF":8500,"Lotus Notes/Domino 5":8600,"Lotus Notes/Domino 6":8700,"Android FDE <= 4.3":8800,"scrypt":8900,"Password Safe v2":9000,"Lotus Notes/Domino 8":9100,"Cisco-IOS $8$ (PBKDF2-SHA256)":9200,"Cisco-IOS $9$ (scrypt)":9300,"MS Office 2007":9400,"MS Office 2010":9500,"MS Office 2013":9600,"MS Office ⇐ 2003 MD5 + RC4, oldoffice$0, oldoffice$1":9700,"MS Office ⇐ 2003 $0/$1, MD5 + RC4, collider #1":9710,"MS Office ⇐ 2003 $0/$1, MD5 + RC4, collider #2":9720,"MS Office ⇐ 2003 SHA1 + RC4, oldoffice$3, oldoffice$4":9800,"MS Office ⇐ 2003 $3, SHA1 + RC4, collider #1":9810,"MS Office ⇐ 2003 $3, SHA1 + RC4, collider #2":9820,"Radmin2":9900,"Django (PBKDF2-SHA256)":10000,"SipHash":10100,"CRAM-MD5":10200,"SAP CODVN H (PWDSALTEDHASH) iSSHA-1":10300,"PDF 1.1 - 1.3 (Acrobat 2 - 4)":10400,"PDF 1.1 - 1.3 (Acrobat 2 - 4), collider #1":10410,"PDF 1.1 - 1.3 (Acrobat 2 - 4), collider #2":10420,"PDF 1.4 - 1.6 (Acrobat 5 - 8)":10500,"PDF 1.7 Level 3 (Acrobat 9)":10600,"PDF 1.7 Level 8 (Acrobat 10 - 11)":10700,"SHA-384":10800,"PBKDF2-HMAC-SHA256":10900,"PrestaShop":11000,"PostgreSQL CRAM (MD5)":11100,"MySQL CRAM (SHA1)":11200,"Bitcoin/Litecoin wallet.dat":11300,"SIP digest authentication (MD5)":11400,"CRC32":11500,"7-Zip":11600,"GOST R 34.11-2012 (Streebog) 256-bit":11700,"HMAC-Streebog-256 (key = $pass), big-endian":11750,"HMAC-Streebog-256 (key = $salt), big-endian":11760,"GOST R 34.11-2012 (Streebog) 512-bit":11800,"HMAC-Streebog-512 (key = $pass), big-endian":11850,"HMAC-Streebog-512 (key = $salt), big-endian":11860,"PBKDF2-HMAC-MD5":11900,"PBKDF2-HMAC-SHA1":12000,"PBKDF2-HMAC-SHA512":12100,"eCryptfs":12200,"Oracle T: Type (Oracle 12+)":12300,"BSDiCrypt, Extended DES":12400,"RAR3-hp":12500,"ColdFusion 10+":12600,"Blockchain, My Wallet":12700,"MS-AzureSync PBKDF2-HMAC-SHA256":12800,"Android FDE (Samsung DEK)":12900,"RAR5":13000,"Kerberos 5 TGS-REP etype 23":13100,"AxCrypt":13200,"AxCrypt in-memory SHA1":13300,"KeePass 1 AES / without keyfile":13400,"KeePass 2 AES / without keyfile":13400,"KeePass 1 Twofish / with keyfile":13400,"Keepass 2 AES / with keyfile":13400,"PeopleSoft PS_TOKEN":13500,"WinZip":13600,"VeraCrypt PBKDF2-HMAC-RIPEMD160 + AES":13711,"VeraCrypt PBKDF2-HMAC-RIPEMD160 + AES-Twofish":13712,"VeraCrypt PBKDF2-HMAC-RIPEMD160 + Serpent":13711,"VeraCrypt PBKDF2-HMAC-RIPEMD160 + Serpent-AES":13712,"VeraCrypt PBKDF2-HMAC-RIPEMD160 + Serpent-Twofish-AES":13713,"VeraCrypt PBKDF2-HMAC-RIPEMD160 + Twofish":13711,"VeraCrypt PBKDF2-HMAC-RIPEMD160 + Twofish-Serpent":13712,"VeraCrypt PBKDF2-HMAC-SHA256 + AES":13751,"VeraCrypt PBKDF2-HMAC-SHA256 + AES-Twofish":13752,"VeraCrypt PBKDF2-HMAC-SHA256 + Serpent":13751,"VeraCrypt PBKDF2-HMAC-SHA256 + Serpent-AES":13752,"VeraCrypt PBKDF2-HMAC-SHA256 + Serpent-Twofish-AES":13753,"VeraCrypt PBKDF2-HMAC-SHA256 + Twofish":13751,"VeraCrypt PBKDF2-HMAC-SHA256 + Twofish-Serpent":13752,"VeraCrypt PBKDF2-HMAC-SHA512 + AES":13721,"VeraCrypt PBKDF2-HMAC-SHA512 + AES-Twofish":13722,"VeraCrypt PBKDF2-HMAC-SHA512 + Serpent":13721,"VeraCrypt PBKDF2-HMAC-SHA512 + Serpent-AES":13722,"VeraCrypt PBKDF2-HMAC-SHA512 + Serpent-Twofish-AES":13723,"VeraCrypt PBKDF2-HMAC-SHA512 + Twofish":13721,"VeraCrypt PBKDF2-HMAC-SHA512 + Twofish-Serpent":13722,"VeraCrypt PBKDF2-HMAC-Whirlpool + AES":13731,"VeraCrypt PBKDF2-HMAC-Whirlpool + AES-Twofish":13732,"VeraCrypt PBKDF2-HMAC-Whirlpool + Serpent":13731,"VeraCrypt PBKDF2-HMAC-Whirlpool + Serpent-AES":13732,"VeraCrypt PBKDF2-HMAC-Whirlpool + Serpent-Twofish-AES":13733,"VeraCrypt PBKDF2-HMAC-Whirlpool + Twofish":13731,"VeraCrypt PBKDF2-HMAC-Whirlpool + Twofish-Serpent":13732,"VeraCrypt PBKDF2-HMAC-RIPEMD160 + boot-mode + AES":13741,"VeraCrypt PBKDF2-HMAC-RIPEMD160 + boot-mode + AES-Twofish":13742,"VeraCrypt PBKDF2-HMAC-RIPEMD160 + boot-mode + AES-Twofish-Serpent":13743,"VeraCrypt PBKDF2-HMAC-SHA256 + boot-mode + Twofish":13761,"VeraCrypt PBKDF2-HMAC-SHA256 + boot-mode + Serpent-AES":13762,"VeraCrypt PBKDF2-HMAC-SHA256 + boot-mode + Serpent-Twofish-AES":13763,"VeraCrypt PBKDF2-HMAC-SHA256 + boot-mode + PIM + AES":13761,"VeraCrypt Streebog-512 + XTS 512 bit":13771,"VeraCrypt Streebog-512 + XTS 1024 bit":13772,"VeraCrypt Streebog-512 + XTS 1536 bit":13773,"Windows Phone 8+ PIN/password":13800,"OpenCart":13900,"DES (PT = $salt, key = $pass)":14000,"3DES (PT = $salt, key = $pass)":14100,"sha1(CX)":14400,"LUKS":14600,"iTunes backup < 10.0":14700,"iTunes backup >= 10.0":14800,"Skip32 (PT = $salt, key = $pass)":14900,"FileZilla Server >= 0.9.55":15000,"Juniper/NetBSD sha1crypt":15100,"Blockchain, My Wallet, V2":15200,"DPAPI master key file version 1 + local context":15300,"ChaCha20":15400,"JKS Java Key Store Private Keys (SHA1)":15500,"Ethereum Wallet, PBKDF2-HMAC-SHA256":15600,"Ethereum Wallet, SCRYPT":15700,"DPAPI master key file version 2 + Active Directory domain context":15900,"Tripcode":16000,"TACACS+":16100,"Apple Secure Notes":16200,"Ethereum Pre-Sale Wallet, PBKDF2-HMAC-SHA256":16300,"CRAM-MD5 Dovecot":16400,"JWT (JSON Web Token)":16500,"Electrum Wallet (Salt-Type 1-3)":16600,"FileVault 2":16700,"WPA-PMKID-PBKDF2":16800,"WPA-PMKID-PMK":16801,"Ansible Vault":16900,"PKZIP (Compressed)":17200,"PKZIP (Uncompressed)":17210,"PKZIP (Compressed Multi-File)":17220,"PKZIP (Mixed Multi-File)":17225,"PKZIP (Compressed Multi-File Checksum-Only)":17230,"SHA3-224":17300,"SHA3-256":17400,"SHA3-384":17500,"SHA3-512":17600,"Keccak-224":17700,"Keccak-256":17800,"Keccak-384":17900,"Keccak-512":18000,"TOTP (HMAC-SHA1)":18100,"Kerberos 5 AS-REP etype 23":18200,"Apple File System (APFS)":18300,"Open Document Format (ODF) 1.2 (SHA-256, AES)":18400,"sha1(md5(md5($pass)))":18500,"Open Document Format (ODF) 1.1 (SHA-1, Blowfish)":18600,"Java Object hashCode()":18700,"Blockchain, My Wallet, Second Password (SHA256)":18800,"Android Backup":18900,"QNX /etc/shadow (MD5)":19000,"QNX /etc/shadow (SHA256)":19100,"QNX /etc/shadow (SHA512)":19200,"sha1($salt1.$pass.$salt2)":19300,"Ruby on Rails Restful-Authentication":19500,"Kerberos 5 TGS-REP etype 17 (AES128-CTS-HMAC-SHA1-96)":19600,"Kerberos 5 TGS-REP etype 18 (AES256-CTS-HMAC-SHA1-96)":19700,"Kerberos 5, etype 17, Pre-Auth":19800,"Kerberos 5, etype 18, Pre-Auth":19900,"DiskCryptor SHA512 + XTS 512 bit (AES)":20011,"DiskCryptor SHA512 + XTS 512 bit (Twofish)":20011,"DiskCryptor SHA512 + XTS 512 bit (Serpent)":20011,"DiskCryptor SHA512 + XTS 1024 bit (AES-Twofish)":20012,"DiskCryptor SHA512 + XTS 1024 bit (Twofish-Serpent)":20012,"DiskCryptor SHA512 + XTS 1024 bit (Serpent-AES)":20012,"DiskCryptor SHA512 + XTS 1536 bit (AES-Twofish-Serpent)":20013,"Python passlib pbkdf2-sha512":20200,"Python passlib pbkdf2-sha256":20300,"Python passlib pbkdf2-sha1":20400,"PKZIP Master Key":20500,"PKZIP Master Key (6 byte optimization)":20510,"Oracle Transportation Management (SHA256)":20600,"sha256(sha256($pass).$salt)":20710,"sha256(md5($pass))":20800,"md5(sha1($pass).md5($pass).sha1($pass))":20900,"BitShares v0.x - sha512(sha512_bin(pass))":21000,"sha1(md5($pass.$salt))":21100,"md5(sha1($salt).md5($pass))":21200,"md5($salt.sha1($salt.$pass))":21300,"sha256(sha256_bin(pass))":21400,"SolarWinds Orion":21500,"Web2py pbkdf2-sha512":21600,"Electrum Wallet (Salt-Type 4)":21700,"Electrum Wallet (Salt-Type 5)":21800,"WPA-PBKDF2-PMKID+EAPOL":22000,"WPA-PMK-PMKID+EAPOL":22001,"BitLocker":22100,"Citrix NetScaler (SHA512)":22200,"sha256($salt.$pass.$salt)":22300,"AES Crypt (SHA256)":22400,"MultiBit Classic .key (MD5)":22500,"Telegram Desktop App Passcode (PBKDF2-HMAC-SHA1)":22600,"MultiBit HD (scrypt)":22700,"RSA/DSA/EC/OpenSSH Private Keys ($0$)":22911,"RSA/DSA/EC/OpenSSH Private Keys ($6$)":22921,"RSA/DSA/EC/OpenSSH Private Keys ($1, $3$)":22931,"RSA/DSA/EC/OpenSSH Private Keys ($4$)":22941,"RSA/DSA/EC/OpenSSH Private Keys ($5$)":22951,"SecureZIP AES-128":23001,"SecureZIP AES-192":23002,"SecureZIP AES-256":23003,"Apple Keychain":23100,"XMPP SCRAM PBKDF2-SHA1":23200,"Apple iWork":23300,"Bitwarden":23400,"AxCrypt 2 AES-128":23500,"AxCrypt 2 AES-256":23600,"RAR3-p (Uncompressed)":23700,"RAR3-p (Compressed)":23800,"Plaintext":99999},
 
@@ -33,17 +33,64 @@ angular
 				return acc;
 			}, {}),
 
+			getFamilySpotPriceHistory: async function(family) {
+				self = this;
+
+				const result = { [family]: [] };
+
+				for (let region in REGIONS) {
+					const instanceTypes = Object.keys(FAMILIES[family].instances).reduce((names, name) => {
+						if (!QUOTAS?.[region]?.[FAMILIES[family].quotaCode]) {
+							return names;
+						}
+
+						if (FAMILIES[family].instances[name][1] <= QUOTAS[region][FAMILIES[family].quotaCode]) {
+							names.push(name);
+						}
+
+						return names;
+					}, []);
+
+					let price = await Promise.all(instanceTypes.map((name) => {
+						return self.getSpotPriceHistory(name, region).then((data) => {
+							data.instanceType = name;
+							data.limit = Math.floor(QUOTAS[region][FAMILIES[family].quotaCode] / FAMILIES[family].instances[name][1]);
+
+							return data;
+						});
+					}));
+
+					price = price.reduce((all, current) => {
+						if (!!current.price) {
+
+
+							all.push(current);
+						}
+
+						return all;
+					}, []).sort((a, b) => a.price - b.price);
+
+					if (price.length > 0) {
+						result[family].push({
+							region,
+							quota: QUOTAS[region][FAMILIES[family].quotaCode],
+							instances: price
+						});
+					}
+				}
+
+				return result;
+			},
+
 			getSpotPriceHistory: function (instanceType, forceRegion) {
 				var self = this;
 
-				/*
-				if (typeof self.spotPrice[instanceType] != "undefined") {
-					return self.spotPrice[instanceType];
+				if (!!self?.spotPrice?.[instanceType]) {
+					return Promise.resolve(self.spotPrice[instanceType]);
 				}
-				*/
 
 				var regions = this.clients;
-				if (forceRegion) {
+				if (!!forceRegion) {
 					regions = [this.clients[forceRegion]]
 				}
 				
@@ -54,6 +101,7 @@ angular
 						if (typeof self.spotPriceHistory[regions[name].config.region][instanceType] != "undefined") {
 							resolve(self.spotPriceHistory[regions[name].config.region][instanceType]);
 						}
+
 						regions[name].describeSpotPriceHistory({
 							StartTime: Math.round(Date.now() / 1000),
 							EndTime: Math.round(Date.now() / 1000),

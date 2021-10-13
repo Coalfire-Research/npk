@@ -38,7 +38,7 @@ local settings = {
 	awsProfile: "default",
 	wwwEndpoint: "${aws_cloudfront_distribution.npk.domain_name}"
 } + npksettings + {
-	defaultRegion: "us-west-2",
+	primaryRegion: "us-west-2",
 	families: gpu_instance_families,
 	regions: regions,
 	quotas: quotas,
@@ -276,13 +276,6 @@ local regionKeys = std.objectFields(settings.regions);
 		resource: dynamodb_settings
 	},
 	'ec2_iam_roles.tf.json': ec2_iam_roles,
-	'igw.tf.json': {
-		resource: {
-			aws_internet_gateway: {
-				[regionKeys[i]]: igw(regionKeys[i]) for i in std.range(0, std.length(regionKeys) - 1)
-			}
-		}
-	},
 	'keepers.tf.json': {
 		resource: keepers.resource(settings.adminEmail),
 		output: keepers.output	
@@ -325,21 +318,15 @@ local regionKeys = std.objectFields(settings.regions);
 				userdata_bucket: "${aws_s3_bucket.user_data.id}",
 				instanceProfile: "${aws_iam_instance_profile.npk_node.arn}",
 				iamFleetRole: "${aws_iam_role.npk_fleet_role.arn}",
-				availabilityZones: std.strReplace(std.manifestJsonEx({
-					[regionKeys[i]]: {
-						[settings.regions[regionKeys[i]][azi]]: "${aws_subnet." + settings.regions[regionKeys[i]][azi] + ".id}"
-							for azi in std.range(0, std.length(settings.regions[regionKeys[i]]) - 1)
-					}
-					for i in std.range(0, std.length(regionKeys) - 1)
-				}, ""), "\n", ""),
-				dictionaryBuckets: std.strReplace(std.manifestJsonEx({
-					[regionKeys[i]]: "${var.dictionary-" + regionKeys[i] + "-id}"
-					for i in std.range(0, std.length(regionKeys) - 1)
-				}, ""), "\n", ""),
+				regions: std.manifestJsonEx({
+					[region]: "${aws_vpc.npk-%s.id}" % region
+					for region in regionKeys
+				}, ""),
+				dictionaryBucket: "${var.dictionaryBucket}",
 				apigateway: if settings.useCustomDNS then
 					settings.apiEndpoint
 				else
-					"${aws_api_gateway_rest_api.npk.id}.execute-api." + settings.defaultRegion + ".amazonaws.com"
+					"${aws_api_gateway_rest_api.npk.id}.execute-api.%s.amazonaws.com" % [settings.primaryRegion]
 			}
 		},
 	}, {
@@ -366,8 +353,7 @@ local regionKeys = std.objectFields(settings.regions);
 				"s3:GetObject"
 			],
 			resources: [
-				"${var.dictionary-" + regionKeys[i] + "}/*"
-				for i in std.range(0, std.length(regionKeys) - 1)
+				"arn:aws:s3:::${var.dictionaryBucket}/*"
 			]
 		},{
 			sid: "ddb",
@@ -444,21 +430,15 @@ local regionKeys = std.objectFields(settings.regions);
 				userdata_bucket: "${aws_s3_bucket.user_data.id}",
 				instanceProfile: "${aws_iam_instance_profile.npk_node.arn}",
 				iamFleetRole: "${aws_iam_role.npk_fleet_role.arn}",
-				availabilityZones: std.strReplace(std.manifestJsonEx({
-					[regionKeys[i]]: {
-						[settings.regions[regionKeys[i]][azi]]: "${aws_subnet." + settings.regions[regionKeys[i]][azi] + ".id}"
-							for azi in std.range(0, std.length(settings.regions[regionKeys[i]]) - 1)
-					}
-					for i in std.range(0, std.length(regionKeys) - 1)
-				}, ""), "\n", ""),
-				dictionaryBuckets: std.strReplace(std.manifestJsonEx({
-					[regionKeys[i]]: "${var.dictionary-" + regionKeys[i] + "-id}"
-					for i in std.range(0, std.length(regionKeys) - 1)
-				}, ""), "\n", ""),
+				regions: std.manifestJsonEx({
+					[region]: "${aws_vpc.npk-%s.id}" % region
+					for region in regionKeys
+				}, ""),
+				dictionaryBucket: "${var.dictionaryBucket}",
 				apigateway: if settings.useCustomDNS then
 					settings.apiEndpoint
 				else
-					"${aws_api_gateway_rest_api.npk.id}.execute-api." + settings.defaultRegion + ".amazonaws.com"
+					"${aws_api_gateway_rest_api.npk.id}.execute-api.%s.amazonaws.com" % [settings.primaryRegion]
 			}
 		},
 
@@ -524,13 +504,10 @@ local regionKeys = std.objectFields(settings.regions);
 				region: "${var.region}",
 				campaign_max_price: "${var.campaign_max_price}",
 				critical_events_sns_topic: "${aws_sns_topic.critical_events.id}",
-				availabilityZones: std.manifestJsonEx({
-					[regionKeys[i]]: {
-						[settings.regions[regionKeys[i]][azi]]: "${aws_subnet." + settings.regions[regionKeys[i]][azi] + ".id}"
-							for azi in std.range(0, std.length(settings.regions[regionKeys[i]]) - 1)
-					}
-					for i in std.range(0, std.length(regionKeys) - 1)
-				}, "")
+				regions: std.manifestJsonEx({
+					[region]: "${aws_vpc.npk-%s.id}" % region
+					for region in regionKeys
+				}, ""),
 			}
 		},
 
@@ -584,13 +561,10 @@ local regionKeys = std.objectFields(settings.regions);
 				region: "${var.region}",
 				campaign_max_price: "${var.campaign_max_price}",
 				critical_events_sns_topic: "${aws_sns_topic.critical_events.id}",
-				availabilityZones: std.manifestJsonEx({
-					[regionKeys[i]]: {
-						[settings.regions[regionKeys[i]][azi]]: "${aws_subnet." + settings.regions[regionKeys[i]][azi] + ".id}"
-							for azi in std.range(0, std.length(settings.regions[regionKeys[i]]) - 1)
-					}
-					for i in std.range(0, std.length(regionKeys) - 1)
-				}, "")
+				regions: std.manifestJsonEx({
+					[region]: "${aws_vpc.npk-%s.id}" % region
+					for region in regionKeys
+				}, ""),
 			}
 		},
 
@@ -652,6 +626,12 @@ local regionKeys = std.objectFields(settings.regions);
 		provider: [{
 			aws: {
 				profile: settings.awsProfile,
+				region: settings.primaryRegion
+			}
+		}, {
+			aws: {
+				alias: "core",
+				profile: settings.awsProfile,
 				region: "us-west-2"
 			}
 		}, {
@@ -664,18 +644,6 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		} for region in regionKeys]
 	},
-	# 'provider-aws.tf.json': {
-	# 	provider: [
-	# 		provider.aws_provider
-	# 	] + [
-	# 		provider.aws_alias(region) for region in regionKeys
-	# 	]
-	# },
-	# 'provider-other.tf.json': {
-	# 	provider: {
-	# 		archive: {}
-	# 	}
-	# },
 	[if settings.useCustomDNS then 'route53-main.tf.json' else null]: {
 		resource: {
 			aws_route53_record: {
@@ -713,21 +681,6 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
-	'routetable.tf.json': {
-		resource: {
-			aws_route_table: {
-				[regionKeys[i]]: route.routetable(regionKeys[i]) for i in std.range(0, std.length(regionKeys) - 1)
-			},
-			aws_route_table_association: { 
-				[settings.regions[regionKeys[i]][azi]]: route.association(regionKeys[i], settings.regions[regionKeys[i]][azi])
-					for i in std.range(0, std.length(regionKeys) - 1)
-					for azi in std.range(0, std.length(settings.regions[regionKeys[i]]) - 1)
-			},
-			aws_vpc_endpoint_route_table_association: { 
-				[regionKeys[i]]: route.endpoint(regionKeys[i], "s3-" + regionKeys[i]) for i in std.range(0, std.length(regionKeys) - 1)
-			},
-		}
-	},
 	's3.tf.json': {
 		resource: {
 			aws_s3_bucket: {
@@ -759,7 +712,7 @@ local regionKeys = std.objectFields(settings.regions);
 		},
 		output: {
 			s3_static_site_sync_command: {
-				value: "aws --profile " + settings.awsProfile + " s3 --region " + settings.defaultRegion + " sync ${path.module}/../site-content/ s3://${aws_s3_bucket.static_site.id}"
+				value: "aws --profile %s s3 --region %s sync ${path.module}/../site-content/ s3://${aws_s3_bucket.static_site.id}" % [settings.awsProfile, settings.primaryRegion]
 			}
 		}
 	},
@@ -817,15 +770,6 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
-	'subnet.tf.json': {
-		resource: {
-			aws_subnet: {
-				[settings.regions[regionKeys[i]][azi]]: subnet(regionKeys[i], settings.regions[regionKeys[i]][azi], azi)
-					for i in std.range(0, std.length(regionKeys) - 1)
-					for azi in std.range(0, std.length(settings.regions[regionKeys[i]]) - 1) 
-			} 
-		}
-	},
 	'templates.tf.json': {
 		data: templates.data(settings),
 		resource: templates.resource
@@ -837,20 +781,13 @@ local regionKeys = std.objectFields(settings.regions);
 	'variables.tf.json': {
 		variable: variables.variables(settings) + {
 			profile: { default: settings.awsProfile },
-	    	region: { default: settings.defaultRegion },
+	    	region: { default: settings.primaryRegion },
 	    	campaign_data_ttl: { default: settings.campaign_data_ttl },
 	    	campaign_max_price: { default: settings.campaign_max_price },
 	    	useSAML: { default: settings.useSAML }
 		}
-	},
-	'vpc.tf.json': {
-		resource: {
-			aws_vpc: {
-				[regionKeys[i]]: vpc.vpc(regionKeys[i], i) for i in std.range(0, std.length(regionKeys) - 1)
-			},
-			aws_vpc_endpoint: {
-				["s3-" + regionKeys[i]]: vpc.endpoint(regionKeys[i]) for i in std.range(0, std.length(regionKeys) - 1)
-			},
-		}
 	}
+} + {
+	['vpc-%s.tf.json' % region]: vpc.public_vpc("npk", region, "172.21.16.0/20", settings.regions[region], ['s3'])
+	for region in std.objectFields(settings.regions)
 }

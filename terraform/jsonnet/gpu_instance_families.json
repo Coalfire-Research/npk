@@ -13,8 +13,12 @@
 		"instances": {
 			"g4dn.xlarge": [1, 4],
 			"g4dn.12xlarge": [4, 48],
-			"g4dn.metal": [8, 96],
-
+			"g4dn.metal": [8, 96]
+		}
+	},
+	"Radeon Pro V520": {
+		"quotaCode": "L-3819A6DF",
+		"instances": {
 			"g4ad.xlarge": [1, 4],
 			"g4ad.8xlarge": [2, 32],
 			"g4ad.16xlarge": [4, 64]

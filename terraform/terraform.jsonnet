@@ -50,6 +50,13 @@ local settings = {
 	useSAML: std.objectHas(npksettings, 'sAMLMetadataFile') || std.objectHas(npksettings, 'sAMLMetadataUrl')
 };
 
+local accountDetails = {
+	primaryRegion: settings.primaryRegion,
+	families: gpu_instance_families,
+	regions: regions,
+	quotas: quotas
+};
+
 local regionKeys = std.objectFields(settings.regions);
 
 {
@@ -323,6 +330,7 @@ local regionKeys = std.objectFields(settings.regions);
 					for region in regionKeys
 				}, ""),
 				dictionaryBucket: "${var.dictionaryBucket}",
+				dictionaryBucketRegion: "${var.dictionaryBucketRegion}",
 				apigateway: if settings.useCustomDNS then
 					settings.apiEndpoint
 				else
@@ -456,6 +464,7 @@ local regionKeys = std.objectFields(settings.regions);
 			sid: "ec2",
 			actions: [
 				"ec2:DescribeImages",
+				"ec2:DescribeSubnets",
 				"ec2:DescribeSpotFleetRequests",
 				"ec2:DescribeSpotPriceHistory",
 				"ec2:RequestSpotFleet",
@@ -790,4 +799,7 @@ local regionKeys = std.objectFields(settings.regions);
 } + {
 	['vpc-%s.tf.json' % region]: vpc.public_vpc("npk", region, "172.21.16.0/20", settings.regions[region], ['s3'])
 	for region in std.objectFields(settings.regions)
+} + {
+	['lambda_functions/%s/accountDetails.json' % name]: accountDetails
+	for name in ['create_campaign', 'delete_campaign', 'execute_campaign', 'spot_monitor']
 }

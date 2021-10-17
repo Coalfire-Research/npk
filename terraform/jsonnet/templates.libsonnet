@@ -18,6 +18,7 @@ local az(region) = {
 					identity_pool_id: "${aws_cognito_identity_pool.main.id}",
 					userdata_bucket: "${aws_s3_bucket.user_data.id}",
 					dictionary_bucket: "${var.dictionaryBucket}",
+					dictionary_region: "${var.dictionaryBucketRegion}",
 					primary_region: if (settings.primaryRegion == "us-east-1") then null else settings.primaryRegion,
 					use_SAML: settings.useSAML,
 					saml_domain: "",
@@ -42,7 +43,9 @@ local az(region) = {
 
 				vars: {
 					dictionaryBucket: "${var.dictionaryBucket}",
-					userdata: "${aws_s3_bucket.user_data.id}"
+					dictionaryBucketRegion: "${var.dictionaryBucketRegion}",
+					userdata: "${aws_s3_bucket.user_data.id}",
+					userdataRegion: settings.primaryRegion
 				}
 			}
 		}

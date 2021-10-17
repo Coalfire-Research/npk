@@ -8,6 +8,7 @@
 			default: "OFF"
 		},
 		dictionaryBucket: {},
+		dictionaryBucketRegion: {},
 		useSAML: {},
 	}
 }

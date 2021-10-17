@@ -1,12 +1,18 @@
-const aws = require('aws-sdk');
-const ddb = new aws.DynamoDB({ region: "us-west-2" });
-const s3 = new aws.S3({ region: "us-west-2" });
+'use strict';
+
 const fs = require('fs');
+const aws = require('aws-sdk');
+
+const accountDetails = JSON.parse(fs.readFileSync('./accountDetails.json', 'ascii'));
+
+const ddb = new aws.DynamoDB({ region: accountDetails.primaryRegion });
+const s3 = new aws.S3({ region: accountDetails.primaryRegion });
 
 let cb = "";
+let origin = "";
 let variables = {};
 
-const cognito = new aws.CognitoIdentityServiceProvider({region: "us-west-2", apiVersion: "2016-04-18"});
+const cognito = new aws.CognitoIdentityServiceProvider({region: accountDetails.primaryRegion, apiVersion: "2016-04-18"});
 
 exports.main = async function(event, context, callback) {
 
@@ -17,8 +23,35 @@ exports.main = async function(event, context, callback) {
 
 	// Get the available envvars into a usable format.
 	variables = JSON.parse(JSON.stringify(process.env));
-	variables.availabilityZones = JSON.parse(variables.availabilityZones);
-	variables.dictionaryBuckets = JSON.parse(variables.dictionaryBuckets);
+	variables.regions = JSON.parse(variables.regions);
+
+	let promises = [];
+
+	// Enumerate the subnets based on VPCs per region.
+	try {
+		variables.availabilityZones = {};
+
+		for (const region of Object.keys(variables.regions)) {
+
+			variables.availabilityZones[region] = {};
+
+			const ec2 = new aws.EC2({region: region});
+
+			promises.push(ec2.describeSubnets({
+				Filters: [{
+					Name: "vpc-id",
+					Values: [variables.regions[region]]
+				}]
+			}).promise().then((data) => {
+				data.Subnets.forEach((subnet) => {
+					variables.availabilityZones[region][subnet.AvailabilityZone] = subnet.SubnetId;
+				});
+			}));
+		}
+	} catch (e) {
+		console.log(e);
+		return callback(`[!] Failed to retrieve subnets for VPC: ${e}`);
+	}
 
 	let entity, UserPoolId, sub;
 
@@ -84,8 +117,8 @@ exports.main = async function(event, context, callback) {
 		email = user.UserAttributes.email;
 			
 	} catch (e) {
-		console.log("Unable to retrieve user context.", e);
-		return respond(500, {}, "Unable to retrieve user context.", false);
+		console.log(`Failed to retrieve subnets for VPC: ${e}`);
+		return respond(500, {}, "Failed to retrieve subnets for VPC.", false);
 	}
 
 	console.log(event.pathParameters)
@@ -134,9 +167,10 @@ exports.main = async function(event, context, callback) {
 		duration = expires - (new Date().getTime() / 1000);
 
 		if (duration < 900) {
-			return respond(400, {} `hashFileUrl must be valid for at least 900 seconds, got ${Math.floor(duration)}`, false);
+			return respond(400, {}, `hashFileUrl must be valid for at least 900 seconds, got ${Math.floor(duration)}`, false);
 		}
 	} catch (e) {
+		console.log(e);
 		return respond(400, {}, "Invalid hashFileUrl; missing expiration", false);
 	}
 
@@ -161,13 +195,15 @@ exports.main = async function(event, context, callback) {
 	                Values: ["hvm"]
 	            },{
 	            	Name: "name",
-	            	Values: ["amzn2-ami-graphics-hvm-2*"]
+	            	// Values: ["amzn2-ami-graphics-hvm-2*"]
+	            	Values: ["Deep Learning AMI (Amazon Linux 2) Version *"]
 	            },{
 	            	Name: "root-device-type",
 	            	Values: ["ebs"]
 	            },{
 	            	Name: "owner-id",
-	            	Values: ["679593333241"]
+	            	//Values: ["679593333241"]
+	            	Values: ["898082745236"]
 	            }]
 			}).promise()
 		]);
@@ -233,6 +269,7 @@ exports.main = async function(event, context, callback) {
 		};
 
 		// Create a copy of the launchSpecificationTemplate for each AvailabilityZone in the campaign's region.
+		console.log(variables.availabilityZones)
 
 		const launchSpecifications = Object.keys(variables.availabilityZones[manifest.region]).reduce((specs, entry) => {
 			const az = JSON.parse(JSON.stringify(launchSpecificationTemplate)); // Have to deep-copy to avoid referential overrides.

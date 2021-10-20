@@ -232,6 +232,42 @@ exports.main = async function(event, context, callback) {
 			.toString('base64');
 
 		const launchSpecificationTemplate = {
+            ImageId: image.ImageId,
+			KeyName: "npk-key",
+			InstanceType: manifest.instanceType,
+            NetworkInterfaces: [
+                {
+                    DeviceIndex: 0,
+                    DeleteOnTermination: true,
+                    AssociatePublicIpAddress: true
+                }
+            ],
+            BlockDeviceMappings: [{
+				DeviceName: '/dev/xvdb',
+				Ebs: {
+					DeleteOnTermination: true,
+					Encrypted: false,
+					VolumeSize: volumeSize,
+					VolumeType: "gp2"
+				}
+			}],
+            IamInstanceProfile: {
+				Arn: variables.instanceProfile
+			},
+            TagSpecifications: [{
+				ResourceType: "instance",
+				Tags: [{
+					Key: "MaxCost",
+					Value: ((manifest.priceTarget < variables.campaign_max_price) ? manifest.priceTarget : variables.campaign_max_price).toString()
+				}, {
+					Key: "ManifestPath",
+					Value: `${entity}/campaigns/${campaignId}`
+				}]
+			}],
+            UserData: instance_userdata
+        }
+
+		/*const launchSpecificationTemplate = {
 			IamInstanceProfile: {
 				Arn: variables.instanceProfile
 			},
@@ -266,7 +302,7 @@ exports.main = async function(event, context, callback) {
 				}]
 			}],
 			UserData: instance_userdata
-		};
+		};*/
 
 		// Create a copy of the launchSpecificationTemplate for each AvailabilityZone in the campaign's region.
 		console.log(variables.availabilityZones)
@@ -274,7 +310,7 @@ exports.main = async function(event, context, callback) {
 		const launchSpecifications = Object.keys(variables.availabilityZones[manifest.region]).reduce((specs, entry) => {
 			const az = JSON.parse(JSON.stringify(launchSpecificationTemplate)); // Have to deep-copy to avoid referential overrides.
 
-			az.Placement.AvailabilityZone = entry;
+			// az.Placement.AvailabilityZone = entry;
 			az.NetworkInterfaces[0].SubnetId = variables.availabilityZones[manifest.region][entry];
 
 			return specs.concat(az);
@@ -302,7 +338,7 @@ exports.main = async function(event, context, callback) {
 			}
 		};
 
-		// console.log(JSON.stringify(spotFleetParams));
+		console.log(JSON.stringify(spotFleetParams));
 	} catch (e) {
 		console.log("Failed to generate launch specifications.", e);
 		return respond(500, {}, "Failed to generate launch specifications.", false);

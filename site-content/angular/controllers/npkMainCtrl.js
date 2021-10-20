@@ -714,7 +714,14 @@ angular
       $scope.buildSliders();
     }
 
+    $scope.settingOptions = false
+
     $scope.getInstanceOptions = async function() {
+      if ($scope.settingOptions) {
+        return false;
+      }
+
+      $scope.settingOptions = true;
       $scope.instanceOptions = [];
 
       // await pricingSvc.getSpotPriceHistory('g4ad.xlarge', 'us-west-2');
@@ -739,6 +746,8 @@ angular
           }
         });
       }));
+
+      $scope.settingOptions = false;
     };
 
     $scope.pricesLoaded = false;
@@ -848,7 +857,7 @@ angular
     });
 
     $scope.$watch('hashType', function() {
-      // $scope.updateInstances();
+      $scope.getInstanceOptions();
       $scope.updateWordlistAttack();
 
       if ($scope.selectedInstance != "none" && !!$scope.selectedInstance) {

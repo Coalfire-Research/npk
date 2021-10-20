@@ -102,15 +102,15 @@ echo "export INSTANCENUMBER=$INSTANCENUMBER" >> envvars
 echo "export KEYSPACE=$KEYSPACE" >> envvars
 chmod +x envvars
 
-# node compute-node/hashcat_wrapper.js
-# echo "[*] Hashcat wrapper finished with status code $?"
-# aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
-# sleep 30
+node compute-node/hashcat_wrapper.js
+echo "[*] Hashcat wrapper finished with status code $?"
+aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
+sleep 30
 
-# if [[ ! -f /root/nodeath ]]; then
-# 	poweroff
-# fi
+if [[ ! -f /root/nodeath ]]; then
+	poweroff
+fi
 
 # Use this to generate benchmarks
-/root/hashcat/hashcat.bin -O -w 4 -b --benchmark-all > /potfiles/benchmark-results.txt
-aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
+# /root/hashcat/hashcat.bin -O -w 4 -b --benchmark-all > /potfiles/benchmark-results.txt
+# aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/

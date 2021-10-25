@@ -685,6 +685,8 @@ angular
     $scope.uploadProgress = 30;
     $scope.upload_finished = false;
 
+    $scope.familySortOrder = 'effectiveness';
+
     $scope.instanceOptions = [];
 
     $scope.families = FAMILIES;
@@ -714,6 +716,10 @@ angular
       $scope.buildSliders();
     }
 
+    $scope.setFamilySortOrder = function(method) {
+      $scope.familySortOrder = method;
+    }
+
     $scope.settingOptions = false
 
     $scope.getInstanceOptions = async function() {
@@ -724,25 +730,34 @@ angular
       $scope.settingOptions = true;
       $scope.instanceOptions = [];
 
-      // await pricingSvc.getSpotPriceHistory('g4ad.xlarge', 'us-west-2');
-
-      // console.log(pricingSvc.spotPrice['g4ad.xlarge']);
-
       await Promise.all(Object.keys(FAMILIES).map(async (gpu) => {
-        console.log(gpu);
 
         pricingSvc.getFamilySpotPriceHistory(gpu).then((data) => {
           if (data[gpu].length > 0) {
+            const cheapest = data[gpu].reduce((cheapest, option) => {
+              option.instances.forEach(instance => {
+                  if (cheapest == 0 || instance.price < cheapest) {
+                    cheapest = instance.price;
+                  }
+              });
+
+              return cheapest;
+            }, 0);
+
+            const effectiveness = (!pricingSvc.gpuSpeeds?.[gpu]?.[$scope.hashType] || !cheapest) ?
+              0 : pricingSvc.gpuSpeeds[gpu][$scope.hashType] / cheapest;
+
             $scope.instanceOptions.push({
               gpu,
               cost: data[gpu],
-              performance: pricingSvc.gpuSpeeds[gpu][$scope.hashType] ?? 0,
+              performance: pricingSvc.gpuSpeeds?.[gpu]?.[$scope.hashType] ?? 0,
+              cheapest,
+              effectiveness
             });
 
             $scope.$digest();
             $scope.pricesLoaded = true;
 
-            console.log($scope.instanceOptions);
           }
         });
       }));
@@ -1093,7 +1108,7 @@ angular
         $scope.selectedRules.forEach(function(e) {
           console.log(e);
           args.push("-r");
-          args.push("rules/" + e.Key);
+          args.push(e.Key);
         });
       }
 
@@ -1103,7 +1118,7 @@ angular
 
       if ([0,6].indexOf($scope.attackType) >= 0) {
         $scope.selectedWordlist.forEach(function(f) {
-          args.push("wordlists/" + f.Key);
+          args.push(f.Key);
         });
       }
 
@@ -1591,11 +1606,12 @@ angular
   .controller('filesCtrl', ['$scope', '$timeout', '$routeParams', '$location', 'USERDATA_BUCKET', function($scope, $timeout, $routeParams, $location, USERDATA_BUCKET) {
 
     $scope.files = {};
+    $scope.basePath = "";
     $scope.pathTree = {};
     $scope.files_loading = false;
     $scope.populateFiles = function() {
       $scope.files_loading = true;
-      $scope.$parent.npkDB.listBucketContents(USERDATA_BUCKET.name, "self/", USERDATA_BUCKET.region).then((data) => {
+      $scope.$parent.npkDB.listBucketContents(USERDATA_BUCKET.name, "self/" + $scope.basePath, USERDATA_BUCKET.region).then((data) => {
         Object.keys(data.Contents).forEach(function (e) {
           $scope.files[data.Contents[e].Key] = data.Contents[e];
         });
@@ -1720,8 +1736,14 @@ angular
     }
 
     $scope.onReady = function() {
-       $scope.$parent.startApp();
-       $scope.populateFiles();
+      $scope.$parent.startApp();
+
+      if (!!$routeParams.basePath) {
+        $scope.basePath = $routeParams.basePath;
+        console.log($scope.basePath);
+      }
+
+      $scope.populateFiles();
     };
 
     $scope.$on('$routeChangeSuccess', function() {
@@ -1729,7 +1751,7 @@ angular
        $scope.onReady();
     });
   }])
-  .controller('cmCtrl', ['$scope', '$routeParams', '$location', 'USERDATA_BUCKET', 'pricingSvc', function($scope, $routeParams, $location, USERDATA_BUCKET, pricingSvc) {
+  .controller('cmCtrl', ['$scope', '$routeParams', '$location', 'USERDATA_BUCKET', 'pricingSvc', 'FAMILIES', function($scope, $routeParams, $location, USERDATA_BUCKET, pricingSvc, FAMILIES) {
 
     $scope.data = {};
     $scope.campaigns = {};
@@ -1741,13 +1763,19 @@ angular
     $scope.selected_campaign = null;
     $scope.manifest = {};
 
-    $scope.gpus = pricingSvc.gpus;
+    $scope.gpus = Object.keys(FAMILIES).reduce((gpus, family) => {
+      const instances = Object.keys(FAMILIES[family].instances).forEach((instance) => {
+        let [gpu, vcpu] = FAMILIES[family].instances[instance];
 
-    $scope.gpuNames = {
-      "G3": "Tesla M60",
-      "P2": "Tesla K80",
-      "P3": "Tesla V100"
-    };
+        gpus[instance] = {
+          gpu,
+          vcpu,
+          family
+        };
+      });
+
+      return gpus;
+    }, {});
 
     // Apply the tooltips after campaigns are loaded.
     $scope.$watch('campaigns_loaded', function() {
@@ -1783,6 +1811,11 @@ angular
       $scope.$parent.npkDB.select('self:campaigns:' + campaign, 'Campaigns').then((data) => {
         Object.keys(data).forEach(function(e) {
           campaigns[e].base = data[e];
+
+          if (!Array.isArray(campaigns?.[e]?.base?.spotRequestHistory)) {
+            return false;
+          }
+
           campaigns[e].base.spotRequestHistory.forEach(function(h) {
             if (h.EventInformation.EventSubType == "launched" || h.EventInformation.EventSubType == "terminated") {
               h.EventInformation.EventDescription = JSON.parse(h.EventInformation.EventDescription);

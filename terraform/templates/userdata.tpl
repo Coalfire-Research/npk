@@ -73,9 +73,24 @@ jq -r '.rulesFiles[]' manifest.json | xargs -L1 -I'{}' rm ./npk-{}
 # Link the output file to potfiles
 ln -s /var/log/cloud-init-output.log /potfiles/$${INSTANCEID}-output.log
 
+echo <<EOF > /root/monitor_instance_action.sh
+#! /bin/bash
+
+ACTIONS=\$(curl -s --head http://169.254.169.254/latest/meta-data/spot/intance_action | grep 404 | wc -l)
+if [[ \$ACTIONS -ne 1 ]]; then
+	wget -O /potfiles/$${INSTANCEID}-instance_action.json http://169.254.169.254/latest/meta-data/spot/intance_action
+	aws --region $USERDATAREGION s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/ --include \"*$${INSTANCEID}*\"
+fi
+EOF
+
+chmod +x /root/monitor_instance_action.sh
+
+cat /root/monitor_instance_action.sh
+
 # Create the crontab to sync s3
 echo "* * * * * root aws --region $USERDATAREGION s3 sync s3://$USERDATA/$ManifestPath/potfiles/ /potfiles/ --exclude \"*$${INSTANCEID}*\"" >> /etc/crontab
 echo "* * * * * root aws --region $USERDATAREGION s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/ --include \"*$${INSTANCEID}*\"" >> /etc/crontab
+echo "* * * * * root /root/monitor_instance_action.sh" >> /etc/crontab
 
 aws ec2 describe-spot-fleet-instances --region $REGION --spot-fleet-request-id $SpotFleet | jq '.ActiveInstances[].InstanceId' | sort > fleet_instances
 export INSTANCECOUNT=$(cat fleet_instances | wc -l)
@@ -101,6 +116,21 @@ echo "export INSTANCECOUNT=$INSTANCECOUNT" >> envvars
 echo "export INSTANCENUMBER=$INSTANCENUMBER" >> envvars
 echo "export KEYSPACE=$KEYSPACE" >> envvars
 chmod +x envvars
+
+# If we have a mask specified for a non-mask attack type, generate a rule file from the mask:
+if [[ "$(jq -r '.attackType' manifest.json)" != "3" && "$(jq -r '.mask' manifest.json)" != "null" ]]; then
+	MASK=$(jq -r '.mask' manifest.json | sed 's/?/ $?/g')
+	MASK=$${MASK:1}
+
+	echo "[*] Manifest has mask of [$MASK]"
+
+	if [[ $(echo $MASK | wc -c) -gt 0 ]]; then
+		echo "/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule \"$MASK\""
+		/root/maskprocessor/mp64.bin -o /root/npk-rules/npk-maskprocessor.rule "$MASK"
+		echo : >> /root/npk-rules/npk-maskprocessor.rule
+		echo "Mask rule created with $(cat /root/npk-rules/npk-maskprocessor.rule | wc -l) entries"
+	fi
+fi
 
 node compute-node/hashcat_wrapper.js
 echo "[*] Hashcat wrapper finished with status code $?"

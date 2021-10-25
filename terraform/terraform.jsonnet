@@ -223,6 +223,12 @@ local regionKeys = std.objectFields(settings.regions);
 						actions: ["lambda:Invoke"],
 						resources: ["${aws_lambda_function.spot_monitor.arn}"]
 					}
+				},
+				cloudwatch_invoke_spot_interrupt_catcher: {
+					statement: {
+						actions: ["lambda:Invoke"],
+						resources: ["${aws_lambda_function.spot_interrupt_catcher.arn}"]
+					}
 				}
 			}
 		}
@@ -499,6 +505,46 @@ local regionKeys = std.objectFields(settings.regions);
 			],
 			resources: [
 				"${aws_cognito_user_pool.npk.arn}"
+			]
+		}]
+	}),
+	'lambda-spot_interrupt_catcher.tf.json': lambda.lambda_function("spot_interrupt_catcher", {
+		handler: "main.main",
+		timeout: 10,
+		memory_size: 512,
+
+		environment: {
+			variables: {
+				region: "${var.region}",
+				critical_events_sns_topic: "${aws_sns_topic.critical_events.id}",
+			}
+		},
+
+		dead_letter_config: {
+			target_arn:	"${aws_sns_topic.critical_events.arn}"
+		}
+	}, {
+		statement: [{
+			sid: "sns",
+			actions: [
+				"sns:Publish"
+			],
+			resources: [
+				"${aws_sns_topic.critical_events.arn}"
+			]
+		},{
+			sid: "ec2",
+			actions: [
+				"ec2:DescribeInstances",
+			],
+			resources: ["*"]
+		},{
+			sid: "ddb",
+			actions: [
+				"dynamodb:UpdateItem"
+			],
+			resources: [
+				"${aws_dynamodb_table.campaigns.arn}"
 			]
 		}]
 	}),

@@ -166,7 +166,7 @@ exports.main = async function(event, context, callback) {
 			}
 
 			if (/cancelled/.test(fleet.SpotFleetRequestState)) {
-				const fleetState = (fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING";
+				const fleetState = (fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "STOPPING";
 
 				promises.push(editCampaignViaRequestId(fleet.SpotFleetRequestId, {
 					active: false,
@@ -333,12 +333,14 @@ exports.main = async function(event, context, callback) {
 				});
 			});
 
+			const fleetState = (/cancelled/.test(fleet.SpotFleetRequestState)) ? "STOPPING" : "RUNNING";
+
 			promises.push(editCampaignViaRequestId(fleetId, {
 				active: true,
 				price: fleet.price,
 				spotRequestHistory: fleet.history,
 				spotRequestStatus: fleet.instances,
-				status: "RUNNING"
+				status: fleetState
 			}).then((data) => {
 				console.log(`[+] Updated price of fleet ${fleetId}`);
 			}, (e) => {

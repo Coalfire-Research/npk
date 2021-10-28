@@ -171,26 +171,34 @@ if [[ ! -f quotas.json ]]; then
 	GQUOTA=$(aws service-quotas list-service-quotas --service-code ec2 | jq '.Quotas[] | select(.QuotaCode == "L-3819A6DF") | .Value')
 
 	QUOTAERR=0
-	if [[ $PQUOTA -lt 16 ]]; then
+	if [[ $PQUOTA -lt 4 ]]; then
 		QUOTAERR=1
-		echo "The target account is limited to fewer than 16 vCPUs in us-west-2 for P-type instances."
+		echo "The target account is limited to fewer than 4 vCPUs in us-west-2 for P-type instances."
 		echo "-> Current limit: $PQUOTA"
 		echo ""
 	fi
 
-	if [[ $GQUOTA -lt 16 ]]; then
+	if [[ $GQUOTA -lt 4 ]]; then
 		QUOTAERR=1
-		echo "The target account is limited to fewer than 16 vCPUs in us-west-2 for G-type instances."
+		echo "The target account is limited to fewer than 4 vCPUs in us-west-2 for G-type instances."
 		echo "-> Current limit: $GQUOTA"
 		echo ""
 	fi
 
 	if [[ $QUOTAERR -eq 1 ]]; then
 		echo "You cannot proceed without increasing your limits."
-		echo "-> A limit of at least 16 is required for minimal capacity."
+		echo "-> A limit of at least 4 is required for minimal capacity."
 		echo "-> A limit of 384 is required for full capacity."
 		echo ""
-		exit 1
+
+		if [[ ! -f skipquota ]]; then
+			echo "to proceed anyway, create a file called 'skipquota' in this folder with command:"
+			echo "# touch skipquota"
+
+			exit 1
+		fi;
+
+		echo "[+] 'skipquota' file is present. Deploying anyway."
 	fi
 
 	QUOTAWARN=0

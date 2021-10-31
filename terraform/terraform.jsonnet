@@ -829,7 +829,7 @@ local regionKeys = std.objectFields(settings.regions);
 		data: templates.data(settings),
 		resource: templates.resource
 	},
-	'template-inject_api_handler.json': {
+	'template-inject_api_handler.json':: {
 		[regionKeys[i]]: templates.az(settings.regions[regionKeys[i]])
 			for i in std.range(0, std.length(regionKeys) - 1)
 	},

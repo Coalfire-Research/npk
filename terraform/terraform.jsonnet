@@ -43,11 +43,12 @@ local settings = {
 	regions: regions,
 	quotas: quotas,
 	useCustomDNS: std.objectHas(hostedZone, 'dnsBaseName'),
-	[if std.objectHas(hostedZone, 'dnsBaseName') then 'dnsBaseName']: hostedZone.dnsBaseName,
-	[if std.objectHas(hostedZone, 'dnsBaseName') then 'wwwEndpoint']: "%s" % [hostedZone.dnsBaseName],
-	[if std.objectHas(hostedZone, 'dnsBaseName') then 'apiEndpoint']: "api.%s" % [hostedZone.dnsBaseName],
-	[if std.objectHas(hostedZone, 'dnsBaseName') then 'authEndpoint']: "auth.%s" % [hostedZone.dnsBaseName],
 	useSAML: std.objectHas(npksettings, 'sAMLMetadataFile') || std.objectHas(npksettings, 'sAMLMetadataUrl')
+} + if !std.objectHas(hostedZone, 'dnsBaseName') then {} else {
+	dnsBaseName: hostedZone.dnsBaseName,
+	wwwEndpoint: "%s" % [hostedZone.dnsBaseName],
+	apiEndpoint: "api.%s" % [hostedZone.dnsBaseName],
+	authEndpoint: "auth.%s" % [hostedZone.dnsBaseName]
 };
 
 local accountDetails = {

@@ -100,7 +100,7 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 			secretAccessKey: creds.secretAccessKey,
 			sessionToken: creds.sessionToken,
 			profile: creds.profile
-		}));
+		}), { mode: '600' });
 	}
 
 	process.env.AWS_ACCESS_KEY_ID = aws.config.credentials.accessKeyId;
@@ -122,6 +122,30 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 		console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 		return false;
 	}
+
+	// Check for invalid settings
+	const allowedSettings = [
+		'backend_bucket',
+		'campaign_data_ttl',
+		'campaign_max_price',
+		'georestrictions',
+		'route53Zone',
+		'awsProfile',
+		'criticalEventsSMS',
+		'adminEmail',
+		'samlMetadataFile',
+		'samlMetadataUrl'
+	];
+
+	const badSettings = Object.keys(settings)
+		.filter(e => allowedSettings.indexOf(e) < 0)
+		.map(e => console.log(`[!] Invalid setting key [${e}] in npk-settings.json`));
+
+	if (badSettings.length > 0) {
+		console.log('[!] Fix your settings, then try again.');
+		return false;
+	}
+
 
 	// Determine backend_bucket location, or create it if it doesn't exist.
 	const s3 = await new aws.S3({ region: "us-east-1" });
@@ -349,4 +373,10 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 		}
 	}
 
-})() || process.exit(1);
+})() || showHelpBanner();
+
+function showHelpBanner() {
+	console.log("[!] Deployment failed. If you're having trouble, hop in Discord for help.");
+	console.log("--> Porchetta Industries Discord: https://discord.gg/k5PQnqSNDF");
+	process.exit(1);
+}

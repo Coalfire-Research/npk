@@ -316,7 +316,7 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 	}
 
 	// Produce Terraform files with JSonnet.
-	console.log("[*] All prerequisites finished. Generating infrastructure configurations.");
+	console.log("\n[*] All prerequisites finished. Generating infrastructure configurations.");
 
 	try {
 		const jsonnet = new Jsonnet();
@@ -331,4 +331,22 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 		return false;
 	}
 
-})();
+	try {
+		let s3 = new aws.S3({ region: backendBucket.locationConstraint });
+		s3.headObject({
+			Bucket: settings.backend_bucket,
+			Key: "c6fc.io/npk3/terraform.tfstate"
+		}).promise();
+
+		console.log(`[+] Configurations updated successfully. Use 'npm run deploy' to deploy.`);
+
+	} catch (e) {
+		if (e.toString().indexOf("NotFound") === 0) {
+			console.log(`[+] Configurations generated successfully. Use 'npm run init && npm run deploy' to deploy.`);
+		} else {
+			console.log(`[!] Unable to verify Terraform state. ${e}`);
+			return false;
+		}
+	}
+
+})() || process.exit(1);

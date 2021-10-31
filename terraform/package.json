@@ -4,6 +4,12 @@
   "description": "NPK distributed hash cracking platform",
   "main": "index.js",
   "scripts": {
+    "apply": "terraform apply",
+    "init": "terraform init",
+    "generate": "node index.js",
+    "plan": "terraform plan --output npk.plan",
+    "deploy": "node index.js && terraform init && terraform apply -auto-approve",
+    "destroy": "terraform destroy",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

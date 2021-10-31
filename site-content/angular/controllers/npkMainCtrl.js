@@ -835,6 +835,7 @@ angular
 
     $scope.use_wordlist = false;
     $scope.toggleWordlist = function() {
+      $('#use_wordlist').prop('checked', !$('#use_wordlist').prop('checked'))
       $scope.use_wordlist = $('#use_wordlist').prop('checked');
 
       if ($scope.use_wordlist) {
@@ -1018,6 +1019,7 @@ angular
 
     $scope.use_mask = false;
     $scope.toggleMask = function() {
+      $('#use_mask').prop('checked', !$('#use_mask').prop('checked'));
       $scope.use_mask = $('#use_mask').prop('checked');
 
       if ($scope.use_mask) {
@@ -1034,6 +1036,7 @@ angular
     };
 
     $scope.toggleManual = function() {
+      $('#use_manual').prop('checked', !$('#use_manual').prop('checked'));
       $scope.use_manual = $('#use_manual').prop('checked');
 
       if ($scope.use_manual) {

@@ -236,12 +236,12 @@
                                   <div style="margin-top: 8px; width: 400px; display: inline-block;">
                                     Wordlist Attacks
                                   </div>
-                                  <div class="btn btn-sm btn-outline-warning waves-effect waves-light m-1 card-action" style="padding: 3px 10px;" ng-click="toggleWordlist();" onClick="window.switchers.use_wordlist.switcher.click();">
+                                  <div class="btn btn-sm waves-effect waves-light m-1 card-action" ng-class="use_wordlist ? 'btn-warning' : 'btn-outline-warning'" style="padding: 3px 10px;" ng-click="toggleWordlist();">
                                     <span style="margin-right: 8px;">
                                       <i class="fa fa-plus"></i>
                                       <span>Enable</span>
                                     </span>
-                                    <input type="checkbox" name="use_wordlist" id="use_wordlist" class="js-switch" data-color="#ff9700" data-size="small" />
+                                    <input type="checkbox" name="use_wordlist" id="use_wordlist" style="hidden: true;" checked/>
                                   </div>
                                 </div>
                                 <div class="card-body text-center">
@@ -289,12 +289,12 @@
                                   <div style="margin-top: 8px; width: 400px; display: inline-block;">
                                     Mask Configuration
                                   </div>
-                                  <div class="btn btn-sm btn-outline-warning waves-effect waves-light m-1 card-action" style="padding: 3px 10px;" ng-click="toggleMask();" onClick="window.switchers.use_mask.switcher.click();">
+                                  <div class="btn btn-sm waves-effect waves-light m-1 card-action" ng-class="use_mask ? 'btn-warning' : 'btn-outline-warning'" style="padding: 3px 10px;" ng-click="toggleMask();">
                                     <span style="margin-right: 8px;">
                                       <i class="fa fa-plus"></i>
                                       <span>Enable</span>
                                     </span>
-                                    <input type="checkbox" name="use_mask" id="use_mask" class="js-switch" data-color="#ff9700" data-size="small"/>
+                                    <input type="checkbox" name="use_mask" id="use_mask" style="hidden: true;" checked/>
                                   </div>
                                 </div>
                                 <div class="card-body text-center">
@@ -375,12 +375,12 @@
                                   <div style="margin-top: 8px; width: 400px; display: inline-block;">
                                     Manual Configuration (Advanced Users Only)
                                   </div>
-                                  <div class="btn btn-sm btn-outline-warning waves-effect waves-light m-1 card-action" style="padding: 3px 10px;" ng-click="toggleManual();" onClick="window.switchers.use_manual.switcher.click();">
+                                  <div class="btn btn-sm waves-effect waves-light m-1 card-action" ng-class="use_manual ? 'btn-warning' : 'btn-outline-warning'" style="padding: 3px 10px;" ng-click="toggleManual();">
                                     <span style="margin-right: 8px;">
                                       <i class="fa fa-plus"></i>
                                       <span>Enable</span>
                                     </span>
-                                    <input type="checkbox" name="use_manual" id="use_manual" class="js-switch" data-color="#ff9700" data-size="small"/>
+                                    <input type="checkbox" name="use_manual" id="use_manual" style="hidden: true;" checked/>
                                   </div>
                                 </div>
                                 <div class="card-body text-center">

@@ -7,4 +7,4 @@ if [[ $UID -eq 0 ]]; then
 fi
 
 docker build --platform linux/x86_64 -t c6fc/npk:latest .
-docker run -it -v `pwd`:/npk -v ~/.aws/:/root/.aws c6fc/npk:latest
+docker run --platform linux/x86_64 -it -v `pwd`:/npk -v ~/.aws/:/root/.aws c6fc/npk:latest

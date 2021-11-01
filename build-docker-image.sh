@@ -6,5 +6,5 @@ if [[ $UID -eq 0 ]]; then
 	echo "re-run this command as yourself WITHOUT sudo."
 fi
 
-docker build -t c6fc/npk:latest .
+docker build --platform linux/x86_64 -t c6fc/npk:latest .
 docker run -it -v `pwd`:/npk -v ~/.aws/:/root/.aws c6fc/npk:latest

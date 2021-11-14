@@ -11,6 +11,22 @@ echo "***********************************************************"
 echo
 echo
 
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+	echo "[+] ${BASH_SOURCE[0]} is being sourced. Envvars will persist after execution."
+	EXIT=return
+else
+	echo "[+] ${BASH_SOURCE[0]} is not being sourced. Envvars will unset after execution."
+	EXIT=exit
+fi
+
+echo "**"
+echo
+echo ">> The deploy.sh script is deprecated. Please use 'npm run deploy' instead."
+echo
+echo "**"
+
+EXIT 1;
+
 if [[ $1 == "" ]]; then
 	TERBIN=terraform
 else
@@ -75,10 +91,10 @@ fi
 
 if [[ "$ERR" == "1" ]]; then
 	echo -e "\nInstall missing components, then try again.\n"
-	exit 1
+	$EXIT 1
 fi
 
-## Check for v2 config, and exit if found.
+## Check for v2 config, and $EXIT if found.
 if [[ $(jq -r 'select(has("useCustomDNS")) | length' npk-settings.json) -gt 0 ]]; then
 	ERR=1
 fi
@@ -100,7 +116,7 @@ if [[ "$ERR" == "1" ]]; then
 	echo "The safest way to proceed is to destroy everything, pull v2.5 to a new folder, and deploy from scratch."
 	echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	echo
-	exit 1
+	$EXIT 1
 fi
 
 PROFILE=$(jq -r '.awsProfile' npk-settings.json)
@@ -121,22 +137,33 @@ if [[ "$BUCKET" == "" ]]; then
 	echo "If you specify a bucket that doesn't exist, NPK will create it for you. How easy is that?"
 	echo "Update npk-settings.json and try again."
 	echo ""
-	exit 1
+	$EXIT 1
 fi
 
 EXISTS=$(aws s3api get-bucket-location --bucket $BUCKET)
 if [[ $? -ne 0 ]]; then
-	aws s3api create-bucket --bucket $BUCKET --create-bucket-configuration LocationConstraint=$AWS_DEFAULT_REGION
+	LOCATIONCONSTRAINT="--create-bucket-configuration LocationConstraint=$AWS_DEFAULT_REGION"
+
+	if [[ "$AWS_DEFAULT_REGION" == "us-east-1" ]]; then
+		LOCATIONCONSTRAINT=""
+	fi
+
+	aws s3api create-bucket --bucket $BUCKET $LOCATIONCONSTRAINT > /dev/null
 
 	if [[ $? -ne 0 ]]; then
 		echo "Error creating backend_bucket. Fix that^ error then try again."
-		exit 1
+		$EXIT 1
 	fi
 else
-	if [[ "$( echo $EXISTS | jq -r '.LocationConstraint' )" != "$AWS_DEFAULT_REGION" ]]; then
-		echo "The backend_bucket you specified doesn't reside in the defaultRegion. Specify a bucket in us-west-2, then try again."
+	EXPECTEDCONSTRAINT="$AWS_DEFAULT_REGION"
+	if [[ "$AWS_DEFAULT_REGION" == "us-east-1" ]]; then
+		EXPECTEDCONSTRAINT="null"
+	fi
+
+	if [[ "$( echo $EXISTS | jq -r '.LocationConstraint' )" != "$EXPECTEDCONSTRAINT" ]]; then
+		echo "The backendBucket you specified doesn't reside in your primary region. Specify a bucket in $AWS_DEFAULT_REGION, then try again."
 		echo "$( echo $EXISTS | jq '.LocationConstraint' ) vs. $AWS_DEFAULT_REGION"
-		exit 1
+		$EXIT 1
 	fi
 fi
 
@@ -150,7 +177,7 @@ if [[ $ZONE != "" ]]; then
 
 	if [[ $? -ne 0 ]]; then
 		echo "[-] Unable to retrieve Route53 Hosted Zone with ID [ $ZONE ]."
-		exit 1
+		$EXIT 1
 	fi
 
 	# Chop off the trailing '.';
@@ -163,60 +190,78 @@ else
 	echo "{}" > hostedZone.json
 fi
 
+REGIONLIST=$(aws ec2 describe-regions | jq -r '.Regions[] | select(".OptInStatus" | ["opt-in-not-required", "opted-in"] ) | .RegionName')
+
+MAXQVAL=0
 if [[ ! -f quotas.json ]]; then
 
-	echo "[*] Checking account quotas..."
+	echo "[*] Checking account quotas. This will take about 45 seconds..."
 
-	PQUOTA=$(aws service-quotas list-service-quotas --service-code ec2 | jq '.Quotas[] | select(.QuotaCode == "L-7212CCBC") | .Value')
-	GQUOTA=$(aws service-quotas list-service-quotas --service-code ec2 | jq '.Quotas[] | select(.QuotaCode == "L-3819A6DF") | .Value')
+	while IFS= read -r region; do
+		SERVICEQUOTAS=$(aws --region $region service-quotas list-service-quotas --service-code ec2);
+		# echo "[*] - ${region}"
 
-	QUOTAERR=0
-	if [[ $PQUOTA -lt 4 ]]; then
-		QUOTAERR=1
-		echo "The target account is limited to fewer than 4 vCPUs in us-west-2 for P-type instances."
-		echo "-> Current limit: $PQUOTA"
-		echo ""
-	fi
+		while IFS= read -r quota; do
+			qval=$(echo $SERVICEQUOTAS | jq -r --arg quota $quota '.Quotas[] | select(.QuotaCode==$quota) | .Value')
 
-	if [[ $GQUOTA -lt 4 ]]; then
-		QUOTAERR=1
-		echo "The target account is limited to fewer than 4 vCPUs in us-west-2 for G-type instances."
-		echo "-> Current limit: $GQUOTA"
-		echo ""
-	fi
+			if [[ $qval == "" ]]; then
+				qval=0
+			fi
 
-	if [[ $QUOTAERR -eq 1 ]]; then
+			if [[ $qval > $MAXQVAL ]]; then
+				MAXQVAL=$qval
+			fi
+
+			if [[ $qval -gt 0 ]]; then
+				echo $SERVICEQUOTAS | jq -r '{"'${quota}'": "'${qval}'"}' > quota-${quota}.json
+			fi
+		done <<< $(jq -r '.[].quotaCode' ./jsonnet/gpu_instance_families.json | sort -u)
+
+		if test -n "$(find . -maxdepth 1 -name 'quota-*' -print -quit)"; then
+			jq -rs --arg region $region 'reduce .[] as $item 
+				(
+					{};
+					. * { ($region): ($item) }
+				)' ./quota-*.json > quotas-${region}.json
+
+			rm quota-*.json
+		fi
+	done <<< $REGIONLIST
+
+	if [[ $MAXQVAL -eq 0 ]]; then
+		echo "[!] You are permitted zero GPU spot instances across all types and regions."
 		echo "You cannot proceed without increasing your limits."
 		echo "-> A limit of at least 4 is required for minimal capacity."
-		echo "-> A limit of 384 is required for full capacity."
+		echo "-> A limit of 40 is required to use the largest instances."
 		echo ""
+		$EXIT 1
 
-		if [[ ! -f skipquota ]]; then
-			echo "to proceed anyway, create a file called 'skipquota' in this folder with command:"
-			echo "# touch skipquota"
+	fi
 
-			exit 1
-		fi;
+	jq -rs 'reduce .[] as $item ({}; . * $item)' ./quotas-*.json > quotas.json
+	rm quotas-*.json
 
-		echo "[+] 'skipquota' file is present. Deploying anyway."
+	if [[ $MAXQVAL -lt 4 ]]; then
+		QUOTAERR=1
+		echo "The target account is limited to fewer than 4 vCPUs in in all regions for all quotas."
+		echo "-> Current max limit: $MAXQVAL"
+	
+		echo "You cannot proceed without increasing your limits."
+		echo "-> A limit of at least 4 is required for minimal capacity."
+		echo "-> A limit of 40 is required to use the largest instances."
+		echo ""
+		$EXIT 1
 	fi
 
 	QUOTAWARN=0
-	if [[ $PQUOTA -lt 384 ]]; then
+	if [[ $MAXQVAL -lt 40 ]]; then
 		QUOTAWARN=1
-		echo "The target account is limited to fewer than 384 vCPUs in us-west-2 for P-type instances."
-		echo "-> Current limit: $PQUOTA"
+		echo "The target account is limited to fewer than 40 vCPUs for all GPU instances in all regions."
+		echo "-> Highest limit: $MAXQVAL"
 		echo ""
 	fi
 
-	if [[ $GQUOTA -lt 384 ]]; then
-		QUOTAWARN=1
-		echo "The target account is limited to fewer than 384 vCPUs in us-west-2 for G-type instances."
-		echo "-> Current limit: $GQUOTA"
-		echo ""
-	fi
-
-	if [[ $QUOTAWARN -eq 1 ]]; then
+	if [[ $MAXQVAL -eq 1 ]]; then
 		echo "1. Attempting to create campaigns in excess of these limits will fail".
 		echo "2. The UI will not prevent you from requesting campaigns in excess of these limits."
 		echo "3. The UI does not yet indicate when requests fail due to exceeded limits."
@@ -229,22 +274,20 @@ if [[ ! -f quotas.json ]]; then
 			echo "You must accept the campaign size warning with 'Yes' in order to continue."
 			echo ""
 
-			exit 1
+			$EXIT 1
 		fi
 	fi
-
-	jq -n --arg PQUOTA "$PQUOTA" --arg GQUOTA "$GQUOTA" '{pquota: $PQUOTA, gquota: $GQUOTA}' > quotas.json
 else
 	echo "[*] Using known quotas. Delete quotas.json to force re-evaluation."
 fi
 
-# Get the availability zones for each region
+# Get the availability zones for each available region
 if [ ! -f regions.json ]; then
 	echo "[*] Getting availability zones from AWS"
 	while IFS= read -r region; do
 		echo "[*] - ${region}"
 		aws ec2 --region ${region} describe-availability-zones | jq -r '{"'${region}'": [.AvailabilityZones[] | select(.State=="available") | .ZoneName]}' > region-${region}.json
-	done <<< $(echo '["us-east-1", "us-east-2", "us-west-1", "us-west-2"]' | jq -r '.[]')
+	done <<< $(cat quotas.json | jq -r '. | keys[]')
 
 	jq -rs 'reduce .[] as $item ({}; . * $item)' ./region-*.json > regions.json
 	rm region-*.json
@@ -252,7 +295,7 @@ if [ ! -f regions.json ]; then
 	if [[ "$(cat regions.json | wc -l)" -lt "4" ]]; then
 		echo -e "\n[!] Error retrieving AWS availability zones. Check the 'awsProfile' setting and try again"
 		rm regions.json
-		exit 1
+		$EXIT 1
 	fi
 else
 	echo "[*] Using known availability zones. Delete regions.json to force re-evaluation."
@@ -286,10 +329,10 @@ if [[ "$?" -eq "1" ]]; then
 	echo ""
 	echo "[!] An error occurred generating the config files. Address the error and try again."
 	echo ""
-	exit 1
+	$EXIT 1
 fi
 
-aws s3api head-object --bucket $BUCKET --key c6fc.io/npk2.5/terraform.tfstate 2&> /dev/null
+aws s3api head-object --bucket $BUCKET --key c6fc.io/npk3/terraform.tfstate 2&> /dev/null
 ISINIT="$?"
 
 if [[ ! -d .terraform || $ISINIT -ne 0 ]]; then
@@ -297,7 +340,7 @@ if [[ ! -d .terraform || $ISINIT -ne 0 ]]; then
 
 	if [[ $? -ne 0 ]]; then
 		echo "[-] An error occurred while running 'terraform init'. Address the error and try again"
-		exit 1
+		$EXIT 1
 	fi
 fi
 
@@ -309,7 +352,7 @@ if [[ $? -eq 0 ]]; then
 else
 	echo
 	echo "[!] Deployment failed. If you're having trouble, hop in Discord for help."
-	exit 1
+	$EXIT 1
 fi
 
 # Setting file ownership to the user that cloned the repo.

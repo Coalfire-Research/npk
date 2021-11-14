@@ -17,17 +17,21 @@ local az(region) = {
 					user_pool_id: "${aws_cognito_user_pool.npk.id}",
 					identity_pool_id: "${aws_cognito_identity_pool.main.id}",
 					userdata_bucket: "${aws_s3_bucket.user_data.id}",
+					dictionary_bucket: "${var.dictionaryBucket}",
+					dictionary_region: "${var.dictionaryBucketRegion}",
+					primary_region: if (settings.primaryRegion == "us-east-1") then null else settings.primaryRegion,
 					use_SAML: settings.useSAML,
 					saml_domain: "",
 					saml_redirect: "",
-					g_quota: settings.quotas.gquota,
-					p_quota: settings.quotas.pquota,
+					families: std.strReplace(std.manifestJsonEx(settings.families, ""), "\n", ""),
+					quotas: std.strReplace(std.manifestJsonEx(settings.quotas, ""), "\n", ""),
+					regions: std.strReplace(std.manifestJsonEx(settings.regions, ""), "\n", ""),
 					api_gateway_url: if settings.useCustomDNS then
 							settings.apiEndpoint
 						else
 							"${element(split(\"/\", aws_api_gateway_deployment.npk.invoke_url), 2)}"
 				} + (if settings.useSAML && !settings.useCustomDNS then {
-					saml_domain: "${aws_cognito_user_pool_domain.saml.domain}.auth.us-west-2.amazoncognito.com",
+					saml_domain: "${aws_cognito_user_pool_domain.saml.domain}.auth." + settings.primaryRegion + ".amazoncognito.com",
 					saml_redirect: "https://${aws_cloudfront_distribution.npk.domain_name}"
 				} else {}) + (if settings.useSAML && settings.useCustomDNS then {
 					saml_domain: settings.authEndpoint,
@@ -38,11 +42,10 @@ local az(region) = {
 				template: "${file(\"${path.module}/templates/userdata.tpl\")}",
 
 				vars: {
-					dictionaryBuckets: std.strReplace(std.manifestJsonEx({
-						[regionKeys[i]]: "${var.dictionary-" + regionKeys[i] + "-id}"
-						for i in std.range(0, std.length(regionKeys) - 1)
-					}, ""), "\n", ""),
-					userdata: "${aws_s3_bucket.user_data.id}"
+					dictionaryBucket: "${var.dictionaryBucket}",
+					dictionaryBucketRegion: "${var.dictionaryBucketRegion}",
+					userdata: "${aws_s3_bucket.user_data.id}",
+					userdataRegion: settings.primaryRegion
 				}
 			}
 		}

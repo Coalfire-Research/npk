@@ -14,159 +14,13 @@
         <div class="card bg-transparent shadow-none border border-secondary-light">
           <div class="card-header bg-transparent text-white border-secondary-light">
             New Campaign
-            <div class="card-action">
-              <div class="btn btn-sm btn-outline-warning waves-effect waves-light m-1 card-action" style="padding: 3px 10px;" onClick="window.switchers.use_advanced.switcher.click();" ng-click="toggleAdvancedView()">
-                <span style="margin-right: 8px;">
-                  <i class="fa fa-plus"></i>
-                  <span>Advanced View</span>
-                </span>
-                <input type="checkbox" name="use_advanced" id="use_advanced" class="js-switch" data-color="#ff9700" data-size="small" />
-              </div>
-            </div>
           </div>
           <div class="card-body text-center">
              
             <!-- Start campaign form -->
             <form>
-              <div class="row" ng-show="!showAdvanced">
-                <div class="col-lg-3" style="margin-top: 20px;">
-                  <div class="card border border-white shadow-none">
-                    <div class="card-header bg-dark text-white">
-                      Hash Type
-                    </div>
-                    <div class="card-body text-center">
-                      <input type="checkbox" id="showAll" class="chk-col-primary filled-in" ng-model="showAll">
-                      <label for="showAll">
-                        Show All
-                      </label>
-                      <select class="form-control" ng-options="value as key for (key, value) in pricingSvc.hashTypes | commonHashTypes : $parent.settings.favoriteHashTypes : !showAll" ng-model="hashType" ng-change="updateInstances()" style="margin-bottom: 5px;"></select>
-                      <div ng-show="isSalted()" class="alert alert-outline-warning" role="alert">
-                        <div class="alert-icon">
-                          <i class="icon-close"></i>
-                        </div>
-                        <div class="alert-message">
-                          <span>
-                            <strong>
-                              Warning:
-                            </strong>
-                            Hashrates for salted or workfactor hashes will not be accurate. Make sure you understand the ramifications and adjust your campaign accordingly.
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="card border border-white shadow-none">
-                    <div class="card-body text-center">
-                      <b>Force Region</b>
-                      <div class="btn-group m-1">
-                        <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-west-1'}" ng-click="pickForcedRegion('us-west-1')">
-                          West-1
-                        </button>
-                        <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-west-2'}" ng-click="pickForcedRegion('us-west-2')">
-                          West-2
-                        </button>
-                        <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-east-1'}" ng-click="pickForcedRegion('us-east-1')">
-                          East-1
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-lg-9">
-                  <div class="card border-right-sm border-left-sm border-success shadow-none">
-                    <div class="card-body bg-dark" style="padding: 4px;">
-                      <div class="row">
-                        <div class="col-lg-4" >
-                          <div ng-show="idealInstances.g3.price" class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'g3')}]" style="margin-bottom: 0px;" id="g3">
-                            <div class="card-header">
-                              <h5 style="margin-bottom: -4px;">{{ idealInstances.g3.instanceType }}</h5>
-                              <small>(Tesla M60)</small>
-                            </div>
-                            <div class="card-body text-center">
-                              {{ pricingSvc.g3[hashType] | toHs }}/GPU<br>
-                              {{ gpus[idealInstances.g3.instanceType] }} GPUs & {{ vcpus[idealInstances.g3.instanceType] }} vCPUs<br>
-                              ${{ pricingSvc.spotPrice[idealInstances.g3.instanceType].price | number:2 }} /Hr<br>
-                              <small>{{ idealInstances.g3.az }}</small>
-                              <hr width="60%" />
-                              {{ idealInstances.g3.pricePerformance | toHs }}/$
-                              <hr width="60%" />
-                              <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == idealInstances.g3.instanceType)}, {'btn-secondary': (selectedInstance != idealInstances.g3.instanceType)}]" ng-click="pickInstance(idealInstances.g3)">
-                                Select
-                              </button>
-                            </div>
-                          </div>
-
-                          <div ng-hide="idealInstances.g3.price || !pricesLoaded || forceRegion == false" class="card shadow-none text-center border border-bottom-sm border-top-sm" style="margin-bottom: 0px;">
-                            <div class="card-header">
-                              <h5 style="margin-bottom: -4px;">Not available</h5>
-                              <small>G3 Instances are not available in {{ forceRegion }}</small>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="col-lg-4">
-                          <div ng-show="idealInstances.p2.price" class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'p2')}]" style="margin-bottom: 0px;" id="p2">
-                            <div class="card-header">
-                              <h5 style="margin-bottom: -4px;">{{ idealInstances.p2.instanceType }}</h5>
-                              <small>(Tesla K80)</small>
-                            </div>
-                            <div class="card-body text-center">
-                              {{ pricingSvc.p2[hashType] | toHs }}/GPU<br>
-                              {{ gpus[idealInstances.p2.instanceType] }} GPUs & {{ vcpus[idealInstances.p2.instanceType] }} vCPUs<br>
-                              ${{ pricingSvc.spotPrice[idealInstances.p2.instanceType].price | number:2 }} /Hr<br>
-                              <small>{{ idealInstances.p2.az }}</small>
-                              <hr width="60%" />
-                              {{ idealInstances.p2.pricePerformance | toHs }}/$
-                              <hr width="60%" />
-                              <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == idealInstances.p2.instanceType)}, {'btn-secondary': (selectedInstance != idealInstances.p2.instanceType)}]" ng-click="pickInstance(idealInstances.p2)">
-                                Select
-                              </button>
-                            </div>
-                          </div>
-
-                          <div ng-hide="idealInstances.p2.price || !pricesLoaded || forceRegion == false" class="card shadow-none text-center border border-bottom-sm border-top-sm" style="margin-bottom: 0px;">
-                            <div class="card-header">
-                              <h5 style="margin-bottom: -4px;">Not available</h5>
-                              <small>P2 Instances are not available in {{ forceRegion }}</small>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="col-lg-4">
-                          <div ng-show="idealInstances.p3.price" class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == 'p3')}]" style="margin-bottom: 0px;" id="p3">
-                            <div class="card-header">
-                              <h5 style="margin-bottom: -4px;">{{ idealInstances.p3.instanceType }}</h5>
-                              <small>(Tesla V100)</small>
-                            </div>
-                            <div class="card-body text-center">
-                              {{ pricingSvc.p3[hashType] | toHs }}/GPU<br>
-                              {{ gpus[idealInstances.p3.instanceType] }} GPUs & {{ vcpus[idealInstances.p3.instanceType] }} vCPUs<br>
-                              ${{ pricingSvc.spotPrice[idealInstances.p3.instanceType].price | number:2 }} /Hr<br>
-                              <small>{{ idealInstances.p3.az }}</small>
-                              <hr width="60%" />
-                              {{ idealInstances.p3.pricePerformance | toHs }}/$
-                              <hr width="60%" />
-                              <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == idealInstances.p3.instanceType)}, {'btn-secondary': (selectedInstance != idealInstances.p3.instanceType)}]" ng-click="pickInstance(idealInstances.p3)">
-                                Select
-                              </button>
-                            </div>
-                          </div>
-
-                          <div ng-hide="idealInstances.p3.price || !pricesLoaded || forceRegion == false" class="card shadow-none text-center border border-bottom-sm border-top-sm" style="margin-bottom: 0px;">
-                            <div class="card-header">
-                              <h5 style="margin-bottom: -4px;">Not available</h5>
-                              <small>P3 Instances are not available in {{ forceRegion }}</small>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="row" ng-show="showAdvanced">
-                <div class="col-lg-3" style="margin-top: 20px;">
+              <div class="row mb-3">
+                <div class="col-lg-3">
                   <div class="card border border-white shadow-none">
                     <div class="card-header bg-dark text-white">
                       Hash Type
@@ -194,74 +48,110 @@
                       </div>
                     </div>
                   </div>
+                </div>
+                
+                <div class="col-lg-3">
                   <div class="card border border-white shadow-none">
-                    <div class="card-body text-center">
-                      <b>Force Region</b>
-                      <div class="btn-group m-1">
-                        <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-west-1'}" ng-click="pickForcedRegion('us-west-1')">
-                          West-1
-                        </button>
-                        <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-west-2'}" ng-click="pickForcedRegion('us-west-2')">
-                          West-2
-                        </button>
-                        <button class="btn btn-sm border-secondary waves-effect waves-light" ng-class="{'btn-success': forceRegion == 'us-east-1'}" ng-click="pickForcedRegion('us-east-1')">
-                          East-1
-                        </button>
+                    <div class="card-header bg-dark text-white">
+                      GPU Family
+                      <br />
+                      <div class="btn-group mt-1" role="group">
+                        <button class="btn btn-sm" ng-class="familySortOrder == 'effectiveness' ? 'btn-secondary' : 'btn-outline-secondary'" ng-click="setFamilySortOrder('effectiveness')">Best</button>
+                        <button class="btn btn-sm" ng-class="familySortOrder == 'cost' ? 'btn-secondary' : 'btn-outline-secondary'" ng-click="setFamilySortOrder('cost')">Cheapest</button>
+                        <button class="btn btn-sm" ng-class="familySortOrder == 'performance' ? 'btn-secondary' : 'btn-outline-secondary'" ng-click="setFamilySortOrder('performance')">Fastest</button>
                       </div>
+                    </div>
+                    <div class="bg-dark text-center" ng-hide="pricesLoaded">
+                      <img height="50px" width="50px" src="assets/images/loading.gif">
+                    </div>
+
+                    <!-- best -->
+                    <div ng-if="familySortOrder == 'effectiveness'" class="card-body bg-dark p-1 pr-3" ng-show="pricesLoaded">
+                      <button ng-click="selectFamily(family)" ng-repeat="(index, family) in instanceOptions | orderBy:'effectiveness':true" class="btn btn-sm btn-block waves-effect waves-light m-1" ng-class="[
+                        { 'btn-danger': (selectedFamily == family && !$first && family.performance == 0) },
+                        { 'btn-outline-danger': (selectedFamily != family && !$first && family.performance == 0) },
+                        { 'btn-warning': (selectedFamily == family && !$first && family.performance > 0) },
+                        { 'btn-outline-warning': (selectedFamily != family && !$first && family.performance > 0) },
+                        { 'btn-success': (selectedFamily == family && $first) },
+                        { 'btn-outline-success': (selectedFamily != family && $first) }
+                        ]">
+                        <div class="text-left pl-0 col-lg-6 figure">{{ family.gpu }}</div>
+                        <div class="text-right pr-0 col-lg-6 figure">
+                          [ {{ family.effectiveness | toHs }}/$ ]
+                        </div>
+                      </button>
+                    </div>
+
+                    <!-- performance -->
+                    <div ng-if="familySortOrder == 'performance'" class="card-body bg-dark p-1 pr-3" ng-show="pricesLoaded">
+                      <button ng-click="selectFamily(family)" ng-repeat="family in instanceOptions | orderBy:'performance':true" class="btn btn-sm btn-block waves-effect waves-light m-1" ng-class="[
+                        { 'btn-danger': (selectedFamily == family && family.performance == 0) },
+                        { 'btn-outline-danger': (selectedFamily != family && family.performance == 0) },
+                        { 'btn-warning': (selectedFamily == family && !$first && family.performance > 0) },
+                        { 'btn-outline-warning': (selectedFamily != family && !$first && family.performance > 0) },
+                        { 'btn-success': (selectedFamily == family && $first) },
+                        { 'btn-outline-success': (selectedFamily != family && $first) }
+                        ]">
+                        <div class="text-left pl-0 col-lg-6 figure">{{ family.gpu }}</div>
+                        <div class="text-right pr-0 col-lg-6 figure">
+                          [ {{ family.performance | toHs }} ]
+                        </div>
+                      </button>
+                    </div>
+
+                    <!-- cost -->
+                    <div ng-if="familySortOrder == 'cost'" class="card-body bg-dark p-1 pr-3" ng-show="pricesLoaded">
+                      <button ng-click="selectFamily(family)" ng-repeat="family in instanceOptions | orderBy:'cheapest':false" class="btn btn-sm btn-block waves-effect waves-light m-1" ng-class="[
+                        { 'btn-danger': (selectedFamily == family && !$first && family.cheapest >= 0.25) },
+                        { 'btn-outline-danger': (selectedFamily != family && !$first && family.cheapest >= 0.25) },
+                        { 'btn-warning': (selectedFamily == family && !$first && family.cheapest < 0.25) },
+                        { 'btn-outline-warning': (selectedFamily != family && !$first && family.cheapest < 0.25) },
+                        { 'btn-success': (selectedFamily == family && $first) },
+                        { 'btn-outline-success': (selectedFamily != family && $first) }
+                        ]">
+                        <div class="text-left pl-0 col-lg-6 figure">{{ family.gpu }}</div>
+                        <div class="text-right pr-0 col-lg-6 figure">
+                          [ {{ family.cheapest | currency:$:3 }}/hr ]
+                        </div>
+                      </button>
                     </div>
                   </div>
                 </div>
-                <div class="col-lg-9">
-                  <div class="card border-right-sm border-left-sm border-success shadow-none">
-                    <div class="card-body bg-dark" style="padding: 4px;">
-                      <div class="row">
-                        <div ng-repeat="(key, value) in view_layout" class="col-lg-4">
-                          <div class="card shadow-none text-center border border-bottom-sm border-top-sm" ng-class="[{'border-success': (idealInstance == key)}]" style="margin-bottom: 0px;">
-                            <div class="row">
-                              <div class="col-lg-12">
-                                <div class="card-header bg-dark text-white">
-                                  {{ key }} Instances
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div ng-repeat="instanceType in value" ng-show="idealInstances[key].price" class="card shadow-none text-center border border-bottom-sm border-top-sm" style="margin-bottom: 0px;">
-                            <div class="row">
-                              <div ng-class="(quotaFor(instanceType) > 0) ? 'col-lg-8' : 'col-lg-12'">
-                                <div ng-show="quotaFor(instanceType) > 0" class="card-header">
-                                  <h5 style="margin-bottom: 2px;">{{ instanceType }}</h5>
-                                  <small>${{ pricingSvc.spotPrice[instanceType].price | number:2 }} /Hr @ {{ pricingSvc.spotPrice[instanceType].cheapestRegion }}</small>
-                                  <br>
-                                  {{ (!pricingSvc[key][hashType]) ? "-" : (pricingSvc[key][hashType] / pricingSvc.spotPrice[instanceType].price * pricingSvc.gpus[instanceType]) | toHs }}/$
-                                </div>
-                                <div ng-show="quotaFor(instanceType) == 0" class="card-header">
-                                  <h5 style="margin-bottom: 2px;">{{ instanceType }}</h5>
-                                  <div class="alert alert-outline-warning text-center" role="alert">
-                                    <div class="alert-message p-0 pl-3">
-                                      <span>
-                                        vCPU quota is too low to use {{ instanceType }}.
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <div ng-show="quotaFor(instanceType) > 0" class="col-lg-4">
-                                <button class="btn waves-effect waves-light m-1" ng-class="[{'btn-success': (selectedInstance == instanceType)}, {'btn-secondary': (selectedInstance != instanceType)}]" style="top: 22px;" ng-click="pickInstanceFromSpot(instanceType)">
-                                  &lt;
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                          <div ng-hide="idealInstances[key].price || !pricesLoaded || forceRegion == false" class="card card-header shadow-none text-center border border-bottom-sm border-top-sm" style="margin-bottom: 0px;">
-                            <div class="row">
-                              <div class="col-lg-12">
-                                <h5 style="margin-bottom: -4px;">Not available</h5>
-                                <small>{{ key }} Instances are not available in {{ forceRegion }}</small>
-                              </div>
-                            </div>
-                          </div>
+
+                <div class="col-lg-3">
+                  <div class="card border border-white shadow-none p-0" ng-if="selectedFamily">
+                    <div class="card-header bg-dark text-white">
+                      Region
+                    </div>
+                    <div class="card-body bg-dark p-1 pr-3">
+                      <button ng-click="selectRegion(cost)" ng-repeat="cost in selectedFamily.cost | orderBy:'instances[0].price':true | limitTo:5" class="btn btn-sm btn-block waves-effect waves-light m-1" ng-class="[
+                        { 'btn-warning': (selectedRegion == cost && cost.quota < 16) },
+                        { 'btn-outline-warning': (selectedRegion != cost && cost.quota < 16) },
+                        { 'btn-success': (selectedRegion == cost && cost.quota >= 16) },
+                        { 'btn-outline-success': (selectedRegion != cost && cost.quota >= 16) }
+                        ]">
+                        <div class="text-left pl-0 col-lg-5 figure">{{ cost.region }}</div>
+                        <div class="text-right pl-0 col-lg-3 figure">[ {{ cost.quota }} vCPU ]</div>
+                        <div class="text-right pr-0 col-lg-4 figure">
+                          [ ${{ cost.instances[0].price }} ]
                         </div>
-                      </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-lg-3">
+                  <div class="card border border-white shadow-none p-0" ng-if="selectedRegion">
+                    <div class="card-header bg-dark text-white">
+                      Instance Size
+                    </div>
+                    <div class="card-body bg-dark p-2">
+                      <button ng-repeat="instance in selectedRegion.instances" class="btn btn-sm waves-effect waves-light m-1 border border-sm pl-5 pr-5 pt-2" ng-class="selectedInstance == instance ? 'btn-success' : 'btn-outline-success'" ng-click="selectInstance(instance)">
+                        <font style="font-size: 16px;">{{ instance.instanceType }}</font><br />
+                        {{ pricingSvc.gpuSpeeds[selectedFamily.gpu][hashType] * families[selectedFamily.gpu].instances[instance.instanceType][0] | toHs }}<br />
+                        ${{ instance.price | number:2 }} /Hr<br />
+                        Limit: {{ instance.limit }}<br />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -346,12 +236,12 @@
                                   <div style="margin-top: 8px; width: 400px; display: inline-block;">
                                     Wordlist Attacks
                                   </div>
-                                  <div class="btn btn-sm btn-outline-warning waves-effect waves-light m-1 card-action" style="padding: 3px 10px;" ng-click="toggleWordlist();" onClick="window.switchers.use_wordlist.switcher.click();">
+                                  <div class="btn btn-sm waves-effect waves-light m-1 card-action" ng-class="use_wordlist ? 'btn-warning' : 'btn-outline-warning'" style="padding: 3px 10px;" ng-click="toggleWordlist();">
                                     <span style="margin-right: 8px;">
                                       <i class="fa fa-plus"></i>
                                       <span>Enable</span>
                                     </span>
-                                    <input type="checkbox" name="use_wordlist" id="use_wordlist" class="js-switch" data-color="#ff9700" data-size="small" />
+                                    <input type="checkbox" name="use_wordlist" id="use_wordlist" style="hidden: true;" checked/>
                                   </div>
                                 </div>
                                 <div class="card-body text-center">
@@ -399,12 +289,12 @@
                                   <div style="margin-top: 8px; width: 400px; display: inline-block;">
                                     Mask Configuration
                                   </div>
-                                  <div class="btn btn-sm btn-outline-warning waves-effect waves-light m-1 card-action" style="padding: 3px 10px;" ng-click="toggleMask();" onClick="window.switchers.use_mask.switcher.click();">
+                                  <div class="btn btn-sm waves-effect waves-light m-1 card-action" ng-class="use_mask ? 'btn-warning' : 'btn-outline-warning'" style="padding: 3px 10px;" ng-click="toggleMask();">
                                     <span style="margin-right: 8px;">
                                       <i class="fa fa-plus"></i>
                                       <span>Enable</span>
                                     </span>
-                                    <input type="checkbox" name="use_mask" id="use_mask" class="js-switch" data-color="#ff9700" data-size="small"/>
+                                    <input type="checkbox" name="use_mask" id="use_mask" style="hidden: true;" checked/>
                                   </div>
                                 </div>
                                 <div class="card-body text-center">
@@ -478,19 +368,19 @@
                           <!-- End Mask Row -->
 
                           <!-- Manual Row -->
-                          <div class="row" ng-show="showAdvanced">
+                          <div class="row">
                             <div class="col-lg-12 text-left" id="manualConfig">
                               <div class="card border border-white shadow-none">
                                 <div class="card-header bg-dark text-white" style="padding: 4px 2px 4px 20px;">
                                   <div style="margin-top: 8px; width: 400px; display: inline-block;">
                                     Manual Configuration (Advanced Users Only)
                                   </div>
-                                  <div class="btn btn-sm btn-outline-warning waves-effect waves-light m-1 card-action" style="padding: 3px 10px;" ng-click="toggleManual();" onClick="window.switchers.use_manual.switcher.click();">
+                                  <div class="btn btn-sm waves-effect waves-light m-1 card-action" ng-class="use_manual ? 'btn-warning' : 'btn-outline-warning'" style="padding: 3px 10px;" ng-click="toggleManual();">
                                     <span style="margin-right: 8px;">
                                       <i class="fa fa-plus"></i>
                                       <span>Enable</span>
                                     </span>
-                                    <input type="checkbox" name="use_manual" id="use_manual" class="js-switch" data-color="#ff9700" data-size="small"/>
+                                    <input type="checkbox" name="use_manual" id="use_manual" style="hidden: true;" checked/>
                                   </div>
                                 </div>
                                 <div class="card-body text-center">
@@ -702,7 +592,7 @@
                       <div class="row">
                         <div class="col-lg-9">
                           <label for="instance_count">
-                            Instance Count: {{ instanceCount }} of {{ maxInstances }}
+                            Instance Count: {{ instanceCount }} of {{ selectedInstance.limit || 0 }}
                           </label>
                           <input type="text" id="instance_count" value="0" name="instance_count" ng-model="instanceCount" ng-change="updateCoverage()" />
                           <br />

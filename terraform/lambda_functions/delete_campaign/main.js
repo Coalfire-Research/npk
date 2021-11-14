@@ -1,11 +1,13 @@
+const accountDetails = require('./accountDetails.json');
+
 const aws = require('aws-sdk');
-const ddb = new aws.DynamoDB({ region: "us-west-2" });
-const s3 = new aws.S3({ region: "us-west-2" });
+const ddb = new aws.DynamoDB({ region: accountDetails.primaryRegion });
+const s3 = new aws.S3({ region: accountDetails.primaryRegion });
 
 let cb = "";
 let variables = {};
 
-var cognito = new aws.CognitoIdentityServiceProvider({region: "us-west-2", apiVersion: "2016-04-18"});
+var cognito = new aws.CognitoIdentityServiceProvider({region: accountDetails.primaryRegion, apiVersion: "2016-04-18"});
 
 exports.main = async function(event, context, callback) {
 

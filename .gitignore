@@ -1,3 +1,4 @@
+.ENVVARS
 *.auto.tfvars
 *.pem
 #!terraform/dictionaries.auto.tfvars
@@ -17,6 +18,7 @@ terraform/hostedZone.json
 terraform/*.tf.json
 terraform-selfhost/*.tf.json
 terraform/lambda_functions/zip_files/*
+terraform/lambda_functions/*/accountDetails.json
 terraform/lambda_functions/*/ENVVARS
 terraform/lambda_functions/proxy_api_handler/api_handler_variables.js
 terraform/lambda_functions/status_reporter/npk_settings.js

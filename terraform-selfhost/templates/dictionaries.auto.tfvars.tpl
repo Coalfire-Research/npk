@@ -6,12 +6,5 @@
 
 /*	Dictionaries Variables */
 
-dictionary-us-east-1 = "${de1}"
-dictionary-us-east-2 = "${de2}"
-dictionary-us-west-1 = "${dw1}"
-dictionary-us-west-2 = "${dw2}"
-
-dictionary-us-east-1-id = "${de1i}"
-dictionary-us-east-2-id = "${de2i}"
-dictionary-us-west-1-id = "${dw1i}"
-dictionary-us-west-2-id = "${dw2i}"
+dictionaryBucket = "${dictionaryBucket}"
+dictionaryBucketRegion = "${dictionaryBucketRegion}"

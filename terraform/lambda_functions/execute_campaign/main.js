@@ -162,7 +162,16 @@ exports.main = async function(event, context, callback) {
 	let expires, duration;
 
 	try {
-		expires = /Expires=([\d]+)&/.exec(manifest.hashFileUrl)[1];
+		expires = /[^-]Expires=([\d]+)&/.exec(manifest.hashFileUrl)?.[1];
+
+		if (!!!expires) {
+			let date = /X-Amz-Date=([^&]+)&/.exec(manifest.hashFileUrl)?.[1];
+			let seconds = /X-Amz-Expires=([\d]+)&/.exec(manifest.hashFileUrl)?.[1];
+
+			date = new Date(Date.parse(date.replace(/(....)(..)(..T..)(..)/, "$1-$2-$3:$4:"))).getTime();
+
+			expires = date + (seconds * 1000)
+		}
 
 		duration = expires - (new Date().getTime() / 1000);
 

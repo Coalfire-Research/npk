@@ -1,3 +1,4 @@
+.ENVVARS
 *.auto.tfvars
 *.pem
 #!terraform/dictionaries.auto.tfvars

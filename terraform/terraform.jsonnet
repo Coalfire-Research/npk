@@ -36,9 +36,9 @@ local settings = {
 	campaign_data_ttl: 604800,
 	campaign_max_price: 50,
 	awsProfile: "default",
-	wwwEndpoint: "${aws_cloudfront_distribution.npk.domain_name}"
+	wwwEndpoint: "${aws_cloudfront_distribution.npk.domain_name}",
+	primaryRegion: "us-west-2"
 } + npksettings + {
-	primaryRegion: "us-west-2",
 	families: gpu_instance_families,
 	regions: regions,
 	quotas: quotas,
@@ -175,7 +175,7 @@ local regionKeys = std.objectFields(settings.regions);
 	'api_gateway_addons.tf.json': {
 		resource: {
 			aws_api_gateway_account: {
-				"us-west-2": {
+				npk: {
 					cloudwatch_role_arn: "${aws_iam_role.npk-apigateway_cloudwatch.arn}"
 				}
 			},

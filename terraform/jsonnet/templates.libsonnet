@@ -31,7 +31,7 @@ local az(region) = {
 						else
 							"${element(split(\"/\", aws_api_gateway_deployment.npk.invoke_url), 2)}"
 				} + (if settings.useSAML && !settings.useCustomDNS then {
-					saml_domain: "${aws_cognito_user_pool_domain.saml.domain}.auth.us-west-2.amazoncognito.com",
+					saml_domain: "${aws_cognito_user_pool_domain.saml.domain}.auth." + settings.primaryRegion + ".amazoncognito.com",
 					saml_redirect: "https://${aws_cloudfront_distribution.npk.domain_name}"
 				} else {}) + (if settings.useSAML && settings.useCustomDNS then {
 					saml_domain: settings.authEndpoint,

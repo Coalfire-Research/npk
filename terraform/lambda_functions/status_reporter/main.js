@@ -16,7 +16,7 @@ aws.config.apiVersions = {
 	dynamodb: 	'2012-08-10'
 };
 
-aws.config.update({region: 'us-west-2'});
+aws.config.update({region: settings.region});
 
 var db = new aws.DynamoDB();
 

@@ -18,8 +18,7 @@ fi
 echo ""
 echo "[+] Copying community configurations to NPK installation"
 cp community_configs/dictionaries.tfvars ../terraform/dictionaries.auto.tfvars
-cp community_configs/dictionary-buckets.js ../site-content/assets/js/
 
 echo "[+] Deploying changes..."
 cd ../terraform/
-./deploy.sh
+npm run deploy

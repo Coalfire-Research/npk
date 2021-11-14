@@ -1,13 +1,13 @@
 angular
 	.module('app')
-	.service('npkDB', ['cognito', 'APIGATEWAY_URL', 'DICTIONARY_BUCKET', function(cognitoSvc, APIGATEWAY_URL, DICTIONARY_BUCKET) {
+	.service('npkDB', ['cognito', 'APIGATEWAY_URL', 'USERDATA_BUCKET', function(cognitoSvc, APIGATEWAY_URL, USERDATA_BUCKET) {
 		return {
 			init: function() {
 				this.ddb = new AWS.DynamoDB({
 					apiVersion: '2012-10-08'
 				});
 
-				this.s3 = new AWS.S3({region: DICTIONARY_BUCKET.region});
+				this.s3 = new AWS.S3({region: USERDATA_BUCKET.region});
 			},
 
 			create: function(table,record) {

@@ -8,7 +8,7 @@ angular.module('app')
 	.constant('COGNITO_CREDENTIALS', {
 		"IdentityPoolId": "${identity_pool_id}",
 		"Logins": {
-			'cognito-idp.us-west-2.amazonaws.com/${user_pool_id}': ""
+			'cognito-idp.${primary_region}.amazonaws.com/${user_pool_id}': ""
 		}
 	})
 	.constant('DICTIONARY_BUCKET', {

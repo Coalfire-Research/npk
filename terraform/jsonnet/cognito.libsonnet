@@ -95,6 +95,7 @@
 	} else {
 		aws_cognito_user_pool_domain: {
 			saml: {
+				depends_on: ["aws_route53_record.www"],
 				domain: settings.authEndpoint,
 				certificate_arn: "${aws_acm_certificate.main.arn}",
 				user_pool_id: "${aws_cognito_user_pool.npk.id}"
@@ -113,7 +114,7 @@
 		}
 	} + (if !settings.useCustomDNS then {
 		saml_acs_url: {
-			value: "https://${random_string.saml_domain.result}.auth.us-west-2.amazoncognito.com/saml2/idpresponse"
+			value: "https://${random_string.saml_domain.result}.auth." + settings.primaryRegion + ".amazoncognito.com/saml2/idpresponse"
 		}
 	} else {
 		saml_acs_url: {

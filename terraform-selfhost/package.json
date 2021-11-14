@@ -1,14 +1,11 @@
 {
-  "name": "npk_community",
+  "name": "npk_selfhost",
   "version": "2.6.0",
   "description": "NPK distributed hash cracking platform",
   "main": "index.js",
   "scripts": {
-    "apply": "`cat .ENVVARS` && terraform apply",
-    "init": "`cat .ENVVARS` && terraform init",
-    "generate": "node index.js",
-    "deploy": "node index.js && `cat .ENVVARS` && terraform init -force-copy && terraform apply -auto-approve",
-    "destroy": "`cat .ENVVARS` && terraform destroy"
+    "selfhost": "node index.js && `cat ../terraform/.ENVVARS` && terraform init -force-copy && terraform apply --auto-approve && cd ../terraform && npm run deploy",
+    "community": "switch_to_community_buckets.sh"
   },
   "repository": {
     "type": "git",

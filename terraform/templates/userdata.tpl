@@ -32,10 +32,10 @@ mount /dev/xvdb /xvdb/
 mkdir /xvdb/npk-wordlist
 ln -s /xvdb/npk-wordlist /root/npk-wordlist
 
-aws s3 cp s3://$BUCKET/components-v2/epel.rpm .
-aws s3 cp s3://$BUCKET/components-v2/hashcat.7z .
-aws s3 cp s3://$BUCKET/components-v2/maskprocessor.7z .
-aws s3 cp s3://$BUCKET/components-v2/compute-node.7z .
+aws s3 cp s3://$BUCKET/components-v3/epel.rpm .
+aws s3 cp s3://$BUCKET/components-v3/hashcat.7z .
+aws s3 cp s3://$BUCKET/components-v3/maskprocessor.7z .
+aws s3 cp s3://$BUCKET/components-v3/compute-node.7z .
 aws s3 cp s3://$USERDATA/$ManifestPath/manifest.json .
 rpm -Uvh epel.rpm
 yum install -y p7zip p7zip-plugins
@@ -47,8 +47,8 @@ mv /.nvm /root/
 [ -s "/root/.nvm/nvm.sh" ] && \. "/root/.nvm/nvm.sh"
 [ -s "/root/.nvm/bash_completion" ] && \. "/root/.nvm/bash_completion"
 
-# Install NodeJS v12
-nvm install 12
+# Install NodeJS v17.0.1
+nvm install 17.0.1
 
 # Retrieve the hashes file
 wget -O hashes.txt "$(jq -r '.hashFileUrl' manifest.json)"
@@ -88,8 +88,8 @@ chmod +x /root/monitor_instance_action.sh
 cat /root/monitor_instance_action.sh
 
 # Create the crontab to sync s3
-echo "* * * * * root aws --region $USERDATAREGION s3 sync s3://$USERDATA/$ManifestPath/potfiles/ /potfiles/ --exclude \"*$${INSTANCEID}*\"" >> /etc/crontab
-echo "* * * * * root aws --region $USERDATAREGION s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/ --include \"*$${INSTANCEID}*\"" >> /etc/crontab
+echo "* * * * * root aws --region $USERDATAREGION s3 sync s3://$USERDATA/$ManifestPath/potfiles/ /potfiles/ --exclude \"*$${INSTANCEID}*\" --exclude \"*benchmark-results*\"" >> /etc/crontab
+echo "* * * * * root aws --region $USERDATAREGION s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/ --include \"*$${INSTANCEID}*\" --include \"*benchmark-results*\"" >> /etc/crontab
 echo "* * * * * root /root/monitor_instance_action.sh" >> /etc/crontab
 
 aws ec2 describe-spot-fleet-instances --region $REGION --spot-fleet-request-id $SpotFleet | jq '.ActiveInstances[].InstanceId' | sort > fleet_instances
@@ -141,6 +141,8 @@ if [[ ! -f /root/nodeath ]]; then
 	poweroff
 fi
 
-# Use this to generate benchmarks
-# /root/hashcat/hashcat.bin -O -w 4 -b --benchmark-all > /potfiles/benchmark-results.txt
-# aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
+# # Use this to generate benchmarks
+# /root/hashcat/hashcat.bin -O -w 4 -b --benchmark-all | tee /potfiles/benchmark-results.txt
+# aws --region $USERDATAREGION s3 cp /potfiles/benchmark-results.txt s3://$USERDATA/$ManifestPath/potfiles/
+
+# poweroff

@@ -2,7 +2,7 @@
 
 if [[ -f quickdeployed ]]; then
 	echo "[!] You've already run the quickdeploy wizard."
-	echo "Use 'deploy.sh' to continue from here."
+	echo "Use the command 'npm run deploy' to continue from here."
 
 	exit 1
 fi
@@ -49,4 +49,4 @@ jq -n --arg profile $profile --arg email $email --arg sms $sms --arg bucket $BUC
 
 touch quickdeployed
 
-./deploy.sh
+npm run deploy

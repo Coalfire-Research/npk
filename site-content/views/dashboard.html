@@ -74,7 +74,6 @@
                 You have no active campaigns
                </h5>
                <div class="table-responsive" ng-show="(campaigns_loaded && active_campaigns > 0)">
-                 
                  <table class="table table-dark table-condensed">
                   <thead>
                    <tr>
@@ -247,7 +246,7 @@
                       </td>
                       <td>
                         <img id="action-{{ campaign._id.split(':')[2] }}" src="assets/images/loading.gif" style="height: 10px; width: 25px; display: none;">
-                        <a id="delete-{{ campaign._id.split(':')[2] }}"class="badge badge-danger waves-effect waves-light" ng-hide="campaign.status == 'AVAILABLE'" ng-click="$parent.npkDB.cancelCampaign(id.split(':')[2])">
+                        <a id="delete-{{ campaign._id.split(':')[2] }}"class="badge badge-danger waves-effect waves-light" ng-hide="campaign.status == 'AVAILABLE'" ng-click="$parent.npkDB.cancelCampaign(campaign._id.split(':')[2])">
                           <i class="fa fa-trash-o"></i>
                           <span>
                             Delete

@@ -447,7 +447,9 @@ angular
           var promises = [];
           $scope.active_campaigns = 0;
           $scope.inactive_campaigns = 0;
-          Object.keys(data).forEach(function (e) {
+          Object.keys(data)
+          .filter(e => !data[e].deleted)
+          .forEach(function (e) {
             $scope.campaigns.totals.hashes += $scope.campaigns[e].hashes;
             $scope.active_campaigns += ((data[e].active) ? 1 : 0);
             $scope.inactive_campaigns += ((!data[e].active) ? 1 : 0);

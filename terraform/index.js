@@ -1,27 +1,28 @@
 'use strict';
 
-// process.env.AWS_SDK_LOAD_CONFIG = 1;
-
 const fs = require("fs");
 const aws = require("aws-sdk");
 const readline = require("readline");
+const { exec } = require("child_process");
 const { Jsonnet } = require("@hanazuki/node-jsonnet");
 
 (async () => {
 	
-	let useCache = true;
-	let settings
+	let settings;
 
 	try {
-		settings = JSON.parse(fs.readFileSync('npk-settings.json'));
+		settings = JSON.parse(fs.readFileSync('./npk-settings.json'));
 	} catch (e) {
 		console.log(e);
 		console.log("\n[!] Unable to open npk-settings.json. Does it exist?");
+		return false;
 	}
+
+	let useCache = true;
 
 	try {
 
-		const cache = JSON.parse(fs.readFileSync('.terraform/profile_cache.json'));
+		const cache = JSON.parse(fs.readFileSync('./.terraform/profile_cache.json'));
 
 		if (cache.profile != settings.awsProfile || cache.expired) {
 			console.log("[!] Cached role is expired. Will attempt to renew.");
@@ -95,7 +96,7 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 			return false;
 		}
 
-		fs.writeFileSync('.terraform/profile_cache.json', JSON.stringify({
+		fs.writeFileSync('./.terraform/profile_cache.json', JSON.stringify({
 			accessKeyId: creds.accessKeyId,
 			secretAccessKey: creds.secretAccessKey,
 			sessionToken: creds.sessionToken,
@@ -103,9 +104,16 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 		}), { mode: '600' });
 	}
 
+	fs.writeFileSync('./.ENVVARS', 
+		`export AWS_ACCESS_KEY_ID=${aws.config.credentials.accessKeyId}\n` +
+		`export AWS_SECRET_ACCESS_KEY=${aws.config.credentials.secretAccessKey}\n` +
+		`export AWS_SESSION_TOKEN=${aws.config.credentials.sessionToken ?? ''}`,
+		{ mode: '600' }
+	);
+
 	process.env.AWS_ACCESS_KEY_ID = aws.config.credentials.accessKeyId;
 	process.env.AWS_SECRET_ACCESS_KEY = aws.config.credentials.secretAccessKey;
-	process.env.AWS_SESSION_TOKEN = aws.config.credentials.sessionToken;
+	process.env.AWS_SESSION_TOKEN = aws.config.credentials.sessionToken ?? '';
 
 	// Check for old config elements that aren't compatible with 2.5+
 	const hasOldConfig = ['useCustomDNS', 'useSAML', 'dnsNames'].reduce((oldConfig, e) => {
@@ -134,7 +142,8 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 		'criticalEventsSMS',
 		'adminEmail',
 		'samlMetadataFile',
-		'samlMetadataUrl'
+		'samlMetadataUrl',
+		'primaryRegion'
 	];
 
 	const badSettings = Object.keys(settings)
@@ -200,7 +209,7 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 				Id: settings.route53Zone
 			}).promise();
 
-			fs.writeFileSync('hostedZone.json', JSON.stringify({
+			fs.writeFileSync('./hostedZone.json', JSON.stringify({
 				dnsBaseName: zone.HostedZone.Name.slice(0, -1)
 			}));
 
@@ -223,13 +232,6 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 			.filter(r => ["opt-in-not-required", "opted-in"].indexOf(r.OptInStatus) > -1)
 			.map(r => r.RegionName);
 
-		/*regions = regions.Regions.reduce((regionList, region) => {
-			if (["opt-in-not-required", "opted-in"].indexOf(region.OptInStatus) > -1) {
-				regionList.push(region.RegionName);
-			}
-
-			return regionList;
-		}, []);*/
 	} catch (e) {
 		console.log(`[!] Unable to retrieve region list. ${e}`);
 		return false;
@@ -267,17 +269,6 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 					regionQuotas[region][q.QuotaCode] = q.Value;
 					maxQuota = (q.Value > maxQuota) ? q.Value : maxQuota;
 				});
-
-			/*data.Quotas = data.Quotas.forEach((quota) => {
-				if (quotaCodes.indexOf(quota.QuotaCode) > -1 && quota.Value > 0) {
-					if (!regionQuotas[region]) {
-						regionQuotas[region] = {};
-					};
-
-					regionQuotas[region][quota.QuotaCode] = quota.Value;
-					maxQuota = (quota.Value > maxQuota) ? quota.Value : maxQuota;
-				}
-			});*/
 		}));
 
 		return quotas;
@@ -294,7 +285,7 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 		return false;
 	}
 
-	fs.writeFileSync('quotas.json', JSON.stringify(regionQuotas, null, 2));
+	fs.writeFileSync('./quotas.json', JSON.stringify(regionQuotas, null, 2));
 	
 	console.log("[+] Retrieved quotas.");
 
@@ -311,27 +302,19 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 				.map(a => azs[region].push(a.ZoneName));
 		}));
 
-		/*promises.push(ec2.describeAvailabilityZones().promise().then((data) => {
-			data.AvailabilityZones.forEach((availabilityZone) => {
-				if (availabilityZone.State == "available") {
-					azs[region].push(availabilityZone.ZoneName);
-				}
-			});
-		}));*/
-
 		return promises;
 	}, []);
 
 	await Promise.all(azPromises);
 
-	fs.writeFileSync('regions.json', JSON.stringify(azs, null, 2));
+	fs.writeFileSync('./regions.json', JSON.stringify(azs, null, 2));
 
 	console.log("[+] Retrieved availability zones.");
 
 	// Remove tf.json files.parse
 	try {
 		let regex = /.*?\.tf\.json$/
-		fs.readdirSync('.')
+		fs.readdirSync('./')
 			.filter(f => regex.test(f))
 			.map(f => fs.unlinkSync('./' + f));
 	} catch (e) {
@@ -344,10 +327,10 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 
 	try {
 		const jsonnet = new Jsonnet();
-		const sonnetry = await jsonnet.evaluateFileMulti('terraform.jsonnet');
+		const sonnetry = await jsonnet.evaluateFileMulti('./terraform.jsonnet');
 
 		Object.keys(sonnetry).forEach((file) => {
-			fs.writeFileSync(file, sonnetry[file]);
+			fs.writeFileSync('./' + file, sonnetry[file]);
 		});
 
 	} catch (e) {
@@ -355,23 +338,19 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 		return false;
 	}
 
+	// Force update the backend bucket region.
 	try {
-		let s3 = new aws.S3({ region: backendBucket.locationConstraint });
-		s3.headObject({
-			Bucket: settings.backend_bucket,
-			Key: "c6fc.io/npk3/terraform.tfstate"
-		}).promise();
+		const backend = JSON.parse(fs.readFileSync('backend.tf.json'));
 
-		console.log(`[+] Configurations updated successfully. Use 'npm run deploy' to deploy.`);
+		backend.terraform.backend.s3.region = backendBucket.LocationConstraint;
 
-	} catch (e) {
-		if (e.toString().indexOf("NotFound") === 0) {
-			console.log(`[+] Configurations generated successfully. Use 'npm run init && npm run deploy' to deploy.`);
-		} else {
-			console.log(`[!] Unable to verify Terraform state. ${e}`);
-			return false;
-		}
+		fs.writeFileSync('backend.tf.json', JSON.stringify(backend));
+	}  catch (e) {
+		console.log(`[!] Failed to update backend_bucket region. ${e}`);
+		return false;
 	}
+
+	console.log(`[+] Configurations updated successfully. Use 'npm run deploy' to deploy.`);
 
 })() || showHelpBanner();
 

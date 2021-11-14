@@ -7,5 +7,5 @@ if [[ $UID -eq 0 ]]; then
 	pause
 fi
 
-docker build -t c6fc/npk:latest --build-arg user=$USERNAME --build-arg uid=$UID .
-docker run -it --user $USERNAME -v `pwd`:/home/$USERNAME/npk -v ~/.aws/:/home/$USERNAME/.aws -v /etc/passwd:/etc/passwd c6fc/npk:latest
+docker build --platform linux/x86_64 -t c6fc/npk:latest --build-arg user=$USERNAME --build-arg uid=$UID .
+docker run --platform linux/x86_64 -it --user $USERNAME -v `pwd`:/home/$USERNAME/npk -v ~/.aws/:/home/$USERNAME/.aws -v /etc/passwd:/etc/passwd c6fc/npk:latest

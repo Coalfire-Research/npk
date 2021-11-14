@@ -11,7 +11,6 @@ echo "***********************************************************"
 echo
 echo
 
-
 if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
 	echo "[+] ${BASH_SOURCE[0]} is being sourced. Envvars will persist after execution."
 	EXIT=return
@@ -19,6 +18,14 @@ else
 	echo "[+] ${BASH_SOURCE[0]} is not being sourced. Envvars will unset after execution."
 	EXIT=exit
 fi
+
+echo "**"
+echo
+echo ">> The deploy.sh script is deprecated. Please use 'npm run deploy' instead."
+echo
+echo "**"
+
+EXIT 1;
 
 if [[ $1 == "" ]]; then
 	TERBIN=terraform

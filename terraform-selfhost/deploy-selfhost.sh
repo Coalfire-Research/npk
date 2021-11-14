@@ -1,5 +1,13 @@
 #! /bin/bash
 
+echo "**"
+echo
+echo ">> The deploy-selfhost.sh script is deprecated. Please use 'npm run selfhost' instead."
+echo
+echo "**"
+
+exit 1
+
 export AWS_DEFAULT_REGION=$(jq -r '.primaryRegion' ../terraform/npk-settings.json)
 export AWS_DEFAULT_OUTPUT=json
 export AWS_PROFILE=$(jq -r '.awsProfile' ../terraform/npk-settings.json)

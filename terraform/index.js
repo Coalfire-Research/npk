@@ -6,8 +6,18 @@ const readline = require("readline");
 const { exec } = require("child_process");
 const { Jsonnet } = require("@hanazuki/node-jsonnet");
 
-(async () => {
-	
+async function generate() {
+
+	console.log("***********************************************************");
+	console.log(" Hello friend! Thanks for using NPK!");
+	console.log("");
+	console.log(" Need help, want to contribute, or want to brag about a win?");
+	console.log(" Join us on Discord! [ https://discord.gg/k5PQnqSNDF ]");
+	console.log("");
+	console.log(" Sincerely, @c6fc");
+	console.log("***********************************************************");
+	console.log("");
+
 	let settings;
 
 	try {
@@ -352,10 +362,17 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 
 	console.log(`[+] Configurations updated successfully. Use 'npm run deploy' to deploy.`);
 
-})() || showHelpBanner();
+	return true;
+}
 
 function showHelpBanner() {
 	console.log("[!] Deployment failed. If you're having trouble, hop in Discord for help.");
 	console.log("--> Porchetta Industries Discord: https://discord.gg/k5PQnqSNDF");
+	console.log("");
 	process.exit(1);
 }
+
+(async () => {
+	const success = await generate();
+	if (!success) showHelpBanner();
+})();

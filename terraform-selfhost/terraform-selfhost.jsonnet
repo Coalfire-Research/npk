@@ -81,7 +81,7 @@ local regionKeys = std.objectFields(settings.regions);
 
 				    provisioner: {
 				    	"local-exec": {
-				        	command: "aws s3 sync s3://npk-dictionary-west-2-20181029005812750900000002 s3://${aws_s3_bucket." + settings.primaryRegion + ".id} --source-region us-west-2 --region " + settings.primaryRegion,
+				        	command: "echo aws s3 sync s3://npk-dictionary-west-2-20181029005812750900000002 s3://${aws_s3_bucket." + settings.primaryRegion + ".id} --source-region us-west-2 --region " + settings.primaryRegion,
 
 					        environment: {
 					            AWS_PROFILE: settings.awsProfile
@@ -123,8 +123,23 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		},
 		resource: {
+			null_resource: {
+				dictionary_replacer: {
+					provisioner: [{
+						"local-exec": {
+							when: "destroy",
+							command: "cp community_configs/dictionaries.tfvars ../terraform/dictionaries.auto.tfvars"
+						}
+					}, {
+						"local-exec": {
+							command: "pwd"
+						}
+					}]
+				}
+			},
 			local_file: {
 				dictionaries_variables: {
+					depends_on: ["null_resource.dictionary_replacer"],
 					content: "${data.template_file.dictionaries_variables.rendered}",
 					filename: "${path.module}/../terraform/dictionaries.auto.tfvars"
 				},

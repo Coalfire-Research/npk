@@ -170,7 +170,7 @@
                                   </div>
                                 </div>
                              </div>
-                             <div ng-repeat="(nid, node) in campaigns[campaign._id].spotRequestStatus" ng-hide="data.nodes.hasOwnProperty(nid)">
+                             <div ng-repeat="(nid, node) in campaigns[campaign._id].spotRequestStatus" ng-hide="campaign.nodes.hasOwnProperty(nid)">
                               <div class="row">
                                 <div class="col-lg-2" style="margin-top: 1px;">
                                   <a ng-href="#/campaigns/{{ id }}/nodes/{{ nid }}"><small>{{ nid }}</small></a>

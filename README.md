@@ -175,6 +175,21 @@ npk/terraform$ vim npk-settings.json
 npk/terraform$ ./deploy.sh
 ```
 
+## Hosting your own dictionaries and rule files
+
+NPK uses a set of dictionaries and rule files provided by the community, but also allows you to host your own under a 'selfhost' model. To switch to selfhost, simply run 'npm run selfhost' under the `terraform-selfhost` folder:
+
+```sh
+npk$ cd terraform-selfhost
+npk/terraform-selfhost$ npm run selfhost
+```
+
+You can then add wordlists and rules files using `upload_npkfile.sh`:
+```sh
+npk/terraform-selfhost$ upload_npkfile.sh wordlist RockYou.txt
+npk/terraform-selfhost$ upload_npkfile.sh rules OneRuleToRuleThemAll.txt
+```
+
 ## Uninstall
 
 You can completely turn down NPK and delete all of its data from AWS with a single command:

@@ -4,8 +4,11 @@
   "description": "NPK distributed hash cracking platform",
   "main": "index.js",
   "scripts": {
+    "generate": "node index.js",
+    "apply": "node index.js && `cat ../terraform/.ENVVARS` && terraform init -force-copy && terraform apply --auto-approve",
     "selfhost": "node index.js && `cat ../terraform/.ENVVARS` && terraform init -force-copy && terraform apply --auto-approve && cd ../terraform && npm run deploy",
-    "community": "switch_to_community_buckets.sh"
+    "community": "`cat ../terraform/.ENVVARS` && terraform destroy -auto-approve",
+    "destroy": "`cat ../terraform/.ENVVARS` && terraform destroy"
   },
   "repository": {
     "type": "git",

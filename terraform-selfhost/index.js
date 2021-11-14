@@ -6,7 +6,7 @@ const readline = require("readline");
 const { exec } = require("child_process");
 const { Jsonnet } = require("@hanazuki/node-jsonnet");
 
-(async () => {
+async function generate() {
 	
 	let settings;
 
@@ -210,7 +210,8 @@ const { Jsonnet } = require("@hanazuki/node-jsonnet");
 
 	console.log(`[+] Configurations updated successfully.`);
 
-})() || showHelpBanner();
+	return true;
+}
 
 function showHelpBanner() {
 	console.log("[!] Selfhost deployment failed. If you're having trouble, hop in Discord for help.");
@@ -230,3 +231,8 @@ async function updateIndex() {
 
 	return true;
 }
+
+(async () => {
+	const success = await generate();
+	if (!success) showHelpBanner();
+})();

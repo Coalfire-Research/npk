@@ -235,6 +235,7 @@ if [[ ! -f quotas.json ]]; then
 		echo "-> A limit of 40 is required to use the largest instances."
 		echo ""
 		$EXIT 1
+
 	fi
 
 	jq -rs 'reduce .[] as $item ({}; . * $item)' ./quotas-*.json > quotas.json

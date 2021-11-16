@@ -1,6 +1,6 @@
 angular
 	.module('app')
-	.service('userSvc', ['COGNITO_CONFIG', 'COGNITO_CREDENTIALS', 'cognito', 'USERDATA_BUCKET', function(COGNITO_CONFIG, COGNITO_CREDENTIALS, cognitoSvc, USERDATA_BUCKET) {
+	.service('userSvc', ['COGNITO_CONFIG', 'COGNITO_CREDENTIALS', 'cognito', function(COGNITO_CONFIG, COGNITO_CREDENTIALS, cognitoSvc) {
 		if (!cognitoSvc.isAdmin()) {
 			return {};
 		}
@@ -9,12 +9,12 @@ angular
 
 			cognitoIdp: new AWS.CognitoIdentityServiceProvider({
 				apiVersion: '2016-04-18',
-				region: USERDATA_BUCKET.region
+				region: 'us-west-2'
 			}),
 
 			cognitoIdentity: new AWS.CognitoIdentity({
 				apiVersion: '2014-06-30',
-				region: USERDATA_BUCKET.region
+				region: 'us-west-2'
 			}),
 
 			users: [],

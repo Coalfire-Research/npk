@@ -50,7 +50,7 @@
 				},
 				provisioner: {
 					"local-exec": {
-						command: "aws --region %s --profile %s cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --user-attributes '[{\"Name\": \"email\", \"Value\": \"${random_string.admin_password.keepers.admin_email}\"}, {\"Name\": \"email_verified\", \"Value\": \"true\"}]' --temporary-password ${random_string.admin_password.result}" % [settings.primaryRegion, settings.awsProfile],
+						command: "aws --region " + settings.defaultRegion + " --profile " + settings.awsProfile + " cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --user-attributes '[{\"Name\": \"email\", \"Value\": \"${random_string.admin_password.keepers.admin_email}\"}, {\"Name\": \"email_verified\", \"Value\": \"true\"}]' --temporary-password ${random_string.admin_password.result}",
 						on_failure: "continue"
 					}
 				}
@@ -95,7 +95,6 @@
 	} else {
 		aws_cognito_user_pool_domain: {
 			saml: {
-				depends_on: ["aws_route53_record.www"],
 				domain: settings.authEndpoint,
 				certificate_arn: "${aws_acm_certificate.main.arn}",
 				user_pool_id: "${aws_cognito_user_pool.npk.id}"
@@ -104,17 +103,17 @@
 	}),
 	output(settings): {
 		admin_create_user_command: {
-			value: "aws --region %s --profile %s cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --user-attributes '[{\"Name\": \"email\", \"Value\": \"${random_string.admin_password.keepers.admin_email}\"}, {\"Name\": \"email_verified\", \"Value\": \"true\"}]' --temporary-password ${random_string.admin_password.result}" % [settings.primaryRegion, settings.awsProfile],
+			value: "aws --region " + settings.defaultRegion + " --profile " + settings.awsProfile + " cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --user-attributes '[{\"Name\": \"email\", \"Value\": \"${random_string.admin_password.keepers.admin_email}\"}, {\"Name\": \"email_verified\", \"Value\": \"true\"}]' --temporary-password ${random_string.admin_password.result}"
 		},
 		admin_join_group_command: {
-			value: "aws --region %s --profile %s cognito-idp admin-add-user-to-group --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --group npk-admins --user-attributes '[{\"Name\": \"email\", \"Value\": \"${random_string.admin_password.keepers.admin_email}\"}, {\"Name\": \"email_verified\", \"Value\": \"true\"}]' --temporary-password ${random_string.admin_password.result}" % [settings.primaryRegion, settings.awsProfile],
+			value: "aws --region " + settings.defaultRegion + " --profile " + settings.awsProfile + " cognito-idp admin-add-user-to-group --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --group npk-admins --user-attributes '[{\"Name\": \"email\", \"Value\": \"${random_string.admin_password.keepers.admin_email}\"}, {\"Name\": \"email_verified\", \"Value\": \"true\"}]' --temporary-password ${random_string.admin_password.result}"
 		},
 		saml_entity_id: {
 			value: "urn:amazon:cognito:sp:${aws_cognito_user_pool.npk.id}"
 		}
 	} + (if !settings.useCustomDNS then {
 		saml_acs_url: {
-			value: "https://${random_string.saml_domain.result}.auth." + settings.primaryRegion + ".amazoncognito.com/saml2/idpresponse"
+			value: "https://${random_string.saml_domain.result}.auth.us-west-2.amazoncognito.com/saml2/idpresponse"
 		}
 	} else {
 		saml_acs_url: {

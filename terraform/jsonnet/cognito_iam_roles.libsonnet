@@ -243,7 +243,8 @@
 						"s3:ListBucket"
 					],
 					resources: [
-						"arn:aws:s3:::${var.dictionaryBucket}"
+						"${var.dictionary-" + regionKeys[i] + "}"
+						for i in std.range(0, std.length(regionKeys) - 1)
 					]
 				},{
 					sid: "7",
@@ -251,7 +252,8 @@
 						"s3:GetObject"
 					],
 					resources: [
-						"arn:aws:s3:::${var.dictionaryBucket}/*"
+						"${var.dictionary-" + regionKeys[i] + "}/*"
+						for i in std.range(0, std.length(regionKeys) - 1)
 					]
 				},{
 					sid: "8",

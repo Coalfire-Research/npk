@@ -8,12 +8,8 @@ angular.module('app')
 	.constant('COGNITO_CREDENTIALS', {
 		"IdentityPoolId": "${identity_pool_id}",
 		"Logins": {
-			'cognito-idp.${primary_region}.amazonaws.com/${user_pool_id}': ""
+			'cognito-idp.us-west-2.amazonaws.com/${user_pool_id}': ""
 		}
-	})
-	.constant('DICTIONARY_BUCKET', {
-		name: "${dictionary_bucket}",
-		region: "${dictionary_region}"
 	})
 	.constant('SAMLSSO', {
 		"useSamlSSO": "${use_SAML}",
@@ -21,12 +17,10 @@ angular.module('app')
 		"SAMLRedirectUrl": "${saml_redirect}",
 		"SAMLIdp": "NPKSAML"
 	})
-	.constant('FAMILIES', ${families})
-	.constant('QUOTAS', ${quotas})
-	.constant('REGIONS', ${regions})
-	.constant('USERDATA_BUCKET', {
-		name: "${userdata_bucket}",
-		region: "${primary_region}"
+	.constant('QUOTAS', {
+		"gQuota": "${g_quota}",
+		"pQuota": "${p_quota}"
 	})
+	.constant('USERDATA_BUCKET', "${userdata_bucket}")
 	.constant('APIGATEWAY_URL', "${api_gateway_url}")
 	;

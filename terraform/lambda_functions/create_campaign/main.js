@@ -1,28 +1,49 @@
-'use strict';
-
-const fs = require('fs');
 const aws = require('aws-sdk');
 const uuid = require('uuid/v4');
 
-const accountDetails = JSON.parse(fs.readFileSync('./accountDetails.json', 'ascii'));
-const vcpus = Object.keys(accountDetails.families).reduce((acc, curr) => {
-	Object.keys(accountDetails.families[curr].instances).forEach((instance) => {
-		acc[instance] = accountDetails.families[curr].instances[instance];
-	});
+const ddb = new aws.DynamoDB({ region: "us-west-2" });
+const s3 = new aws.S3({ region: "us-west-2" });
 
-	return acc;
-}, {});
-
-const ddb = new aws.DynamoDB({ region: accountDetails.primaryRegion });
-const s3 = new aws.S3({ region: accountDetails.primaryRegion });
-
-const cognito = new aws.CognitoIdentityServiceProvider({region: accountDetails.primaryRegion, apiVersion: "2016-04-18"});
+var cognito = new aws.CognitoIdentityServiceProvider({region: "us-west-2", apiVersion: "2016-04-18"});
 
 let cb = "";
-let origin = "";
 let variables = {};
 
-var allowed_regions = Object.keys(accountDetails.quotas);
+var allowed_regions = [
+	"us-west-1",
+	"us-west-2",
+	"us-east-1",
+	"us-east-2"
+];
+
+var allowed_instances = [
+	// "g3s.xlarge",
+	"g3.4xlarge",
+	"g3.8xlarge",
+	"g3.16xlarge",
+
+	"p2.xlarge",
+	"p2.8xlarge",
+	"p2.16xlarge",
+
+	"p3.2xlarge",
+	"p3.8xlarge",
+	"p3.16xlarge"
+];
+
+var vcpus = {
+	"g3.4xlarge": 16,
+	"g3.8xlarge": 32,
+	"g3.16xlarge": 64,
+
+	"p2.xlarge": 4,
+	"p2.8xlarge": 32,
+	"p2.16xlarge": 64,
+
+	"p3.2xlarge": 8,
+	"p3.8xlarge": 32,
+	"p3.16xlarge": 64
+}
 
 exports.main = async function(event, context, callback) {
 
@@ -33,6 +54,8 @@ exports.main = async function(event, context, callback) {
 
 	// Get the available envvars into a usable format.
 	variables = JSON.parse(JSON.stringify(process.env));
+	variables.availabilityZones = JSON.parse(variables.availabilityZones);
+	variables.dictionaryBuckets = JSON.parse(variables.dictionaryBuckets);
 
 	let entity, campaign, UserPoolId, sub;
 
@@ -72,13 +95,11 @@ exports.main = async function(event, context, callback) {
 		campaign = body;
 
 		// Associate the user identity.
-		if (!!event?.requestContext?.identity?.cognitoAuthenticationProvider?.split('/')[2]) {
-			[ UserPoolId,, sub ] = event?.requestContext?.identity?.cognitoAuthenticationProvider?.split('/')[2]?.split(':');
-		}
+		[ UserPoolId,, sub ] = event?.requestContext?.identity?.cognitoAuthenticationProvider?.split('/')[2]?.split(':');
 
 		if (!UserPoolId || !sub) {
 			console.log(`UserPoolId or sub is missing from ${event?.requestContext?.identity?.cognitoAuthenticationProvider}`);
-			return respond(401, {}, "Authorization Required", false);
+			respond(401, {}, "Authorization Required", false);
 		}
 
 	} catch (e) {
@@ -206,17 +227,7 @@ exports.main = async function(event, context, callback) {
 	let expires;
 
 	try {
-		expires = /[^-]Expires=([\d]+)&/.exec(campaign.hashFileUrl)?.[1];
-
-		if (!!!expires) {
-			let date = /X-Amz-Date=([^&]+)&/.exec(campaign.hashFileUrl)?.[1];
-			let seconds = /X-Amz-Expires=([\d]+)&/.exec(campaign.hashFileUrl)?.[1];
-
-			date = new Date(Date.parse(date.replace(/(....)(..)(..T..)(..)/, "$1-$2-$3:$4:"))).getTime();
-
-			expires = date + (seconds * 1000)
-		}
-
+		expires = /Expires=([\d]+)&/.exec(campaign.hashFileUrl)[1];
 	} catch (e) {
 		return respond(400, {}, "Invalid hashFileUrl.", false);
 	}
@@ -241,7 +252,7 @@ exports.main = async function(event, context, callback) {
 	}
 
 	// Optional values might be present, but nulled.
-	let promises = [];
+	const promises = [];
 	const knownMetadata = {};
 
 	let hashfilelines = 0;
@@ -254,26 +265,46 @@ exports.main = async function(event, context, callback) {
 	try {
 
 		// Verify hashfile metadata.
-		await s3.headObject({
+		promises.push(new Promise((success, failure) => {
+			s3.headObject({
 				Bucket: variables.userdata_bucket,
 				Key: entity + '/' + campaign.hashFile
-		}).promise().then((data) => {
+			}, function(err, data) {
+				if (err) {
+					return failure(respond(400, {}, "Invalid hash file: " + err, false));
+				}
 
-			if (data.ContentType != "text/plain") {
-				return respond(400, {}, "Content Type " + data.ContentType + " not permitted. Use text/plain.", false);
-			}
+				if (data.ContentType != "text/plain") {
+					return failure(respond(400, {}, "Content Type " + data.ContentType + " not permitted. Use text/plain.", false));
+				}
 
-			knownMetadata[variables.dictionaryBucket + ":" + campaign.dictionaryFile] = data.Metadata;
-			verifiedManifest.hashFile = campaign.hashFile;
+				knownMetadata[bucket + ":" + campaign.dictionaryFile] = data.Metadata;
 
-			return true;
-		});
+				return success();
+			});
+		}));
 
-	} catch (err) {
-		return respond(400, {}, "Invalid hash file: " + err, false);
-	}
+		// Verify hashfile contents.
+		promises.push(new Promise((success, failure) => {
+			s3.getObject({
+				Bucket: variables.userdata_bucket,
+				Key: entity + '/' + campaign.hashFile
+			}, function(err, data) {
+				if (err) {
+					return failure(respond(400, {}, "Invalid hash file contents: " + err, false));
+				}
 
-	try {
+				var body = data.Body.toString('ascii');
+				var lines = body.split("\n");
+
+				lineCount = lines.length;
+
+				verifiedManifest.hashFile = campaign.hashFile;
+
+				return success();
+			});
+		}));
+
 		if (typeof campaign.rulesFiles != "undefined" && campaign.rulesFiles != null) {
 			console.log("Debug: Rules are enabled. Verifiying files.");
 
@@ -293,19 +324,22 @@ exports.main = async function(event, context, callback) {
 				return respond(400, {}, `Rule-based campaign missing required elements [${missingElements.join(', ')}]`);
 			}
 
-			const s3dict = new aws.S3({ region: variables.dictionaryBucketRegion });
+			s3dict = new aws.S3({region: campaign.region});
+			var bucket = variables.dictionaryBuckets[campaign.region];
+
+			console.log(variables.dictionaryBuckets);
 
 			// Verify dictionary
 			promises.push(new Promise((success, failure) => {
 				s3dict.headObject({
-					Bucket: variables.dictionaryBucket,
+					Bucket: bucket,
 					Key: campaign.dictionaryFile
-				}, (err, data) => {
+				}, function(err, data) {
 					if (err) {
 						return failure(respond(400, {}, "Invalid dictionary file: " + err, false));
 					}
 
-					knownMetadata[variables.dictionaryBucket + ":" + campaign.dictionaryFile] = data.Metadata;
+					knownMetadata[bucket + ":" + campaign.dictionaryFile] = data.Metadata;
 					dictionaryKeyspace += data.Metadata.lines;
 					dictionarySize += parseInt(data.Metadata.size) + parseInt(data.ContentLength);
 
@@ -320,14 +354,14 @@ exports.main = async function(event, context, callback) {
 			campaign.rulesFiles.forEach(function(e) {
 				promises.push(new Promise((success, failure) => {
 					s3dict.headObject({
-						Bucket: variables.dictionaryBucket,
+						Bucket: bucket,
 						Key: e,
 					}, function(err, data) {
 						if (err) {
 							return failure(respond(400, {}, "Invalid rule file: " + err, false));
 						}
 
-						knownMetadata[variables.dictionaryBucket + ":" + e] = data.Metadata;
+						knownMetadata[bucket + ":" + e] = data.Metadata;
 						rulesKeyspace += data.Metadata.lines;
 						rulesSize += parseInt(data.Metadata.size) + parseInt(data.ContentLength);
 

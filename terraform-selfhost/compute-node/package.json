@@ -5,7 +5,7 @@
   "main": "hashcat_wrapper.js",
   "dependencies": {
     "aws-api-gateway-client": "^0.2.16",
-    "aws-sdk": "^2.382.0"
+    "aws-sdk": "^2.814.0"
   },
   "devDependencies": {},
   "scripts": {

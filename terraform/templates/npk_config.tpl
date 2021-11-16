@@ -13,7 +13,7 @@ angular.module('app')
 	})
 	.constant('DICTIONARY_BUCKET', {
 		name: "${dictionary_bucket}",
-		region: "${dictionary_region}"
+		region: "${primary_region}"
 	})
 	.constant('SAMLSSO', {
 		"useSamlSSO": "${use_SAML}",

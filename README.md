@@ -17,24 +17,14 @@ npk/terraform$ git pull
 npk/terraform$ npm run deploy
 ```
 
-## Upgrading from v2
+**Important note: Cost change from v2.5 to v3:** NPK has historically used an S3 bucket in each region to eliminate data transfer costs between a bucket in one region and cracking nodes in another. While this duplicated the data to be stored, it meant that per-campaign transfer costs were lower. With the newfound inclusion of non-US regions, this design wasn't scalable, and NPK now uses a single bucket in your `primaryRegion`. This means that storage costs are lower, but large dictionaries and rules files will incur a $0.02/GB transfer fee to compute nodes outside your `primaryRegion`. As a result, it's a good idea to stick to campaigns in your `primaryRegion` when you can. This also means that the monthly cost of hosting NPK has risen to roughly $1.50.
 
-NPK v2.5+ is designed to be more resilient, easier to use, and more flexible.
-
-NPK v2.5+ now uses Terraform 0.15, which is a significant jump from 0.11 without any direct upgrade paths. As a result, NPK v2.5 is not compatible with previous versions. In order to upgrade to v2.5 you must completely destroy your previous installation before deploying v2.5. Note that this will remove all campaigns, hash files, results, users, settings, and everything else you have in NPK. *This must be done BEFORE you switch to the v2.5 branch.*
-
-```sh
-npk/terraform$ terraform destroy
-
-# If you're configured to selfhost, you'll need to remove that as well.
-npk/terraform-selfhost$ terraform destroy
-
-npk/terraform$ git pull
-```
+**Important note: Automatic Self-Hosting**
+NPK now configures self-hosted buckets by default, and copies the dictionaries and rules files from the community buckets during installation. Specifying a `primaryRegion` other than "us-west-2" will incur cross-region data transfer charges of \~$0.70 to populate your bucket.
 
 ## How it works
 
-Lets face it - even the beastliest cracking rig spends a lot of time at idle. You sink a ton of money up front on hardware, then have the electricity bill to deal with. NPK lets you leverage extremely powerful hash cracking with the 'pay-as-you-go' benefits of AWS. For example, you can crank out as much as 1.2TH/s of NTLM for a mere $14.70/hr. NPK was also designed to fit easily within the free tier while you're not using it! Without the free tier, it'll still cost less than 25 CENTS per MONTH to have online!
+Let's face it - even the beastliest cracking rig spends a lot of time at idle. You sink a ton of money up front on hardware, then have the electricity bill to deal with. NPK lets you leverage extremely powerful hash cracking with the 'pay-as-you-go' benefits of AWS. For example, you can crank out as much as 1.2TH/s of NTLM for a mere $14.70/hr. NPK was also designed to fit easily within the free tier while you're not using it! Without the free tier, it'll still cost less than $2 per MONTH to have online!
 
 If you'd like to see it in action, check out the video here: https://www.youtube.com/watch?v=BrBPOhxkgzc
 
@@ -158,9 +148,7 @@ npk/terraform$ ./deploy.sh
 
 For more details about each setting, their effects, and allowed values, check out [the wiki](https://github.com/c6fc/npk/wiki/Detailed-NPK-Settings). For more details around custom installations, see [Detailed Instructions](https://github.com/c6fc/npk/wiki/Detailed-Usage-Instructions).
 
-NPK will use the specified AWS cli profile to fully deploy NPK and provision the first user. If you'd like to change the configuration, simply run `./deploy.sh` again afterward. While it's deploying, pay a visit to https://aws.amazon.com/marketplace/pp/B07S5G9S1Z to subscribe and accept the terms of NVidia's AMIs. NPK uses these to ensure compatability with the GPUs. There is no cost associated with this step, but allows NPK to use these AMIs on your behalf.
-
-Once it's done, you'll receive an email with the URL and credentials to your deployment:
+NPK will use the specified AWS cli profile to fully deploy NPK and provision the first user. If you'd like to change the configuration, simply run `./deploy.sh` again afterward. Once it's done, you'll receive an email with the URL and credentials to your deployment:
 
 ![Image](/readme-content/npk-invite.png)
 
@@ -168,26 +156,20 @@ Once it's done, you'll receive an email with the URL and credentials to your dep
 
 ## Modify Install
 
-You can change the settings of an install without losing your existing campaigns. Edit `npk-settings.json` as necessary, then rerun `deploy.sh`. That easy!
+You can change the settings of an install without losing your existing campaigns. Edit `npk-settings.json` as necessary, then rerun `npm run deploy`. That easy!
 
 ```sh
 npk/terraform$ vim npk-settings.json
-npk/terraform$ ./deploy.sh
+npk/terraform$ npm run deploy
 ```
 
-## Hosting your own dictionaries and rule files
+## Uploading your own dictionaries and rule files
 
-NPK uses a set of dictionaries and rule files provided by the community, but also allows you to host your own under a 'selfhost' model. To switch to selfhost, simply run 'npm run selfhost' under the `terraform-selfhost` folder:
+Once NPK has been deployed, you can upload your own wordlists and rules files using the `upload_npkfile.sh` script in the `tools` directory. Note that these scripts are generated by Terraform, and don't exist until the deployment is complete:
 
 ```sh
-npk$ cd terraform-selfhost
-npk/terraform-selfhost$ npm run selfhost
-```
-
-You can then add wordlists and rules files using `upload_npkfile.sh`:
-```sh
-npk/terraform-selfhost$ upload_npkfile.sh wordlist RockYou.txt
-npk/terraform-selfhost$ upload_npkfile.sh rules OneRuleToRuleThemAll.txt
+npk/tools$ upload_npkfile.sh wordlist RockYou.txt
+npk/tools$ upload_npkfile.sh rules OneRuleToRuleThemAll.txt
 ```
 
 ## Uninstall
@@ -195,7 +177,7 @@ npk/terraform-selfhost$ upload_npkfile.sh rules OneRuleToRuleThemAll.txt
 You can completely turn down NPK and delete all of its data from AWS with a single command:
 
 ```sh
-npk/terraform$ terraform destroy
+npk/terraform$ npm run destroy
 ```
 
 # Official Discord Channel

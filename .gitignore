@@ -9,6 +9,7 @@ plan/
 plan/*
 site-content/angular/npk_config.js
 site-content/assets/js/cognito_config.js
+/site-content/assets/js/dictionary-buckets.js
 **/node_modules
 terraform/quotas.json
 terraform/npk-settings.json
@@ -27,11 +28,11 @@ terraform/lambda_functions/proxy_api_handler/userdata.sh
 terraform/lambda_functions/execute_campaign/userdata.sh
 terraform/templates/api-handler-variables.tpl
 terraform/templates/npk_settings.tpl
-terraform-selfhost/components/
+tools/components/
 tools/rules/*
 tools/wordlists/*
-terraform-selfhost/upload_npkfile.sh
-terraform-selfhost/upload_npkcomponents.sh
-terraform-selfhost/sync_npkcomponents.sh
+tools/upload_npkfile.sh
+tools/upload_npkcomponents.sh
+tools/sync_npkcomponents.sh
 quickdeployed
 **.bak

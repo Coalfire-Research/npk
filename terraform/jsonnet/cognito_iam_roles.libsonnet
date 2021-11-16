@@ -243,7 +243,7 @@
 						"s3:ListBucket"
 					],
 					resources: [
-						"arn:aws:s3:::${var.dictionaryBucket}"
+						"arn:aws:s3:::${aws_s3_bucket.dictionary.id}"
 					]
 				},{
 					sid: "7",
@@ -251,7 +251,7 @@
 						"s3:GetObject"
 					],
 					resources: [
-						"arn:aws:s3:::${var.dictionaryBucket}/*"
+						"arn:aws:s3:::${aws_s3_bucket.dictionary.id}/*"
 					]
 				},{
 					sid: "8",

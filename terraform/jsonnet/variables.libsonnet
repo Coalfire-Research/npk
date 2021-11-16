@@ -7,8 +7,6 @@
 		cognito_user_mfa: {
 			default: "OFF"
 		},
-		dictionaryBucket: {},
-		dictionaryBucketRegion: {},
 		useSAML: {},
 	}
 }

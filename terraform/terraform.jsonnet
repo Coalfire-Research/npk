@@ -22,7 +22,7 @@ local route = import 'jsonnet/routetable.libsonnet';
 local route53 = import 'jsonnet/route53.libsonnet';
 local s3 = import 'jsonnet/s3.libsonnet';
 local subnet = import 'jsonnet/subnet.libsonnet';
-local templates = import 'jsonnet/templates.libsonnet';
+// local templates = import 'jsonnet/templates.libsonnet';
 local variables = import 'jsonnet/variables.libsonnet';
 local vpc = import 'jsonnet/vpc.libsonnet';
 
@@ -336,8 +336,8 @@ local regionKeys = std.objectFields(settings.regions);
 					[region]: "${aws_vpc.npk-%s.id}" % region
 					for region in regionKeys
 				}, ""),
-				dictionaryBucket: "${var.dictionaryBucket}",
-				dictionaryBucketRegion: "${var.dictionaryBucketRegion}",
+				dictionaryBucket: "${aws_s3_bucket.dictionary.id}",
+				dictionaryBucketRegion: settings.primaryRegion,
 				apigateway: if settings.useCustomDNS then
 					settings.apiEndpoint
 				else
@@ -368,7 +368,7 @@ local regionKeys = std.objectFields(settings.regions);
 				"s3:GetObject"
 			],
 			resources: [
-				"arn:aws:s3:::${var.dictionaryBucket}/*"
+				"arn:aws:s3:::${aws_s3_bucket.dictionary.id}/*"
 			]
 		},{
 			sid: "ddb",
@@ -449,7 +449,7 @@ local regionKeys = std.objectFields(settings.regions);
 					[region]: "${aws_vpc.npk-%s.id}" % region
 					for region in regionKeys
 				}, ""),
-				dictionaryBucket: "${var.dictionaryBucket}",
+				dictionaryBucket: "${aws_s3_bucket.dictionary.id}",
 				apigateway: if settings.useCustomDNS then
 					settings.apiEndpoint
 				else
@@ -681,21 +681,15 @@ local regionKeys = std.objectFields(settings.regions);
 		},
 		provider: [{
 			aws: {
-				profile: settings.awsProfile,
+				profile:: settings.awsProfile,
 				region: settings.primaryRegion
-			}
-		}, {
-			aws: {
-				alias: "core",
-				profile: settings.awsProfile,
-				region: "us-west-2"
 			}
 		}, {
 			archive: {}
 		}] + [{
 			aws: {
 				alias: region,
-				profile: settings.awsProfile,
+				profile:: settings.awsProfile,
 				region: region
 			}
 		} for region in regionKeys]
@@ -772,6 +766,29 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
+	's3_dictionary.tf.json': {
+		resource: {
+			aws_s3_bucket: {
+				dictionary: {
+					bucket_prefix: "npk-dictionary-" + settings.primaryRegion + "-",
+					acl: "private",
+					force_destroy: true,
+
+					cors_rule: {
+					    allowed_headers: ["*"],
+					    allowed_methods: ["GET", "HEAD"],
+					    allowed_origins: ["*"],
+					    expose_headers : ["x-amz-meta-lines", "x-amz-meta-size", "x-amz-meta-type", "content-length"],
+					    max_age_seconds: 3000
+					},
+
+					tags: {
+						Project: "NPK"
+					}
+				}
+			}
+		}
+	},
 	's3_policies.tf.json': {
 		data: {
 			aws_iam_policy_document: {
@@ -826,13 +843,122 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
-	'templates.tf.json': {
-		data: templates.data(settings),
-		resource: templates.resource
+	'sync_npkcomponents.tf.json': {
+		resource: {
+			null_resource: {
+				sync_npkcomponents: {
+				    triggers: {
+				        content: "${timestamp()}"
+				    },
+
+				    provisioner: {
+				    	"local-exec": {
+				        	command: "aws s3 --profile " + settings.awsProfile + " sync s3://npk-dictionary-west-2-20181029005812750900000002 s3://${aws_s3_bucket.dictionary.id} --request-payer requester --source-region us-west-2 --region " + settings.primaryRegion,
+
+					        environment: {
+					            AWS_PROFILE: settings.awsProfile
+					        }
+					    }
+				    }
+				}
+			}
+		},
+		output: {
+			aws_s3_sync_bucket_command: {
+				value: "aws s3 --profile " + settings.awsProfile + " sync s3://npk-dictionary-west-2-20181029005812750900000002 s3://${aws_s3_bucket.dictionary.id} --request-payer requester --source-region us-west-2 --region " + settings.primaryRegion
+			}
+		}
 	},
-	'template-inject_api_handler.json':: {
-		[regionKeys[i]]: templates.az(settings.regions[regionKeys[i]])
-			for i in std.range(0, std.length(regionKeys) - 1)
+	'templates.tf.json': {
+		data: {
+			template_file: {
+				npk_config: {
+					template: "${file(\"${path.module}/templates/npk_config.tpl\")}",
+
+					vars: {
+						aws_region: "${var.region}",
+						client_id: "${aws_cognito_user_pool_client.npk.id}",
+						user_pool_id: "${aws_cognito_user_pool.npk.id}",
+						identity_pool_id: "${aws_cognito_identity_pool.main.id}",
+						userdata_bucket: "${aws_s3_bucket.user_data.id}",
+						dictionary_bucket: "${aws_s3_bucket.dictionary.id}",
+						primary_region: settings.primaryRegion,
+						use_SAML: settings.useSAML,
+						saml_domain: "",
+						saml_redirect: "",
+						families: std.strReplace(std.manifestJsonEx(settings.families, ""), "\n", ""),
+						quotas: std.strReplace(std.manifestJsonEx(settings.quotas, ""), "\n", ""),
+						regions: std.strReplace(std.manifestJsonEx(settings.regions, ""), "\n", ""),
+						api_gateway_url: if settings.useCustomDNS then
+								settings.apiEndpoint
+							else
+								"${element(split(\"/\", aws_api_gateway_deployment.npk.invoke_url), 2)}"
+					} + (if settings.useSAML && !settings.useCustomDNS then {
+						saml_domain: "${aws_cognito_user_pool_domain.saml.domain}.auth." + settings.primaryRegion + ".amazoncognito.com",
+						saml_redirect: "https://${aws_cloudfront_distribution.npk.domain_name}"
+					} else {}) + (if settings.useSAML && settings.useCustomDNS then {
+						saml_domain: settings.authEndpoint,
+						saml_redirect: "https://" + settings.wwwEndpoint
+					} else {})
+				},
+				userdata_template: {
+					template: "${file(\"${path.module}/templates/userdata.tpl\")}",
+
+					vars: {
+						dictionaryBucket: "${aws_s3_bucket.dictionary.id}",
+						userdata: "${aws_s3_bucket.user_data.id}",
+						userdataRegion: settings.primaryRegion
+					}
+				}
+			}
+		},
+		resource: {
+			local_file: {
+				npk_config: {
+					content: "${data.template_file.npk_config.rendered}",
+					filename: "${path.module}/../site-content/angular/npk_config.js",
+				},
+				userdata_template: {
+					content: "${data.template_file.userdata_template.rendered}",
+					filename: "${path.module}/lambda_functions/execute_campaign/userdata.sh",
+				}
+			}
+		}
+	},
+	'templates-selfhost.tf.json': {
+		data: {
+			template_file: {
+				upload_npkfile: {
+					template: "${file(\"${path.module}/templates/upload_npkfile.sh.tpl\")}",
+
+					vars: {
+						dictionaryBucket: "${aws_s3_bucket.dictionary.id}",
+						dictionaryBucketRegion: settings.primaryRegion
+					}
+				},
+				upload_npkcomponents: {
+					template: "${file(\"${path.module}/templates/upload_npkcomponents.sh.tpl\")}",
+
+					vars: {
+						dictionaryBucket: "${aws_s3_bucket.dictionary.id}",
+						dictionaryBucketRegion: settings.primaryRegion,
+						basepath: "${path.module}"
+					}
+				}
+			}
+		},
+		resource: {
+			local_file: {
+				upload_npkfile: {
+					content: "${data.template_file.upload_npkfile.rendered}",
+					filename: "${path.module}/../tools/upload_npkfile.sh"
+				},
+				upload_npkcomponents: {
+					content: "${data.template_file.upload_npkcomponents.rendered}",
+					filename: "${path.module}/../tools/upload_npkcomponents.sh"
+				}
+			}
+		}
 	},
 	'variables.tf.json': {
 		variable: variables.variables(settings) + {

@@ -19,7 +19,7 @@ echo $ManifestPath > /root/manifestpath
 yum install -y jq
 
 export BUCKET=${dictionaryBucket}
-export BUCKETREGION=${dictionaryBucketRegion}
+export BUCKETREGION=${userdataRegion}
 
 echo "Using dictionary bucket $BUCKET";
 

@@ -9,45 +9,8 @@ local settings = npksettings + {
 local regionKeys = std.objectFields(settings.regions);
 
 {
-	'backend.tf.json': {
-		terraform: {
-			backend: {
-				s3: {
-					bucket: settings.backend_bucket,
-					key: "c6fc.io/npkv3/terraform-selfhost.tfstate",
-					profile: settings.awsProfile,
-					region: settings.primaryRegion
-				}
-			}
-		}
-	},
-	'provider.tf.json': {
-		terraform: {
-			required_providers: {
-				aws: {
-					source: "hashicorp/aws",
-					version: "~> 3.57.0"
-				},
-				archive: {
-					source: "hashicorp/archive",
-					version: "~> 2.2.0"
-				}
-			}
-		},
-		provider: [{
-			aws: {
-				profile: settings.awsProfile,
-				region: "us-west-2"
-			}
-		}] + [{
-			aws: {
-				alias: region,
-				profile: settings.awsProfile,
-				region: region
-			}
-		} for region in regionKeys]
-	},
-	's3.tf.json': {
+
+	's3_dictionary.tf.json': {
 		resource: {
 			aws_s3_bucket: {
 				[settings.primaryRegion]: {
@@ -92,7 +55,7 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
-	'templates.tf.json': {
+	'selfhost-templates.tf.json': {
 		data: {
 			template_file: {
 				dictionaries_variables: {
@@ -172,5 +135,4 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	}
-
 }

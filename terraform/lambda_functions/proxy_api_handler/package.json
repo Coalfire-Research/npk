@@ -4,7 +4,7 @@
   "description": "NPK API Gateway Proxy Handler",
   "main": "main.js",
   "dependencies": {
-    "aws-sdk": "^2.599.0",
+    "aws-sdk": "^2.814.0",
     "aws-xray-sdk": "^2.5.0",
     "aws4": "^1.8.0",
     "dynamodb-data-types": "^3.0.1",

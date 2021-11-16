@@ -9,7 +9,8 @@ var aws = require('aws-sdk');
 const { spawn } = require('child_process');
 var apiClientFactory = require('aws-api-gateway-client').default;
 
-var region = process.env.REGION || "us-west-2";
+var region = process.env.REGION;
+var primaryRegion = process.env.USERDATAREGION;
 var keyspace = process.env.KEYSPACE || 1;
 var apigateway = process.env.APIGATEWAY;
 var manifestpath = process.env.ManifestPath;
@@ -46,7 +47,7 @@ var getCredentials = function() {
 				accessKey: aws.config.credentials.accessKeyId,
 				secretKey: aws.config.credentials.secretAccessKey,
 				sessionToken: aws.config.credentials.sessionToken,
-				region: "us-west-2"
+				region: primaryRegion
 			});
 
 			setTimeout(getCredentials, 600);

@@ -1,8 +1,11 @@
 "use strict";
 
+const fs = require('fs');
 const aws 	= require('aws-sdk');
 const settings = JSON.parse(JSON.stringify(process.env));
-settings.availabilityZones = JSON.parse(settings.availabilityZones);
+settings.regions = JSON.parse(settings.regions);
+
+const accountDetails = JSON.parse(fs.readFileSync('./accountDetails.json', 'ascii'));
 
 aws.config.apiVersions = {
 	dynamodb: 	'2012-08-10'
@@ -20,7 +23,7 @@ exports.main = async function(event, context, callback) {
 	// Enumerate spot fleet requests and histories across all regions.
 	try {
 
-		for (const region of Object.keys(settings.availabilityZones)) {
+		for (const region of Object.keys(settings.regions)) {
 			const ec2 = new aws.EC2({region: region});
 
 			promises.push(ec2.describeSpotFleetRequests({}).promise().then(async (data) => {
@@ -62,7 +65,7 @@ exports.main = async function(event, context, callback) {
 
 	// Enumerate spot instances from all regions, and associate them with their SFRs.
 	try {
-		Object.keys(settings.availabilityZones).forEach(function(region) {
+		Object.keys(settings.regions).forEach(function(region) {
 			const ec2 = new aws.EC2({region: region});
 
 			promises.push(ec2.describeSpotInstanceRequests({}).promise().then((data) => {
@@ -163,7 +166,7 @@ exports.main = async function(event, context, callback) {
 			}
 
 			if (/cancelled/.test(fleet.SpotFleetRequestState)) {
-				const fleetState = (fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "CANCELLING";
+				const fleetState = (fleet.SpotFleetRequestState == "cancelled") ? "COMPLETED" : "STOPPING";
 
 				promises.push(editCampaignViaRequestId(fleet.SpotFleetRequestId, {
 					active: false,
@@ -330,12 +333,14 @@ exports.main = async function(event, context, callback) {
 				});
 			});
 
+			const fleetState = (/cancelled/.test(fleet.SpotFleetRequestState)) ? "STOPPING" : "RUNNING";
+
 			promises.push(editCampaignViaRequestId(fleetId, {
 				active: true,
 				price: fleet.price,
 				spotRequestHistory: fleet.history,
 				spotRequestStatus: fleet.instances,
-				status: "RUNNING"
+				status: fleetState
 			}).then((data) => {
 				console.log(`[+] Updated price of fleet ${fleetId}`);
 			}, (e) => {

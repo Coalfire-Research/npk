@@ -29,6 +29,18 @@ export AWS_DEFAULT_REGION=us-west-2
 export AWS_DEFAULT_OUTPUT=json
 export AWS_PROFILE=$(jq -r '.awsProfile' ../terraform/npk-settings.json)
 
+BUCKET1=${de1}
+REGION1="us-east-1"
+
+BUCKET2=${de2}
+REGION2="us-east-2"
+
+BUCKET3=${dw1}
+REGION3="us-west-1"
+
+BUCKET4=${dw2}
+REGION4="us-west-2"
+
 FILENAME=$(echo $${2##*/})
 echo "Processing $1 $FILENAME"
 ARCHIVE=$(echo $${FILENAME%.*}).7z
@@ -39,8 +51,14 @@ echo "- Compressing"
 7z a $ARCHIVE $2
 
 echo "- Uploading to S3"
-aws s3 cp $ARCHIVE s3://${dictionaryBucket}/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region ${dictionaryBucketRegion}
+aws s3 cp $ARCHIVE s3://$BUCKET1/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION1
+aws s3 cp s3://$BUCKET1/$1/$ARCHIVE s3://$BUCKET2/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION2
+aws s3 cp s3://$BUCKET1/$1/$ARCHIVE s3://$BUCKET3/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION3
+aws s3 cp s3://$BUCKET1/$1/$ARCHIVE s3://$BUCKET4/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION4
 
+# aws s3 cp $ARCHIVE s3://$BUCKET2/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION2
+# aws s3 cp $ARCHIVE s3://$BUCKET3/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION3
+# aws s3 cp $ARCHIVE s3://$BUCKET4/$1/ $${@:3} --metadata type=$1,lines=$FILELINES,size=$SIZE --region $REGION4
 rm $ARCHIVE
 
 echo -e "Done.\n\n"

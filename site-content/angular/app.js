@@ -59,18 +59,6 @@ angular
 			return result;
 		};
 	})
-	.filter('toArray', function() {
-		return function(object) {
-			const newObject = Object.keys(object).reduce((acc, cur) => {
-				object[cur]._id = cur;
-				acc.push(object[cur]);
-
-				return acc;
-			}, []);
-
-			return newObject;
-		}
-	})
 	.filter('toHs', function() {
 		return function(number) {
 
@@ -215,13 +203,6 @@ angular
 	   		}]
 	   	})
 	   	.when('/file-management', {
-	   		templateUrl: "views/file-management.html",
-	   		controller: "filesCtrl",
-	   		resolveRedirectTo: ['cognito', function(cognito) {
-	   			return cognito.routeRequireLogin();
-	   		}]
-	   	})
-	   	.when('/file-management/:basePath*', {
 	   		templateUrl: "views/file-management.html",
 	   		controller: "filesCtrl",
 	   		resolveRedirectTo: ['cognito', function(cognito) {

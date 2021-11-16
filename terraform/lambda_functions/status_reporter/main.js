@@ -8,6 +8,7 @@ var aws			= require('aws-sdk');
 var uuid		= require('uuid/v4');
 var ddbTypes 	= require('dynamodb-data-types').AttributeValue;
 var settings = JSON.parse(JSON.stringify(process.env));
+settings.availabilityZones = JSON.parse(settings.availabilityZones);
 
 var cb = "";
 var lambdaEvent = {};
@@ -16,7 +17,7 @@ aws.config.apiVersions = {
 	dynamodb: 	'2012-08-10'
 };
 
-aws.config.update({region: settings.region});
+aws.config.update({region: 'us-west-2'});
 
 var db = new aws.DynamoDB();
 

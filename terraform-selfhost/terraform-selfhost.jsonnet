@@ -2,7 +2,7 @@ local npksettings = import '../terraform/npk-settings.json';
 local regions = import '../terraform/regions.json';
 
 local settings = npksettings + {
-	primaryRegion: "us-west-2",
+	defaultRegion: "us-west-2",
 	regions: regions
 };
 
@@ -14,9 +14,9 @@ local regionKeys = std.objectFields(settings.regions);
 			backend: {
 				s3: {
 					bucket: settings.backend_bucket,
-					key: "c6fc.io/npkv3/terraform-selfhost.tfstate",
+					key: "c6fc.io/npkv2.5/terraform-selfhost.tfstate",
 					profile: settings.awsProfile,
-					region: settings.primaryRegion
+					region: settings.defaultRegion
 				}
 			}
 		}
@@ -47,12 +47,21 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		} for region in regionKeys]
 	},
+	# 'provider.tf.json': {
+	# 	provider: [{
+	# 		aws: {
+	# 			alias: region,
+	# 			profile: settings.awsProfile,
+	# 			region: region
+	# 		}
+	# 	} for region in regionKeys ]
+	# },
 	's3.tf.json': {
 		resource: {
 			aws_s3_bucket: {
-				[settings.primaryRegion]: {
-					provider: "aws." + settings.primaryRegion,
-					bucket_prefix: "npk-dictionary-" + settings.primaryRegion + "-",
+				[region]: {
+					provider: "aws." + region,
+					bucket_prefix: "npk-dictionary-" + region + "-",
 					acl: "private",
 					force_destroy: true,
 
@@ -67,7 +76,7 @@ local regionKeys = std.objectFields(settings.regions);
 					tags: {
 						Project: "NPK"
 					}
-				}
+				} for region in regionKeys
 			}
 		}
 	},
@@ -76,18 +85,23 @@ local regionKeys = std.objectFields(settings.regions);
 			null_resource: {
 				sync_npkcomponents: {
 				    triggers: {
-				        content: "${timestamp()}"
+				        content: "${local_file.sync_npkcomponents.content}"
 				    },
 
 				    provisioner: {
 				    	"local-exec": {
-				        	command: "echo aws s3 sync s3://npk-dictionary-west-2-20181029005812750900000002 s3://${aws_s3_bucket." + settings.primaryRegion + ".id} --source-region us-west-2 --region " + settings.primaryRegion,
+				        	command: "${local_file.sync_npkcomponents.filename}",
 
 					        environment: {
 					            AWS_PROFILE: settings.awsProfile
 					        }
 					    }
-				    }
+				    },
+
+				    depends_on: ["local_file.sync_npkcomponents"] + [
+				    	"aws_s3_bucket." + region
+				    	for region in regionKeys
+				    ]
 				}
 			}
 		}
@@ -99,49 +113,71 @@ local regionKeys = std.objectFields(settings.regions);
 					template: "${file(\"${path.module}/templates/dictionaries.auto.tfvars.tpl\")}",
 
 					vars: {
-						dictionaryBucket: "${aws_s3_bucket.%s.id}" % settings.primaryRegion,
-						dictionaryBucketRegion: settings.primaryRegion
+						de1: "${aws_s3_bucket.us-east-1.arn}",
+						de2: "${aws_s3_bucket.us-east-2.arn}",
+						dw1: "${aws_s3_bucket.us-west-1.arn}",
+						dw2: "${aws_s3_bucket.us-west-2.arn}",
+
+						de1i: "${aws_s3_bucket.us-east-1.id}",
+						de2i: "${aws_s3_bucket.us-east-2.id}",
+						dw1i: "${aws_s3_bucket.us-west-1.id}",
+						dw2i: "${aws_s3_bucket.us-west-2.id}"
+					}
+				},
+				dictionary_buckets: {
+					template: "${file(\"${path.module}/templates/dictionary-buckets.js.tpl\")}",
+
+					vars: {
+						de1: "${aws_s3_bucket.us-east-1.id}",
+						de2: "${aws_s3_bucket.us-east-2.id}",
+						dw1: "${aws_s3_bucket.us-west-1.id}",
+						dw2: "${aws_s3_bucket.us-west-2.id}"
 					}
 				},
 				upload_npkfile: {
 					template: "${file(\"${path.module}/templates/upload_npkfile.sh.tpl\")}",
 
 					vars: {
-						dictionaryBucket: "${aws_s3_bucket.%s.id}" % settings.primaryRegion,
-						dictionaryBucketRegion: settings.primaryRegion
+						de1: "${aws_s3_bucket.us-east-1.id}",
+						de2: "${aws_s3_bucket.us-east-2.id}",
+						dw1: "${aws_s3_bucket.us-west-1.id}",
+						dw2: "${aws_s3_bucket.us-west-2.id}"
 					}
 				},
 				upload_npkcomponents: {
 					template: "${file(\"${path.module}/templates/upload_npkcomponents.sh.tpl\")}",
 
 					vars: {
-						dictionaryBucket: "${aws_s3_bucket.%s.id}" % settings.primaryRegion,
-						dictionaryBucketRegion: settings.primaryRegion,
+						de1: "${aws_s3_bucket.us-east-1.id}",
+						de2: "${aws_s3_bucket.us-east-2.id}",
+						dw1: "${aws_s3_bucket.us-west-1.id}",
+						dw2: "${aws_s3_bucket.us-west-2.id}",
+						basepath: "${path.module}"
+					}
+				},
+				sync_npkcomponents: {
+					template: "${file(\"${path.module}/templates/sync_npkcomponents.sh.tpl\")}",
+
+					vars: {
+						de1: "${aws_s3_bucket.us-east-1.id}",
+						de2: "${aws_s3_bucket.us-east-2.id}",
+						dw1: "${aws_s3_bucket.us-west-1.id}",
+						dw2: "${aws_s3_bucket.us-west-2.id}",
 						basepath: "${path.module}"
 					}
 				}
+
 			}
 		},
 		resource: {
-			null_resource: {
-				dictionary_replacer: {
-					provisioner: [{
-						"local-exec": {
-							when: "destroy",
-							command: "cp community_configs/dictionaries.tfvars ../terraform/dictionaries.auto.tfvars"
-						}
-					}, {
-						"local-exec": {
-							command: "pwd"
-						}
-					}]
-				}
-			},
 			local_file: {
 				dictionaries_variables: {
-					depends_on: ["null_resource.dictionary_replacer"],
 					content: "${data.template_file.dictionaries_variables.rendered}",
 					filename: "${path.module}/../terraform/dictionaries.auto.tfvars"
+				},
+				dictionary_buckets: {
+					content: "${data.template_file.dictionary_buckets.rendered}",
+					filename: "${path.module}/../site-content/assets/js/dictionary-buckets.js"
 				},
 				upload_npkfile: {
 					content: "${data.template_file.upload_npkfile.rendered}",
@@ -150,7 +186,23 @@ local regionKeys = std.objectFields(settings.regions);
 				upload_npkcomponents: {
 					content: "${data.template_file.upload_npkcomponents.rendered}",
 					filename: "${path.module}/upload_npkcomponents.sh"
+				},
+				sync_npkcomponents: {
+					content: "${data.template_file.sync_npkcomponents.rendered}",
+					filename: "${path.module}/sync_npkcomponents.sh"
 				}
+
+			}
+		},
+		output: {
+			dictionaries_variables: {
+				value: "${local_file.dictionaries_variables.filename}"
+			},
+			dictionary_buckets: {
+				value: "${local_file.dictionary_buckets.filename}"
+			},
+			upload_npkcomponents: {
+				value: "${local_file.upload_npkcomponents.filename}"
 			}
 		}
 	},

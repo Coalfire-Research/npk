@@ -32,26 +32,30 @@ async function generate() {
 
 	try {
 
-		const cache = JSON.parse(fs.readFileSync('./.terraform/profile_cache.json'));
+		if (fs.existsSync('./.terraform/profile_cache.json')) {
+			const cache = JSON.parse(fs.readFileSync('./.terraform/profile_cache.json'));
 
-		if (cache.profile != settings.awsProfile || cache.expired) {
-			console.log("[!] Cached role is expired. Will attempt to renew.");
-			useCache = false;
-		} else {
-			console.log("[+] Attempting to use cached role.");
-			aws.config.update(cache);
+			if (cache.profile != settings.awsProfile || cache.expired) {
+				console.log("[!] Cached role is expired. Will attempt to renew.");
+				useCache = false;
+			} else {
+				console.log("[+] Attempting to use cached role.");
+				aws.config.update(cache);
 
-			let err = await aws.config.credentials.getPromise();
+				let err = await aws.config.credentials.getPromise();
 
-			if (!!err) {
-				console.log(2, err);
-				return false;
+				if (!!err) {
+					console.log(2, err);
+					return false;
+				}
+
+				const sts = new aws.STS();
+				const caller = await sts.getCallerIdentity().promise();
+
+				console.log(`[+] Successfully resumed session for ${caller.Arn}`);
 			}
-
-			const sts = new aws.STS();
-			const caller = await sts.getCallerIdentity().promise();
-
-			console.log(`[+] Successfully resumed session for ${caller.Arn}`);
+		} else {
+			useCache = false;
 		}
 
 	} catch (e) {
@@ -151,8 +155,8 @@ async function generate() {
 		'awsProfile',
 		'criticalEventsSMS',
 		'adminEmail',
-		'samlMetadataFile',
-		'samlMetadataUrl',
+		'sAMLMetadataFile',
+		'sAMLMetadataUrl',
 		'primaryRegion'
 	];
 

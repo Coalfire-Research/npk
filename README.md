@@ -140,9 +140,11 @@ For comparison, here's an advanced config deployed to eu-west-2 with $100 campai
   "sAMLMetadataUrl": "https://dev-xxxxxxxx.okta.com/app/exampleau4LOLCATCAFE/sso/saml/metadata"
 }
 ```
-After that, run the deploy!
+After that, install the NPM modules and run the deploy!
 
 ```sh
+npk/terraform$ nvm install 17 && nvm use 17
+npk/terraform$ npm install
 npk/terraform$ npm run deploy
 ```
 

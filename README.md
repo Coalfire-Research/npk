@@ -148,7 +148,7 @@ npk/terraform$ rpm run deploy
 
 For more details about each setting, their effects, and allowed values, check out [the wiki](https://github.com/c6fc/npk/wiki/Detailed-NPK-Settings). For more details around custom installations, see [Detailed Instructions](https://github.com/c6fc/npk/wiki/Detailed-Usage-Instructions).
 
-NPK will use the specified AWS cli profile to fully deploy NPK and provision the first user. If you'd like to change the configuration, simply run `./deploy.sh` again afterward. Once it's done, you'll receive an email with the URL and credentials to your deployment:
+NPK will use the specified AWS cli profile to fully deploy NPK and provision the first user. If you'd like to change the configuration, simply run `npm run deploy` again afterward. Once it's done, you'll receive an email with the URL and credentials to your deployment:
 
 ![Image](/readme-content/npk-invite.png)
 

@@ -143,7 +143,7 @@ For comparison, here's an advanced config deployed to eu-west-2 with $100 campai
 After that, run the deploy!
 
 ```sh
-npk/terraform$ rpm run deploy
+npk/terraform$ npm run deploy
 ```
 
 For more details about each setting, their effects, and allowed values, check out [the wiki](https://github.com/c6fc/npk/wiki/Detailed-NPK-Settings). For more details around custom installations, see [Detailed Instructions](https://github.com/c6fc/npk/wiki/Detailed-Usage-Instructions).

@@ -235,6 +235,8 @@ async function generate() {
 			console.log(`[!] Unable to retrieve hosted zone. ${e}`);
 			return false;
 		}
+	} else {
+		fs.writeFileSync('./hostedZone.json', "{}");
 	}
 
 	console.log("[+] Validated route53Zone");

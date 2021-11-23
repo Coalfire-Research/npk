@@ -186,7 +186,7 @@ async function generate() {
 	} catch (e) {
 
 		// If the bucket doesn't exist, create it.
-		if (e.toString().indexOf("NotFound") === 0) {
+		if (e.toString().indexOf("NoSuchBucket") === 0) {
 			console.log(`[*] Creating backend bucket ${settings.backend_bucket}`);
 
 			try {

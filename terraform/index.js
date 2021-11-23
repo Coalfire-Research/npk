@@ -110,6 +110,10 @@ async function generate() {
 			return false;
 		}
 
+		if (!fs.existsSync('./.terraform/')) {
+			fs.mkdirSync('./.terraform/');
+		}
+
 		fs.writeFileSync('./.terraform/profile_cache.json', JSON.stringify({
 			accessKeyId: creds.accessKeyId,
 			secretAccessKey: creds.secretAccessKey,

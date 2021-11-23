@@ -28,7 +28,7 @@ terraform/lambda_functions/proxy_api_handler/userdata.sh
 terraform/lambda_functions/execute_campaign/userdata.sh
 terraform/templates/api-handler-variables.tpl
 terraform/templates/npk_settings.tpl
-tools/components/
+tools/components/*
 tools/rules/*
 tools/wordlists/*
 tools/upload_npkfile.sh

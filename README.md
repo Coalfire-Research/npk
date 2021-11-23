@@ -143,7 +143,7 @@ For comparison, here's an advanced config deployed to eu-west-2 with $100 campai
 After that, install the NPM modules and run the deploy!
 
 ```sh
-npk/terraform$ nvm install 17 && nvm use 17
+nvm install 17 && nvm use 17
 npk/terraform$ npm install
 npk/terraform$ npm run deploy
 ```

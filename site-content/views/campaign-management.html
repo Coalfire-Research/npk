@@ -295,7 +295,7 @@
                         </td>
                       <td>
                         <img id="action-{{ campaign._id }}" src="assets/images/loading.gif" style="height: 10px; width: 25px; display: none;">
-                        <a id="cancel-{{ campaign._id }}" class="badge waves-effect waves-light" ng-class="[{'badge-danger': campaign.status == 'COMPLETED'}, {'badge-warning': campaign.status != 'COMPLETED'}]" ng-click="$parent.npkDB.cancelCampaign(id)">
+                        <a id="cancel-{{ campaign._id }}" class="badge waves-effect waves-light" ng-class="[{'badge-danger': campaign.status == 'COMPLETED'}, {'badge-warning': campaign.status != 'COMPLETED'}]" ng-click="$parent.npkDB.cancelCampaign(campaign._id)">
                           <i class="fa fa-trash-o"></i>
                           <span>
                             {{ (campaign.status == "COMPLETED") ? "Delete" : "Cancel" }}

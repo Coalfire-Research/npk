@@ -381,6 +381,7 @@ exports.main = async function(event, context, callback) {
 		});
 
 		await Promise.all(promises);
+		await Promise.all(finalPromises);
 
 	} catch (e) {
 		console.log(e);

@@ -347,6 +347,8 @@ exports.main = async function(event, context, callback) {
 				console.log(`[!] Failed attempting to update price for ${fleetId}`);
 			}));
 
+			const finalPromises = [];
+
 			if (fleet.price > parseFloat(tags.MaxCost) || fleet.price > parseFloat(settings.campaign_max_price)) {
 				console.log("Fleet " + fleetId + " costs exceed limits; terminating.");
 

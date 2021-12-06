@@ -333,6 +333,7 @@ exports.main = async function(event, context, callback) {
 				});
 			});
 
+			const ec2 = new aws.EC2({region: fleet.region});
 			const fleetState = (/cancelled/.test(fleet.SpotFleetRequestState)) ? "STOPPING" : "RUNNING";
 
 			promises.push(editCampaignViaRequestId(fleetId, {
@@ -347,12 +348,10 @@ exports.main = async function(event, context, callback) {
 				console.log(`[!] Failed attempting to update price for ${fleetId}`);
 			}));
 
-			const finalPromises = [];
-
 			if (fleet.price > parseFloat(tags.MaxCost) || fleet.price > parseFloat(settings.campaign_max_price)) {
 				console.log("Fleet " + fleetId + " costs exceed limits; terminating.");
 
-				finalPromises.push(ec2.cancelSpotFleetRequests({
+				promises.push(ec2.cancelSpotFleetRequests({
 					TerminateInstances: true,
 					SpotFleetRequestIds: [fleetId]
 				}).promise().then((data) => {
@@ -366,9 +365,9 @@ exports.main = async function(event, context, callback) {
 
 			if (fleet.price > parseFloat(tags.MaxCost) * 1.1 || fleet.price > parseFloat(settings.campaign_max_price) * 1.1) {
 				console.log("Fleet " + fleetId + " costs CRITICALLY exceed limits (" + fleet.price + "); terminating and raising critical alert.");
-				finalPromises.push(critcalAlert("SFR " + fleetId + " current price is: " + fleet.price + "; Terminating."));
+				promises.push(criticalAlert("SFR " + fleetId + " current price is: " + fleet.price + "; Terminating."));
 
-				finalPromises.push(ec2.cancelSpotFleetRequests({
+				promises.push(ec2.cancelSpotFleetRequests({
 					TerminateInstances: true,
 					SpotFleetRequestIds: [fleetId]
 				}).promise().then((data) => {
@@ -381,7 +380,6 @@ exports.main = async function(event, context, callback) {
 		});
 
 		await Promise.all(promises);
-		await Promise.all(finalPromises);
 
 	} catch (e) {
 		console.log(e);
@@ -391,7 +389,7 @@ exports.main = async function(event, context, callback) {
 	return callback(null, `[+] Reviewed [${Object.keys(spotFleets).length}] SFRs.`);
 };
 
-var criticalAlert = function(message) {
+function criticalAlert(message) {
 	return new Promise((success, failure) => {
 		var sns = new aws.SNS({apiVersion: '2010-03-31', region: 'us-west-2'});
 

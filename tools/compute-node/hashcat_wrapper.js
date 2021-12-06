@@ -132,6 +132,7 @@ var readOutput = function(output) {
 		estimatedEndTime: status.estimated_stop,
 		hashRate: hashrate,
 		progress: ((status.progress[0] / status.progress[1]) * 100).toFixed(2),
+		hashes: status.recovered_hashes[1],
 		recoveredHashes: status.recovered_hashes[0],
 		recoveredPercentage: ((status.recovered_hashes[0] / status.recovered_hashes[1]) * 100).toFixed(2),
 		rejectedPercentage: ((status.rejected / status.progress[0]) * 100).toFixed(2),

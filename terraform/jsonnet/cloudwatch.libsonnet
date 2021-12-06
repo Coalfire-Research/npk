@@ -7,25 +7,12 @@
 				schedule_expression: "rate(1 minute)",
 				role_arn: "${aws_iam_role.cloudwatch_invoke_spot_monitor.arn}",
 				is_enabled: true
-			},
-			spot_interrupt_catcher: {
-				name: "npkSpotInterruptCatcher",
-				description: "Catches spot instance interrupt notifications",
-				event_pattern: std.manifestJsonEx({
-					"detail-type": ["EC2 Spot Instance Interruption Warning"],
-					source: ["aws.ec2"]
-				}, ""),
-				role_arn: "${aws_iam_role.cloudwatch_invoke_spot_monitor.arn}"
 			}
 		},
 		aws_cloudwatch_event_target:{
 			spot_monitor: {
 				rule: "${aws_cloudwatch_event_rule.spot_monitor.name}",
 				arn: "${aws_lambda_function.spot_monitor.arn}"
-			},
-			spot_interrupt_catcher: {
-				rule: "${aws_cloudwatch_event_rule.spot_interrupt_catcher.name}",
-				arn: "${aws_lambda_function.spot_interrupt_catcher.arn}"
 			}
 		},
 		aws_iam_role:{
@@ -65,13 +52,6 @@
 				function_name: "${aws_lambda_function.spot_monitor.function_name}",
 				principal: "events.amazonaws.com",
 				source_arn: "${aws_cloudwatch_event_rule.spot_monitor.arn}",
-			},
-			spot_interrupt_catcher: {
-				statement_id: "spot_interrupt_catcher",
-				action: "lambda:InvokeFunction",
-				function_name: "${aws_lambda_function.spot_interrupt_catcher.function_name}",
-				principal: "events.amazonaws.com",
-				source_arn: "${aws_cloudwatch_event_rule.spot_interrupt_catcher.arn}",
 			}
 		}
 	}

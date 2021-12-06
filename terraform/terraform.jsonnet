@@ -234,6 +234,38 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
+	'cloudwatch-interrupt_rules.tf.json': {
+		resource: {
+			aws_cloudwatch_event_rule: {
+				['spot_interrupt_catcher-%s' % region]: {
+					provider: "aws." + region,
+					name: "npkSpotInterruptCatcher",
+					description: "Catches spot instance interrupt notifications",
+					event_pattern: std.manifestJsonEx({
+						"detail-type": ["EC2 Spot Instance Interruption Warning"],
+						source: ["aws.ec2"]
+					}, ""),
+					role_arn: "${aws_iam_role.cloudwatch_invoke_spot_monitor.arn}"
+				} for region in regionKeys
+			},
+			aws_cloudwatch_event_target:{
+				['spot_interrupt_catcher-%s' % region]: {
+					provider: "aws." + region,
+					rule: "${aws_cloudwatch_event_rule.spot_interrupt_catcher-%s.name}" % region,
+					arn: "${aws_lambda_function.spot_interrupt_catcher.arn}"
+				} for region in regionKeys
+			},
+			aws_lambda_permission: {
+				['spot_interrupt_catcher-%s' % region]: {
+					statement_id: "spot_interrupt_catcher-%s" % region,
+					action: "lambda:InvokeFunction",
+					function_name: "${aws_lambda_function.spot_interrupt_catcher.function_name}",
+					principal: "events.amazonaws.com",
+					source_arn: "${aws_cloudwatch_event_rule.spot_interrupt_catcher-%s.arn}" % region,
+				} for region in regionKeys
+			}
+		}
+	},
 	'cloudwatch-api-gateway-role.tf.json': {
 		resource: iam.iam_role(
 			"npk-apigateway_cloudwatch",
@@ -692,7 +724,12 @@ local regionKeys = std.objectFields(settings.regions);
 				profile:: settings.awsProfile,
 				region: region
 			}
-		} for region in regionKeys]
+		} for region in regionKeys] + if std.member(regionKeys, "us-east-1") then [] else [{
+			aws: {
+				alias: "us-east-1",
+				region: "us-east-1"
+			}
+		}]
 	},
 	[if settings.useCustomDNS then 'route53-main.tf.json' else null]: {
 		resource: {

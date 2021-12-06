@@ -63,7 +63,7 @@ Configure how long data will stay in NPK with configurable lifecycle durations d
 ```sh
 $ git clone https://github.com/c6fc/npk
 $ cd npk
-npk$ ./build-docker-container.sh
+npk$ ./build-docker-image.sh
 ... Docker builds and runs.
 you:~/npk/terraform$ ./quickdeploy.sh
 ```

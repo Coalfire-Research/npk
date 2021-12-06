@@ -249,7 +249,6 @@ exports.main = async function(event, context, callback) {
 	let dictionarySize = 0;
 	let rulesKeyspace = 0;
 	let rulesSize = 0;
-	let lineCount = 0;
 
 	try {
 
@@ -450,7 +449,7 @@ exports.main = async function(event, context, callback) {
 			active: false,
 			durationSeconds: verifiedManifest.instanceDuration * 3600,
 			hashType: verifiedManifest.hashType,
-			hashes: lineCount,
+			hashes: 0,
 			instanceCount: verifiedManifest.instanceCount,
 			price: 0,
 			targetPrice: verifiedManifest.priceTarget,

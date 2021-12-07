@@ -1,5 +1,4 @@
 .ENVVARS
-*.auto.tfvars
 *.pem
 */.terraform*
 *.tfstate

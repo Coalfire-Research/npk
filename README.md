@@ -61,24 +61,16 @@ Configure how long data will stay in NPK with configurable lifecycle durations d
 ## Easy Install (Docker)
 
 ```sh
-$ git clone https://github.com/c6fc/npk
-$ cd npk
-npk$ ./build-docker-image.sh
-... Docker builds and runs.
+$ docker run -it -v ~/.aws/:/root/.aws c6fc/npk:latest
+
+# Pull any recent updates for NPK:
+you:~/npk/terraform$ git pull origin main
 you:~/npk/terraform$ ./quickdeploy.sh
 ```
 
 The quickdeploy wizard will ask for a few basic things, then kick off the install on your behalf.
 
 ## Advanced Install
-
-### Clone the Repo
-
-```sh
-$ git clone https://github.com/c6fc/npk
-$ cd npk/terraform/
-npk/terraform$ cp npk-settings.json.sample npk-settings.json
-```
 
 ### Install the Prerequisites (or use Docker)
 
@@ -87,10 +79,14 @@ NPK requires that you have the following installed:
 * **cmake**
 * **nvm**
 
-You can skip these prerequisites by using the provided Docker image.
+You can skip these prerequisites by using the public Docker image.
+
+### Clone the Repo
+
 ```sh
-npk$ ./build-docker-container.sh
-you:~/npk/terraform$ 
+$ git clone https://github.com/c6fc/npk
+$ cd npk/terraform/
+npk/terraform$ cp npk-settings.json.sample npk-settings.json
 ```
 
 ### Edit the settings file

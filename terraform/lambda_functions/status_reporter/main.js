@@ -8,7 +8,6 @@ var aws			= require('aws-sdk');
 var uuid		= require('uuid/v4');
 var ddbTypes 	= require('dynamodb-data-types').AttributeValue;
 var settings = JSON.parse(JSON.stringify(process.env));
-settings.availabilityZones = JSON.parse(settings.availabilityZones);
 
 var cb = "";
 var lambdaEvent = {};
@@ -17,7 +16,7 @@ aws.config.apiVersions = {
 	dynamodb: 	'2012-08-10'
 };
 
-aws.config.update({region: 'us-west-2'});
+aws.config.update({region: settings.region});
 
 var db = new aws.DynamoDB();
 
@@ -70,6 +69,19 @@ function editCampaign(entity, rangeKey, values) {
 
 function putStatusReport(user, campaign, node, stats) {
 
+	let campaignKey = [
+		"campaigns",
+		campaign
+	].join(':');
+
+	let setHashes = editCampaign(user, campaignKey, {
+		hashes: stats.hashes
+	}).then(function(data) {
+		return respond(201, {campaign: campaign, node: node, time: lambdaEvent.requestContext.requestTimeEpoch}, true);
+	}, function (err) {
+		return respond(500, "Failed to post update; " + err, false);
+	});
+
 	var rangeKey = [
 		campaign,
 		"nodes",
@@ -77,11 +89,12 @@ function putStatusReport(user, campaign, node, stats) {
 		(lambdaEvent.requestContext.requestTimeEpoch / 1000).toFixed(0)
 	].join(':');
 
-	editCampaign(user, rangeKey, {
+	let status = editCampaign(user, rangeKey, {
 		startTime: stats.startTime,
 		estimatedEndTime: stats.estimatedEndTime,
 		hashRate: stats.hashRate,
 		progress: stats.progress,
+		hashes: stats.hashes,
 		recoveredHashes: stats.recoveredHashes,
 		rejectedPercentage: stats.rejectedPercentage,
 		performance: stats.performance,
@@ -91,6 +104,8 @@ function putStatusReport(user, campaign, node, stats) {
 	}, function (err) {
 		return respond(500, "Failed to post update; " + err, false);
 	});
+
+	return Promise.all([setHashes, status]);
 }
 
 function putNode(user, campaign, node, body) {
@@ -148,6 +163,7 @@ function processHttpRequest(path, method, entity, body) {
 						estimatedEndTime: 0,
 						hashRate: 0,
 						progress: 0,
+						hashes: 0,
 						recoveredHashes: 0,
 						rejectedPercentage: 0,
 						performance: 0

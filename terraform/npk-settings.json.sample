@@ -1,11 +1,5 @@
 {
   "backend_bucket": "terraform-backend-<somerandomcharacters>",
-  "campaign_data_ttl": 604800,
-  "campaign_max_price": 50,
-  "georestrictions": ["US", "CA", "GB", "DE"],
-
-  "route53Zone": "E10SDSEFH1102DF",
-
   "awsProfile": "npk",
   "criticalEventsSMS": "+13035551234",
   "adminEmail": "demo@npkproject.io"

@@ -1,0 +1,14 @@
+{
+  "name": "spot_interrupt_catcher",
+  "version": "1.0.0",
+  "description": "NPK listener for spot interrupt events",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1013.0"
+  }
+}

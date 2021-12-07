@@ -6,5 +6,5 @@
 
 /*	Dictionaries Variables */
 
-dictionaryBucket = "npk-dictionary-west-2-20181029005812750900000002"
-dictionaryBucketRegion = "us-west-2"
+dictionaryBucket = "${dictionaryBucket}"
+dictionaryBucketRegion = "${dictionaryBucketRegion}"

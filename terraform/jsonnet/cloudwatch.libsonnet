@@ -23,6 +23,14 @@
 					"Effect": "Allow","Principal": {"Service": ["events.amazonaws.com"]},
 					"Action": "sts:AssumeRole"
 				}]}'
+			},
+			cloudwatch_invoke_spot_interrupt_catcher: {
+				name_prefix: "npk_cloudwatch_spot_interrupt_",
+				description: "Cloudwatch Spot Interupt Catcher Role",
+				assume_role_policy: '{"Version": "2012-10-17","Statement": [{
+					"Effect": "Allow","Principal": {"Service": ["events.amazonaws.com"]},
+					"Action": "sts:AssumeRole"
+				}]}'
 			}
 		},
 		aws_iam_role_policy:{
@@ -30,6 +38,11 @@
 				name_prefix: "npk_cloudwatch_invoke_spot_monitor_policy_",
 				role: "${aws_iam_role.cloudwatch_invoke_spot_monitor.id}",
 				policy: "${data.aws_iam_policy_document.cloudwatch_invoke_spot_monitor.json}"
+			},
+			cloudwatch_invoke_spot_interrupt_catcher: {
+				name_prefix: "npk_cloudwatch_invoke_spot_interrupt_catcher_policy_",
+				role: "${aws_iam_role.cloudwatch_invoke_spot_interrupt_catcher.id}",
+				policy: "${data.aws_iam_policy_document.cloudwatch_invoke_spot_interrupt_catcher.json}"
 			}
 		},
 		aws_lambda_permission: {

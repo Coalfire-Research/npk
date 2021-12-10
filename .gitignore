@@ -13,6 +13,7 @@ terraform/quotas.json
 terraform/npk-settings.json
 terraform/generated-settings.jsonnet
 terraform/regions.json
+terraform/providerRegions.json
 terraform/hostedZone.json
 terraform/*.tf.json
 terraform-selfhost/*.tf.json

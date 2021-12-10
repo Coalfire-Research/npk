@@ -30,6 +30,7 @@ local npksettings = import 'npk-settings.json';
 local regions = import 'regions.json';
 local quotas = import 'quotas.json';
 local hostedZone = import 'hostedZone.json';
+local providerRegions = import 'providerRegions.json';
 
 local settings = {
 	georestrictions: [],
@@ -724,12 +725,7 @@ local regionKeys = std.objectFields(settings.regions);
 				profile:: settings.awsProfile,
 				region: region
 			}
-		} for region in regionKeys] + if std.member(regionKeys, "us-east-1") then [] else [{
-			aws: {
-				alias: "us-east-1",
-				region: "us-east-1"
-			}
-		}]
+		} for region in providerRegions]
 	},
 	[if settings.useCustomDNS then 'route53-main.tf.json' else null]: {
 		resource: {

@@ -257,6 +257,8 @@ async function generate() {
 		return false;
 	}
 
+	fs.writeFileSync('./providerRegions.json', JSON.stringify(regions));
+
 	console.log("[+] Retrieved all active regions");
 
 	// Check quotas for all regions.

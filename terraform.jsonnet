@@ -1,4 +1,5 @@
-local backend = import 'jsonnet/backend.libsonnet';
+local sonnetry = import 'sonnetry';
+
 local provider = import 'jsonnet/provider.libsonnet';
 
 local iam = import 'jsonnet/iam.libsonnet';
@@ -26,11 +27,13 @@ local subnet = import 'jsonnet/subnet.libsonnet';
 local variables = import 'jsonnet/variables.libsonnet';
 local vpc = import 'jsonnet/vpc.libsonnet';
 
+local validatedSettings = std.extVar('validatedSettings');
+
 local npksettings = import 'npk-settings.json';
-local regions = import 'regions.json';
-local quotas = import 'quotas.json';
-local hostedZone = import 'hostedZone.json';
-local providerRegions = import 'providerRegions.json';
+// local regions = import 'regions.json';
+// local quotas = import 'quotas.json';
+// local hostedZone = import 'hostedZone.json';
+// local providerRegions = import 'providerRegions.json';
 
 local settings = {
 	georestrictions: [],
@@ -41,22 +44,22 @@ local settings = {
 	primaryRegion: "us-west-2"
 } + npksettings + {
 	families: gpu_instance_families,
-	regions: regions,
-	quotas: quotas,
-	useCustomDNS: std.objectHas(hostedZone, 'dnsBaseName'),
+	regions: validatedSettings.regions,
+	quotas: validatedSettings.quotas,
+	useCustomDNS: std.objectHas(validatedSettings, 'dnsBaseName'),
 	useSAML: std.objectHas(npksettings, 'sAMLMetadataFile') || std.objectHas(npksettings, 'sAMLMetadataUrl')
-} + if !std.objectHas(hostedZone, 'dnsBaseName') then {} else {
-	dnsBaseName: hostedZone.dnsBaseName,
-	wwwEndpoint: "%s" % [hostedZone.dnsBaseName],
-	apiEndpoint: "api.%s" % [hostedZone.dnsBaseName],
-	authEndpoint: "auth.%s" % [hostedZone.dnsBaseName]
+} + if !std.objectHas(validatedSettings, 'dnsBaseName') then {} else {
+	dnsBaseName: validatedSettings.dnsBaseName,
+	wwwEndpoint: "%s" % [validatedSettings.dnsBaseName],
+	apiEndpoint: "api.%s" % [validatedSettings.dnsBaseName],
+	authEndpoint: "auth.%s" % [validatedSettings.dnsBaseName]
 };
 
 local accountDetails = {
 	primaryRegion: settings.primaryRegion,
 	families: gpu_instance_families,
-	regions: regions,
-	quotas: quotas
+	regions: validatedSettings.regions,
+	quotas: validatedSettings.quotas
 };
 
 local regionKeys = std.objectFields(settings.regions);
@@ -211,7 +214,7 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
-	'backend.tf.json': backend(settings),
+	'backend.tf.json': sonnetry.bootstrap('c6fc_npk'),
 	'cloudfront.tf.json': {
 		resource: cloudfront.resource(settings),
 		output: cloudfront.output
@@ -421,7 +424,30 @@ local regionKeys = std.objectFields(settings.regions);
 			resources: [
 				"${aws_cognito_user_pool.npk.arn}"
 			]
-		}]
+		},{
+            effect: "Allow",
+            actions: [
+            	"iam:CreateServiceLinkedRole"
+            ],
+            resources: [
+            	"arn:aws:iam::*:role/aws-service-role/spotfleet.amazonaws.com/AWSServiceRoleForEC2SpotFleet*"
+            ],
+            condition: {
+            	test: "StringLike",
+            	variable: "iam:AWSServiceName",
+
+            	values: ["spotfleet.amazonaws.com"]
+           }
+        },{
+            effect: "Allow",
+            actions: [
+                "iam:AttachRolePolicy",
+                "iam:PutRolePolicy"
+            ],
+            resources: [
+            	"arn:aws:iam::*:role/aws-service-role/spotfleet.amazonaws.com/AWSServiceRoleForEC2SpotFleet*"
+            ]
+        }]
 	}),
 	'lambda-delete_campaign.tf.json': lambda.lambda_function("delete_campaign", {
 		handler: "main.main",
@@ -714,7 +740,6 @@ local regionKeys = std.objectFields(settings.regions);
 		},
 		provider: [{
 			aws: {
-				profile:: settings.awsProfile,
 				region: settings.primaryRegion
 			}
 		}, {
@@ -722,10 +747,9 @@ local regionKeys = std.objectFields(settings.regions);
 		}] + [{
 			aws: {
 				alias: region,
-				profile:: settings.awsProfile,
 				region: region
 			}
-		} for region in providerRegions]
+		} for region in validatedSettings.providerRegions]
 	},
 	[if settings.useCustomDNS then 'route53-main.tf.json' else null]: {
 		resource: {
@@ -795,7 +819,7 @@ local regionKeys = std.objectFields(settings.regions);
 		},
 		output: {
 			s3_static_site_sync_command: {
-				value: "aws --profile %s s3 --region %s sync ${path.module}/../site-content/ s3://${aws_s3_bucket.static_site.id}" % [settings.awsProfile, settings.primaryRegion]
+				value: "aws s3 --region %s sync ${path.module}/../site-content/ s3://${aws_s3_bucket.static_site.id}" % [settings.primaryRegion]
 			}
 		}
 	},
@@ -886,11 +910,7 @@ local regionKeys = std.objectFields(settings.regions);
 
 				    provisioner: {
 				    	"local-exec": {
-				        	command: "aws s3 --profile " + settings.awsProfile + " sync s3://npk-dictionary-west-2-20181029005812750900000002 s3://${aws_s3_bucket.dictionary.id} --request-payer requester --source-region us-west-2 --region " + settings.primaryRegion,
-
-					        environment: {
-					            AWS_PROFILE: settings.awsProfile
-					        }
+				        	command: "aws s3 sync s3://npk-dictionary-west-2-20181029005812750900000002 s3://${aws_s3_bucket.dictionary.id} --request-payer requester --source-region us-west-2 --region " + settings.primaryRegion,
 					    }
 				    }
 				}
@@ -898,7 +918,7 @@ local regionKeys = std.objectFields(settings.regions);
 		},
 		output: {
 			aws_s3_sync_bucket_command: {
-				value: "aws s3 --profile " + settings.awsProfile + " sync s3://npk-dictionary-west-2-20181029005812750900000002 s3://${aws_s3_bucket.dictionary.id} --request-payer requester --source-region us-west-2 --region " + settings.primaryRegion
+				value: "aws s3 sync s3://npk-dictionary-west-2-20181029005812750900000002 s3://${aws_s3_bucket.dictionary.id} --request-payer requester --source-region us-west-2 --region " + settings.primaryRegion
 			}
 		}
 	},
@@ -906,7 +926,7 @@ local regionKeys = std.objectFields(settings.regions);
 		data: {
 			template_file: {
 				npk_config: {
-					template: "${file(\"${path.module}/templates/npk_config.tpl\")}",
+					template: "${file(\"%s/templates/npk_config.tpl\")}" % sonnetry.path(),
 
 					vars: {
 						aws_region: "${var.region}",
@@ -935,7 +955,7 @@ local regionKeys = std.objectFields(settings.regions);
 					} else {})
 				},
 				userdata_template: {
-					template: "${file(\"${path.module}/templates/userdata.tpl\")}",
+					template: "${file(\"%s/templates/userdata.tpl\")}" % sonnetry.path(),
 
 					vars: {
 						dictionaryBucket: "${aws_s3_bucket.dictionary.id}",
@@ -962,7 +982,7 @@ local regionKeys = std.objectFields(settings.regions);
 		data: {
 			template_file: {
 				upload_npkfile: {
-					template: "${file(\"${path.module}/templates/upload_npkfile.sh.tpl\")}",
+					template: "${file(\"%s/templates/upload_npkfile.sh.tpl\")}" % sonnetry.path(),
 
 					vars: {
 						dictionaryBucket: "${aws_s3_bucket.dictionary.id}",
@@ -970,7 +990,7 @@ local regionKeys = std.objectFields(settings.regions);
 					}
 				},
 				upload_npkcomponents: {
-					template: "${file(\"${path.module}/templates/upload_npkcomponents.sh.tpl\")}",
+					template: "${file(\"%s/templates/upload_npkcomponents.sh.tpl\")}" % sonnetry.path(),
 
 					vars: {
 						dictionaryBucket: "${aws_s3_bucket.dictionary.id}",
@@ -995,7 +1015,6 @@ local regionKeys = std.objectFields(settings.regions);
 	},
 	'variables.tf.json': {
 		variable: variables.variables(settings) + {
-			profile: { default: settings.awsProfile },
 	    	region: { default: settings.primaryRegion },
 	    	campaign_data_ttl: { default: settings.campaign_data_ttl },
 	    	campaign_max_price: { default: settings.campaign_max_price },
@@ -1006,6 +1025,6 @@ local regionKeys = std.objectFields(settings.regions);
 	['vpc-%s.tf.json' % region]: vpc.public_vpc("npk", region, "172.21.16.0/20", settings.regions[region], ['s3'])
 	for region in std.objectFields(settings.regions)
 } + {
-	['lambda_functions/%s/accountDetails.json' % name]: accountDetails
+	['../lambda_functions/%s/accountDetails.json' % name]: accountDetails
 	for name in ['create_campaign', 'delete_campaign', 'execute_campaign', 'spot_monitor']
 }

@@ -1,9 +1,11 @@
+local sonnetry = import 'sonnetry';
+
 local lambda_function(name, config, role_policy) = {
 	resource: {
 		aws_lambda_function: {
 			[name]: config + {
 				function_name: name,
-				filename: "./lambda_functions/zip_files/" + name + ".zip",
+				filename: "%s/lambda_functions/zip_files/%s.zip" % [sonnetry.path(), name],
 				source_code_hash: "${data.archive_file." + name + ".output_base64sha256}",
 				runtime: "nodejs14.x",
 				role: "${aws_iam_role.lambda-" + name + ".arn}",
@@ -14,7 +16,7 @@ local lambda_function(name, config, role_policy) = {
 			["npm_install-" + name]: {
 				provisioner: [{
 					"local-exec": {
-						command: "cd ${path.module}/lambda_functions/" + name + "/ && npm install",
+						command: "cd %s/lambda_functions/%s/ && npm install" % [sonnetry.path(), name],
 					}
 				}]
 			}
@@ -51,7 +53,7 @@ local lambda_function(name, config, role_policy) = {
 					"declare %s='%s'\nexport %s" % [key, config.environment.variables[key], key]
 					for key in std.objectFields(config.environment.variables)
 				]),
-				filename: "${path.module}/lambda_functions/" + name + "/ENVVARS",
+				filename: "%s/lambda_functions/%s/ENVVARS" % [sonnetry.path(), name],
 				file_permission: "0664"
 			}
 		}
@@ -63,8 +65,8 @@ local lambda_function(name, config, role_policy) = {
 					"null_resource.npm_install-" + name
 				] + if std.objectHas(config, 'depends_on') then config.depends_on else [],
 				type: "zip",
-				source_dir: "${path.module}/lambda_functions/" + name + "/",
-				output_path: "${path.module}/lambda_functions/zip_files/" + name + ".zip",
+				source_dir: "%s/lambda_functions/%s/" % [sonnetry.path(), name],
+				output_path: "%s/lambda_functions/zip_files/%s.zip" % [sonnetry.path(), name],
 			}
 		},
 		aws_iam_policy_document: {

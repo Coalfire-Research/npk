@@ -1,3 +1,4 @@
+local aws = import 'aws-sdk';
 local sonnetry = import 'sonnetry';
 
 local provider = import 'jsonnet/provider.libsonnet';
@@ -424,30 +425,7 @@ local regionKeys = std.objectFields(settings.regions);
 			resources: [
 				"${aws_cognito_user_pool.npk.arn}"
 			]
-		},{
-            effect: "Allow",
-            actions: [
-            	"iam:CreateServiceLinkedRole"
-            ],
-            resources: [
-            	"arn:aws:iam::*:role/aws-service-role/spotfleet.amazonaws.com/AWSServiceRoleForEC2SpotFleet*"
-            ],
-            condition: {
-            	test: "StringLike",
-            	variable: "iam:AWSServiceName",
-
-            	values: ["spotfleet.amazonaws.com"]
-           }
-        },{
-            effect: "Allow",
-            actions: [
-                "iam:AttachRolePolicy",
-                "iam:PutRolePolicy"
-            ],
-            resources: [
-            	"arn:aws:iam::*:role/aws-service-role/spotfleet.amazonaws.com/AWSServiceRoleForEC2SpotFleet*"
-            ]
-        }]
+		}]
 	}),
 	'lambda-delete_campaign.tf.json': lambda.lambda_function("delete_campaign", {
 		handler: "main.main",
@@ -566,7 +544,30 @@ local regionKeys = std.objectFields(settings.regions);
 			resources: [
 				"${aws_cognito_user_pool.npk.arn}"
 			]
-		}]
+		},{
+            effect: "Allow",
+            actions: [
+            	"iam:CreateServiceLinkedRole"
+            ],
+            resources: [
+            	"arn:aws:iam::*:role/aws-service-role/spotfleet.amazonaws.com/AWSServiceRoleForEC2SpotFleet*"
+            ],
+            condition: {
+            	test: "StringLike",
+            	variable: "iam:AWSServiceName",
+
+            	values: ["spotfleet.amazonaws.com"]
+           }
+        },{
+            effect: "Allow",
+            actions: [
+                "iam:AttachRolePolicy",
+                "iam:PutRolePolicy"
+            ],
+            resources: [
+            	"arn:aws:iam::*:role/aws-service-role/spotfleet.amazonaws.com/AWSServiceRoleForEC2SpotFleet*"
+            ]
+        }]
 	}),
 	'lambda-spot_interrupt_catcher.tf.json': lambda.lambda_function("spot_interrupt_catcher", {
 		handler: "main.main",
@@ -888,6 +889,15 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
+	[if validatedSettings.spotslr_exists == false then 'spot_slr.tf.json' else null]: {
+		resource: {
+			aws_iam_service_linked_role: {
+				spot: {
+					aws_service_name: "spot.amazonaws.com"
+				}
+			}
+		}
+	},
 	'sqs.tf.json': {
 		resource: {
 			aws_sqs_queue: {
@@ -973,7 +983,7 @@ local regionKeys = std.objectFields(settings.regions);
 				},
 				userdata_template: {
 					content: "${data.template_file.userdata_template.rendered}",
-					filename: "${path.module}/lambda_functions/execute_campaign/userdata.sh",
+					filename: "%s/lambda_functions/execute_campaign/userdata.sh" % sonnetry.path(),
 				}
 			}
 		}

@@ -177,6 +177,20 @@ async function generate() {
 	validatedSettings.regions = azs;
 
 	console.log("[+] Retrieved availability zones.");
+
+	const iam = new aws.IAM();
+
+	validatedSettings.spotslr_exists = true;
+
+	try {
+		await iam.getRole({
+			RoleName: "AWSServiceRoleForEC2Spot"
+		}).promise();
+	} catch (e) {
+		console.log(`[*] EC2 spot SLR is not present.`);
+		validatedSettings.spotslr_exists = false;
+	}
+
 	console.log("\n[*] All prerequisites finished. Generating infrastructure configurations.");
 
 	sonnetry.export('validatedSettings', validatedSettings);

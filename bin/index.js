@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require("fs");
+const yargs = require("yargs");
 const readline = require("readline");
 
 const { exec } = require("child_process");
@@ -12,7 +13,7 @@ const sonnetry = new Sonnet({
 	cleanBeforeRender: true
 });
 
-async function generate() {
+async function deploy(skipInit, autoApprove) {
 
 	console.log("***********************************************************");
 	console.log(" Hello friend! Thanks for using NPK!");
@@ -208,7 +209,7 @@ async function generate() {
 	console.log(`[+] Configurations updated successfully. Preparing to deploy.`);
 
 	try {
-		sonnetry.apply(true, true);
+		sonnetry.apply(skipInit, autoApprove);
 	} catch (e) {
 		console.trace(e);
 		console.log('\n[!] Failed to apply configuration.')
@@ -220,6 +221,106 @@ async function generate() {
 	return true;
 }
 
+async function configureInteractive() {
+
+	const aws = sonnetry.aws;
+	const inquirer = require('inquirer');
+
+	let settings = {};
+	if (fs.existsSync('npk-settings.json')) {
+		settings = JSON.parse(fs.readFileSync('npk-settings.json'));
+		console.log("[*] Loading existing settings.");
+	}
+
+	const ec2 = new aws.EC2();
+	let regions = await ec2.describeRegions().promise()
+
+	regions = regions.Regions
+		.filter(e => e.OptInStatus != "not-opted-in")
+		.map(e => e.RegionName)
+
+	const route53 = new aws.Route53();
+	let hostedZones = await route53.listHostedZones({
+		MaxItems: "10"
+	}).promise();
+
+	if (hostedZones.HostedZones.isTruncated) {
+		console.log("[!] You have too many Route53 Hosted Zones for interactive configurations. Sorry.");
+		return false
+	}
+
+	hostedZones = hostedZones.HostedZones.map(e => Object.create({
+		name: e.Name,
+		value: e.Id.split('/')[2]
+	}));
+	hostedZones.unshift(new inquirer.Separator());
+	hostedZones.unshift({
+		name: "- None -",
+		value: null
+	});
+
+	const questions = [{
+			type: 'list',
+			name: 'route53Zone',
+			message: 'Use custom domain?',
+			choices: hostedZones,
+			default: settings.route53Zone ?? "- None -"
+		}, {
+			type: 'list',
+			name: 'primaryRegion',
+			message: 'Which region do you plan to use most?',
+			choices: regions,
+			default: settings.primaryRegion ?? "us-west-2"
+		}, {
+			type: 'input',
+			name: 'adminEmail',
+			message: 'What is the admin user\'s email address?',
+			default: settings.adminEmail ?? ""
+		}, {
+			type: 'input',
+			name: 'criticalEventsSMS',
+			message: 'Enter an SMS-enabled phone number for critical events, including country code:',
+			default: settings.criticalEventsSMS ?? "+",
+			filter(value) {
+				if (value.match("^\d*$")) {
+					return "+" + value;
+				}
+
+				return value
+			}
+		}, {
+			type: 'input',
+			name: 'campaign_max_price',
+			message: 'Max campaign price in USD:',
+			default: 50,
+			filter(value) {
+				return value / 1;
+			}
+		}, {
+			type: 'confirm',
+			name: 'deploy',
+			message: 'NPK is configured. Deploy now?',
+			default: true
+		}];
+
+	// Remove the Route53 question if there are no zones.
+	if (hostedZones.length == 2) {
+		questions.shift();
+	}
+
+	const answers = await inquirer.prompt(questions);
+
+	const deployNow = answers.deploy;
+	delete answers.deploy;
+
+	fs.writeFileSync('npk-settings.json', JSON.stringify(Object.assign(settings, answers)));
+
+	if (!deployNow) {
+		console.log("[-] Exiting on user command. Use 'npm run deploy' to deploy");
+		process.exit(0);
+	}
+}
+
 function showHelpBanner() {
 	console.log("[!] Deployment failed. If you're having trouble, hop in Discord for help.");
 	console.log("--> Porchetta Industries Discord: https://discord.gg/k5PQnqSNDF");
@@ -228,6 +329,48 @@ function showHelpBanner() {
 }
 
 (async () => {
-	const success = await generate();
-	if (!success) showHelpBanner();
+
+	yargs
+		.usage("Syntax: $0 <command> [options]")
+		.command("*", "Invalid command", (yargs) => {
+			yargs
+		}, (argv) => {
+			console.log("[~] Invalid command.");
+		})
+		.command("deploy", "Deploys NPK", (yargs) => {
+			return yargs.option('interactive', {
+				alias: 'i',
+				type: 'boolean',
+				description: 'Configure NPK interactively before deployment.'
+			}).option('skipInit', {
+				alias: 's',
+				type: 'boolean',
+				description: 'Skip the Terraform Init phase. Useful for development.'
+			}).option('autoApprove', {
+				alias: 'y',
+				type: 'boolean',
+				description: 'Auto-approve Terraform changes. Useful for development.'
+			});
+		}, async (argv) => {
+
+			if (fs.existsSync('npk-settings')) {
+				const settings = JSON.parse(fs.readFileSync('npk-settings.json'));
+				if (!!settings.awsProfile && process.env.AWS_PROFILE != settings.awsProfile) {
+					process.env.AWS_PROFILE = settings.awsProfile;
+				}
+			}
+
+			await sonnetry.auth();
+
+			if (argv.interactive) {
+				await configureInteractive();
+			}
+
+			const success = await deploy(argv.skipInit, argv.autoApprove);
+			if (!success) showHelpBanner();
+
+		})
+		.showHelpOnFail(false)
+		.help("help")
+		.argv;
 })();

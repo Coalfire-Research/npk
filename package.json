@@ -2,9 +2,10 @@
   "name": "npk_community",
   "version": "2.6.0",
   "description": "NPK distributed hash cracking platform",
-  "main": "index.js",
+  "main": "bin/index.js",
   "scripts": {
-    "deploy": "node index.js"
+    "deploy": "node bin/index.js deploy",
+    "configure": "node bin/index.js deploy -i"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
     "@c6fc/sonnetry": "^2.0.3",
     "@jahed/terraform": "^0.15.5",
     "aws-sdk": "^2.1018.0",
-    "inquirer": "^8.2.0"
+    "inquirer": "^8.2.0",
+    "yargs": "^17.3.1"
   }
 }

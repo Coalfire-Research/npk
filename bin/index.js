@@ -181,15 +181,21 @@ async function deploy(skipInit, autoApprove) {
 
 	const iam = new aws.IAM();
 
-	validatedSettings.spotslr_exists = true;
-
 	try {
 		await iam.getRole({
 			RoleName: "AWSServiceRoleForEC2Spot"
 		}).promise();
 	} catch (e) {
-		console.log(`[*] EC2 spot SLR is not present.`);
-		validatedSettings.spotslr_exists = false;
+		console.log(`[*] EC2 spot SLR is not present. Creating...`);
+
+		try {
+			await iam.createServiceLinkedRole({
+				AWSServiceName: "spot.amazonaws.com"
+			}).promise();
+		} catch (e) {
+			console.trace(e);
+			console.log(`[!] Unable to create service linked role: ${e}`);
+		}
 	}
 
 	console.log("\n[*] All prerequisites finished. Generating infrastructure configurations.");

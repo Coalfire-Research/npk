@@ -889,15 +889,6 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
-	[if validatedSettings.spotslr_exists == false then 'spot_slr.tf.json' else null]: {
-		resource: {
-			aws_iam_service_linked_role: {
-				spot: {
-					aws_service_name: "spot.amazonaws.com"
-				}
-			}
-		}
-	},
 	'sqs.tf.json': {
 		resource: {
 			aws_sqs_queue: {

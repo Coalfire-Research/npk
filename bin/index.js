@@ -15,16 +15,6 @@ const sonnetry = new Sonnet({
 
 async function deploy(skipInit, autoApprove) {
 
-	console.log("***********************************************************");
-	console.log(" Hello friend! Thanks for using NPK!");
-	console.log("");
-	console.log(" Need help, want to contribute, or want to brag about a win?");
-	console.log(" Join us on Discord! [ https://discord.gg/k5PQnqSNDF ]");
-	console.log("");
-	console.log(" Sincerely, @c6fc");
-	console.log("***********************************************************");
-	console.log("");
-
 	let settings;
 
 	try {
@@ -327,6 +317,18 @@ async function configureInteractive() {
 	}
 }
 
+function showHelloBanner() {
+	console.log("***********************************************************");
+	console.log(" Hello friend! Thanks for using NPK!");
+	console.log("");
+	console.log(" Need help, want to contribute, or want to brag about a win?");
+	console.log(" Join us on Discord! [ https://discord.gg/k5PQnqSNDF ]");
+	console.log("");
+	console.log(" Sincerely, @c6fc");
+	console.log("***********************************************************");
+	console.log("");
+}
+
 function showHelpBanner() {
 	console.log("[!] Deployment failed. If you're having trouble, hop in Discord for help.");
 	console.log("--> Porchetta Industries Discord: https://discord.gg/k5PQnqSNDF");
@@ -359,6 +361,8 @@ function showHelpBanner() {
 			});
 		}, async (argv) => {
 
+			showHelloBanner();
+
 			if (fs.existsSync('npk-settings')) {
 				const settings = JSON.parse(fs.readFileSync('npk-settings.json'));
 				if (!!settings.awsProfile && process.env.AWS_PROFILE != settings.awsProfile) {
@@ -368,7 +372,7 @@ function showHelpBanner() {
 
 			await sonnetry.auth();
 
-			if (argv.interactive) {
+			if (argv.interactive || !fs.existsSync('./npk-settings.json')) {
 				await configureInteractive();
 			}
 

@@ -13,9 +13,11 @@ const sonnetry = new Sonnet({
 	cleanBeforeRender: true
 });
 
+
 async function deploy(skipInit, autoApprove) {
 
 	let settings;
+	const aws = sonnetry.aws;
 
 	try {
 		settings = JSON.parse(fs.readFileSync('./npk-settings.json'));
@@ -24,13 +26,6 @@ async function deploy(skipInit, autoApprove) {
 		console.log("\n[!] Unable to open npk-settings.json. Does it exist?");
 		return false;
 	}
-
-	if (!!settings.awsProfile) {
-		process.env.AWS_PROFILE = settings.awsProfile
-	}
-
-	await sonnetry.auth();
-	const aws = sonnetry.aws;
 
 	const validatedSettings = {};
 
@@ -82,7 +77,7 @@ async function deploy(skipInit, autoApprove) {
 	let regions;
 
 	try {
-		regions = await ec2.describeRegions().promise()
+		regions = await ec2.describeRegions().promise();
 
 		regions = regions.Regions
 			.filter(r => ["opt-in-not-required", "opted-in"].indexOf(r.OptInStatus) > -1)
@@ -363,10 +358,49 @@ function showHelpBanner() {
 
 			showHelloBanner();
 
-			if (fs.existsSync('npk-settings')) {
-				const settings = JSON.parse(fs.readFileSync('npk-settings.json'));
+			if (fs.existsSync('./npk-settings.json')) {
+				const settings = JSON.parse(fs.readFileSync('./npk-settings.json'));
 				if (!!settings.awsProfile && process.env.AWS_PROFILE != settings.awsProfile) {
 					process.env.AWS_PROFILE = settings.awsProfile;
+					console.log("[+] You were about to deploy to the wrong profile. I've corrected it for you.");
+				}
+			}
+
+			await sonnetry.auth();
+
+			if (argv.interactive || !fs.existsSync('./npk-settings.json')) {
+				await configureInteractive();
+			}
+
+			const success = await deploy(argv.skipInit, argv.autoApprove);
+			if (!success) showHelpBanner();
+
+		})
+		.command("destroy", "Removes NPK and destroys all resources", (yargs) => {
+			return yargs.option('interactive', {
+				alias: 'i',
+				type: 'boolean',
+				description: 'Configure NPK interactively before deployment.'
+			}).option('skipInit', {
+				alias: 's',
+				type: 'boolean',
+				description: 'Skip the Terraform Init phase. Useful for development.'
+			}).option('autoApprove', {
+				alias: 'y',
+				type: 'boolean',
+				description: 'Auto-approve Terraform changes. Useful for development.'
+			});
+		}, async (argv) => {
+
+			showHelloBanner();
+
+			if (fs.existsSync('./npk-settings.json')) {
+				const settings = JSON.parse(fs.readFileSync('./npk-settings.json'));
+				if (!!settings.awsProfile) {
+					process.env.AWS_PROFILE = settings.awsProfile;
+					delete process.env.AWS_ACCESS_KEY_ID;
+					delete process.env.AWS_SECRET_ACCESS_KEY;
+					delete process.env.AWS_SESSION_TOKEN;
 				}
 			}
 

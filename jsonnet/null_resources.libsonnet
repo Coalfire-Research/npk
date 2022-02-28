@@ -5,7 +5,7 @@
 				"s3-sync-static-content": {
 					"provisioner": [{
 						"local-exec": {
-							"command": "aws --profile %s --region %s s3 sync ${path.module}/../site-content/ s3://${aws_s3_bucket.static_site.id}" % [settings.awsProfile, settings.primaryRegion]
+							"command": "aws --region %s s3 sync ${path.module}/../site-content/ s3://${aws_s3_bucket.static_site.id}" % [settings.primaryRegion]
 						}
 					}],
 
@@ -18,7 +18,7 @@
 				"cognito-add-to-admin-group": {
 					"provisioner": [{
 						"local-exec": {
-							"command": "aws --profile %s --region %s cognito-idp admin-add-user-to-group --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --group npk-admins" % [settings.awsProfile, settings.primaryRegion]
+							"command": "aws --region %s cognito-idp admin-add-user-to-group --user-pool-id ${aws_cognito_user_pool.npk.id} --username ${random_string.admin_password.keepers.admin_email} --group npk-admins" % [settings.primaryRegion]
 						}
 					}],
 

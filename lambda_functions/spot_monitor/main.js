@@ -283,6 +283,7 @@ exports.main = async function(event, context, callback) {
 		Object.keys(spotFleets).forEach((fleetId) => {
 			const fleet = spotFleets[fleetId];
 
+			let badInstance = false;
 			Object.keys(fleet.instances).forEach((instanceId) => {
 				const instance = fleet.instances[instanceId];
 
@@ -293,6 +294,10 @@ exports.main = async function(event, context, callback) {
 
 				let accCost = 0;
 				let accSeconds = 0;
+
+				if (instance.history.startTime == 0) {
+					badInstance = true;
+				}
 
 				let duration = instance.history.endTime - instance.history.startTime;
 
@@ -325,6 +330,12 @@ exports.main = async function(event, context, callback) {
 				instance.price = accCost;
 				fleet.price += accCost;
 			});
+
+			// Skip the fleet if an instance has partially truncated history.
+			if (badInstance) {
+				console.log(`[!] SFR ${fleetId} has incomplete instance history. Skipping update.`);
+				return false;
+			}
 
 			const tags = {};
 			fleet.SpotFleetRequestConfig.LaunchSpecifications[0].TagSpecifications.forEach((tagspec) => {

@@ -355,6 +355,50 @@ local regionKeys = std.objectFields(settings.regions);
 			}
 		}
 	},
+	'lambda-compression_pipe.tf.json': lambda.lambda_function("compression_pipe", {
+		handler: "main.main",
+		timeout: 300,
+		memory_size: 512,
+
+		environment:: {
+			variables: {}
+		},
+	}, {
+		statement: [{
+			sid: "s3ToProcess",
+			actions: [
+				"s3:GetObject",
+				"s3:DeleteObject"
+			],
+			resources: [
+				"arn:aws:s3:::${aws_s3_bucket.dictionary.id}/to_process/*"
+			]
+		}, {
+			sid: "s3PutFiles",
+			actions: [
+				"s3:PutObject",
+				"s3:GetObject",
+				"s3:DeleteObject"
+			],
+			resources: [
+				"arn:aws:s3:::${aws_s3_bucket.dictionary.id}/wordlist/*",
+				"arn:aws:s3:::${aws_s3_bucket.dictionary.id}/rules/*",
+			]
+		}]
+	}),
+	'lambda-compression_pipe-permission.tf.json': {
+		resource: {
+			aws_lambda_permission: {
+				uploads: {
+					statement_id: "AllowBucketEvents",
+					action: "lambda:InvokeFunction",
+					function_name: "${aws_lambda_function.compression_pipe.id}",
+					principal: "s3.amazonaws.com",
+					source_arn: "${aws_s3_bucket.dictionary.arn}"
+				}
+			}
+		}
+	},
 	'lambda-create_campaign.tf.json': lambda.lambda_function("create_campaign", {
 		handler: "main.main",
 		timeout: 20,
@@ -844,6 +888,24 @@ local regionKeys = std.objectFields(settings.regions);
 						Project: "NPK"
 					}
 				}
+			},
+			aws_s3_bucket_notification: {
+				uploads: {
+					bucket: "${aws_s3_bucket.dictionary.id}",
+
+					lambda_function: {
+						lambda_function_arn: "${aws_lambda_function.compression_pipe.arn}",
+						events: ["s3:ObjectCreated:*"],
+						filter_prefix: "to_process/"
+					},
+
+					depends_on: ["aws_lambda_permission.uploads"]
+				}
+			}
+		},
+		output: {
+			wordlist_upload_cmd: {
+				value: "aws s3 cp <file> s3://${aws_s3_bucket.dictionary.id}/to_process/<type>/"
 			}
 		}
 	},

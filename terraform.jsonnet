@@ -357,8 +357,8 @@ local regionKeys = std.objectFields(settings.regions);
 	},
 	'lambda-compression_pipe.tf.json': lambda.lambda_function("compression_pipe", {
 		handler: "main.main",
-		timeout: 300,
-		memory_size: 512,
+		timeout: 900,
+		memory_size: 2048,
 
 		environment:: {
 			variables: {}
@@ -878,7 +878,7 @@ local regionKeys = std.objectFields(settings.regions);
 
 					cors_rule: {
 					    allowed_headers: ["*"],
-					    allowed_methods: ["GET", "HEAD"],
+					    allowed_methods: ["GET", "HEAD", "DELETE"],
 					    allowed_origins: ["*"],
 					    expose_headers : ["x-amz-meta-lines", "x-amz-meta-size", "x-amz-meta-type", "content-length"],
 					    max_age_seconds: 3000

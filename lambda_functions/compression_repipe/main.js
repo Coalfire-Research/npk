@@ -56,7 +56,7 @@ exports.main = async function(event, context, callback) {
 			Bucket: bucket,
 			Key: key
 		}).promise();
-
+		
 		return callback(`[!] '${type}' is not a valid type.`);
 	}
 
@@ -72,6 +72,7 @@ exports.main = async function(event, context, callback) {
 		// all good.
 	}
 
+	// Construct the pipeline
 	const raw = s3.getObject({
 		Bucket: bucket,
 		Key: key
@@ -93,87 +94,46 @@ exports.main = async function(event, context, callback) {
 		}
 	});
 
-	console.log(`[*] Found extension [${extension}]`);
+	const gunzip = zlib.createGunzip();
+	const devnull = fs.createWriteStream('/dev/null');
 
-	if (extension == "gz") {
-		console.log(`[*] Treating as gzip`);
+	await pipe(raw, gunzip, lineCounter, devnull).catch(e => {
+		return callback(e);
+	});
 
-		const gunzip = zlib.createGunzip();
-		const devnull = fs.createWriteStream('/dev/null');
+	await s3Promise;
 
-		await pipe(raw, gunzip, lineCounter, devnull).catch(async e => {
-			await s3.deleteObject({
-				Bucket: bucket,
-				Key: key
-			}).promise();
-			
-			return callback(e);
-		});
+	const lapsed = (Date.now() - time) / 1000;
+	console.log(`[*] Stream zipped ${Math.round(size / 1024)}KB in ${lapsed} seconds; ${Math.round(size / lapsed / 1024)}KB/s`);
 
-		const lapsed = (Date.now() - time) / 1000;
-		console.log(`[*] Stream unzipped ${Math.round(size / 1024)}KB in ${lapsed} seconds; ${Math.round(size / lapsed / 1024)}KB/s`);
-
-		console.log(lapsed, size, size / lapsed, lines);
-
-		await s3.copyObject({
-			Bucket: bucket,
-			CopySource: `/${bucket}/${key}`,
-			Key: newKey,
-			Metadata: { 
-				type,
-				lines: lines.toString(),
-				size: size.toString()
-			},
-			MetadataDirective: 'REPLACE'
-		}).promise();
-
-	} else {
-
-		const gzip = zlib.createGzip();
-		const { writeStream, s3Promise } = uploadStream(bucket, newKey, s3);
-
-		await pipe(raw, lineCounter, gzip, writeStream).catch(async e => {
-			await s3.deleteObject({
-				Bucket: bucket,
-				Key: key
-			}).promise();
-
-			return callback(e);
-		});
-
-		await s3Promise;
-
-		const lapsed = (Date.now() - time) / 1000;
-		console.log(`[*] Stream zipped ${Math.round(size / 1024)}KB in ${lapsed} seconds; ${Math.round(size / lapsed / 1024)}KB/s`);
-
-		console.log(lapsed, size, size / lapsed, lines);
-
-		await s3.copyObject({
-			Bucket: bucket,
-			CopySource: `/${bucket}/${newKey}`,
-			Key: newKey,
-			Metadata: { 
-				type,
-				lines: lines.toString(),
-				size: size.toString()
-			},
-			MetadataDirective: 'REPLACE'
-		}).promise();
-
-		if (size == 0 || lines == 0) {
-			await s3.deleteObject({
-				Bucket: bucket,
-				Key: newKey
-			}).promise();
-
-			return callback(`[!] File has no linebreaks or a length of 0. Removing it.`);
-		}
-	}
+	console.log(lapsed, size, size / lapsed, lines);
 
 	await s3.deleteObject({
 		Bucket: bucket,
 		Key: key
 	}).promise();
+
+	if (size == 0 || lines == 0) {
+		await s3.deleteObject({
+			Bucket: bucket,
+			Key: newKey
+		}).promise();
+
+		return callback(`[!] File has no linebreaks or a length of 0. Removing it.`);
+	}
+
+	await s3.copyObject({
+		Bucket: bucket,
+		CopySource: `/${bucket}/${newKey}`,
+		Key: newKey,
+		Metadata: { 
+			type,
+			lines: lines.toString(),
+			size: size.toString()
+		},
+		MetadataDirective: 'REPLACE'
+	}).promise();
+
 
 	const used = process.memoryUsage().heapUsed / 1024 / 1024;
 	console.log(`The script uses approximately ${Math.round(used * 100) / 100} MB`);

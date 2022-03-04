@@ -1,0 +1,188 @@
+<div class="clearfix"></div>
+	
+  <link href="assets/plugins/jquery-multi-select/multi-select.css" rel="stylesheet" type="text/css">
+  <link href="assets/plugins/dropzone/css/dropzone.css" rel="stylesheet" type="text/css">
+  <link href="assets/plugins/switchery/css/switchery.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css?family=Nanum+Gothic+Coding" rel="stylesheet">
+  <link href="assets/css/ion.rangeSlider.css" rel="stylesheet" />
+  <link href="assets/css/ion.rangeSlider.skinNice.css" rel="stylesheet" />
+
+<div class="content-wrapper">
+  <div class="container-fluid">
+    <div class="row container">
+      <div class="col-lg-12">
+        <div class="card bg-transparent shadow-none border border-secondary-light">
+          <div class="card-header bg-transparent text-white border-secondary-light">
+            File Management
+            <div class="card-action">
+            </div>
+          </div>
+          <div class="card-body text-center">
+             
+            <!-- Start campaign form -->
+            <form>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="card border border-white shadow-none">
+                    <div class="card-header bg-dark text-white">Directory Listing</div>
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <h5 class="card-text text-dark" ng-show="!files_loading && objLength(pathTree) == 0">
+                            You have no files
+                          </h5>
+                          <div class="form-group" ng-hide="files_loading || objLength(pathTree) == 0">
+                            <h5>Click files to view contents</h5>
+                            <div class="container" ng-repeat="(x, y) in { wordlist: pathTree['wordlist'], rules: pathTree['rules'], to_process: pathTree['to_process']}">
+                              <div class="text-left" ng-if="typeOf(y) == 'object'" style="border-bottom: 1px solid black;">
+                                <i class="fa fa-folder"></i>
+                                {{ x }}
+                                <div ng-include="'subdirectory.html'"></div>
+                              </div>
+                              <div class="d-flex" ng-if="typeOf(y) == 'string'">
+                                <h6>
+                                  <a href="{{ signedUrlOf(y) }}" target="_blank">
+                                    <i class="fa fa-file"></i>
+                                    {{ x }}
+                                  </a>
+                                </h6>
+                                <div class="text-right" style="position: absolute; right: 30px;">
+                                  <small class="text-right" style="margin-right: 35px;">
+                                      {{ files[y].Size | number }} Bytes
+                                  </small>
+                                  <small class="text-right" style="width: 260px;">
+                                      {{ files[y].LastModified.toGMTString() }}
+                                  </small>
+                                  <btn ng-click="deleteS3Item(y)" class="badge badge-danger text-white" style="top: -2px; cursor: pointer;">
+                                    <i class="fa fa-trash"></i>
+                                    Delete
+                                  </btn>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="bg-dark text-center" ng-show="files_loading" style="padding: 25px;">
+                            <img height="50px" width="50px" src="assets/images/loading.gif">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+
+            <!-- Start campaign form -->
+            <div class="row">
+              <div class="col-lg-12">
+                <div class="card border border-white shadow-none">
+                  <div class="card-header bg-dark text-white">Wordlist/Rules Upload</div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-lg-12">
+                        <div class="mb-3" ng-hide="large_file_uploading">
+
+                          <p>
+                            Select the type of file to upload:
+                          </p>
+
+                          <div class="form-check form-check-inline pr-2">
+                            <input class="form-check-input" type="radio" id="typewordlist" value="wordlist" ng-model="type" ng-change="generatePresignedPost()">
+                            <label class="form-check-label text-dark" for="typewordlist"><strong>Wordlist</strong></label>
+                          </div>
+
+                          <div class="form-check form-check-inline pl-2">
+                            <input class="form-check-input" type="radio" id="typerules" value="rules" ng-model="type" ng-change="generatePresignedPost()">
+                            <label class="form-check-label text-dark" for="typerules"><strong>Rules</strong></label>
+                          </div>
+
+                          <hr>
+
+                          <form id="largeFile" action="" method="POST" ng-submit="largeFileSubmit()" enctype="multipart/form-data">
+                            <div id="s3HiddenElems">
+                            </div>
+                            
+                            <div ng-show="!!type">
+                              <input class="pb-3" id="largeFileInput" name="file" type="file" onchange="angular.element(this).scope().generatePresignedPost()">
+                              <input type="submit">
+                              <hr>
+                            </div>
+                          </form>
+
+                          <p>
+                            Files must be plain-text or GZipped. 5GB maximum file size.
+                            <br />
+                            GZipped files are supported with a '.gz' extension only.
+                          </p>
+
+                        </div>
+                        <div class="bg-dark text-center" ng-show="large_file_uploading" style="padding: 25px;">
+                          <img height="50px" width="50px" src="assets/images/loading.gif">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- End large file upload form -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/ng-template" id="subdirectory.html">
+  <div style="padding-left: 15px; border-left: 1px solid #999;" class="justify-content-between" ng-repeat="(x, y) in y">
+    <div class="text-left" ng-if="typeOf(y) == 'object'" style="border-bottom: 1px solid black;">
+      <i class="fa fa-folder"></i>
+      {{ x }}
+        <div ng-include="'subdirectory.html'"></div>
+    </div>
+    <div class="d-flex" ng-if="typeOf(y) == 'string'">
+      <h6>
+        <a href="{{ signedUrlOf(y) }}" target="_blank">
+          <i class="fa fa-file"></i>
+          {{ x }}
+        </a>
+      </h6>
+      <div class="text-right" style="position: absolute; right: 30px;">
+        <small class="text-right" style="margin-right: 35px;">
+            {{ files[y].Size | number }} Bytes
+        </small>
+        <small class="text-right" style="width: 260px; margin-right: 20px;">
+            {{ files[y].LastModified.toGMTString() }}
+        </small>
+        <btn ng-hide="y.indexOf('to_process/') == 0" ng-click="deleteS3Item(y)" class="badge badge-danger text-white" style="top: -2px; cursor: pointer;">
+          <i class="fa fa-trash"></i>
+          Delete
+        </btn>
+        <img ng-show="y.indexOf('to_process/') == 0" height="12px" width="60px" src="assets/images/squares.gif" alt="File is being processed.">
+      </div>
+    </div>
+  </div>
+</script>
+
+<a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+  <!--End Back To Top Button-->
+
+<script src="assets/plugins/jquery-multi-select/jquery.multi-select.js"></script>
+<script src="assets/plugins/dropzone/js/dropzone.js"></script>
+<script type="text/javascript">
+  Dropzone.autoDiscover = false;
+</script>
+
+<!-- Range Slider -->
+<script src="assets/js/ion.rangeSlider.min.js"></script>
+
+<!-- Switchery Js-->
+<script src="assets/plugins/switchery/js/switchery.min.js"></script>
+<script>
+  // var elems = Array.prototype.slice.call(document.querySelectorAll('.js-switch'));
+  window.switchers = {};
+  $('.js-switch').each(function() {
+    var e = $(this);
+    window.switchers[e[0].id] = new Switchery(e[0], $(this).data());
+  });
+</script>

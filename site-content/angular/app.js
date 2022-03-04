@@ -263,6 +263,13 @@ angular
 	   			return cognito.routeRequireAdmin();
 	   		}]
 	   	})
+	   	.when('/dictionaries', {
+	   		templateUrl: "views/dictionary-management.html",
+	   		controller: "dmCtrl",
+	   		resolveRedirectTo: ['cognito', function(cognito) {
+	   			return cognito.routeRequireAdmin();
+	   		}]
+	   	})
 
 	   	/*
 	   	.when('/:realm/:name', {

@@ -14,7 +14,7 @@
 
 			"item": '{"userid": {"S": "admin"},"keyid": {"S": "setting:data_ttl"},"value": {"N": "${var.campaign_data_ttl}"}}'
 		},
-		"admin_favorites": {
+		"admin_favorites":: {
 			"table_name": "${aws_dynamodb_table.settings.name}",
 			"hash_key": "userid",
 			"range_key": "keyid",

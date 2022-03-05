@@ -304,7 +304,7 @@ async function configureInteractive() {
 	const deployNow = answers.deploy;
 	delete answers.deploy;
 
-	fs.writeFileSync('npk-settings.json', JSON.stringify(Object.assign(settings, answers)));
+	fs.writeFileSync('npk-settings.json', JSON.stringify(Object.assign(settings, answers), null, '\t'));
 
 	if (!deployNow) {
 		console.log("[-] Exiting on user command. Use 'npm run deploy' to deploy");

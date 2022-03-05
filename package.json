@@ -5,7 +5,9 @@
   "main": "bin/index.js",
   "scripts": {
     "deploy": "node bin/index.js deploy",
-    "configure": "node bin/index.js deploy -i"
+    "configure": "node bin/index.js deploy -i",
+    "update": "node bin/index.js deploy",
+    "destroy": "cd render-npk; npx terraform destroy"
   },
   "repository": {
     "type": "git",

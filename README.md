@@ -2,7 +2,7 @@
 
 NPK is a distributed hash-cracking platform built entirely of serverless components in AWS including Cognito, DynamoDB, and S3. It was designed for easy deployment and the intuitive UI brings high-power hash-cracking to everyone.
 
-![Image](/readme-content/dashboard-active.png)
+![dashboard_progress](https://user-images.githubusercontent.com/143415/156901812-26b7d6fb-e272-492c-a522-d2098b38c5f5.png)
 
 'NPK' is an initialism for the three primary atomic elements in fertilizer (Nitrogen, Phosphorus, and Potassium). Add it to your hashes to increase your cred yield!
 
@@ -14,9 +14,11 @@ Let's face it - even the beastliest cracking rig spends a lot of time at idle. Y
 
 ### 1. Super easy install
 
-Paste a one-liner into AWS CloudShell. Done.
+Paste a one-liner into AWS CloudShell. Pretty easy.
 
-![cloudshell](https://user-images.githubusercontent.com/143415/156900982-9430a21f-8b87-4aa5-bbf7-10aacc4c7c0c.png)
+![cloudshell_oneliner](https://user-images.githubusercontent.com/143415/156902079-670f7386-ce60-4e9f-8ef0-2429eb906261.png)
+
+There are also [Step-by-step instructions](https://github.com/c6fc/npk/wiki/Step-by-step-Installation) if you want them.
 
 ### 2. Intuitive campaign builder
 
@@ -38,7 +40,7 @@ GPU instances are expensive. Runaway GPU instances are EXTREMELY expensive. NPK 
 
 NPK supports multiple users, with strict separation of data, campaigns, and results between each user. It can optionally integrate with SAML-based federated identity providers to enable large teams to use NPK with minimal effort.
 
-![Image](/readme-content/userManagement.png)
+![user_administration](https://user-images.githubusercontent.com/143415/156901873-6c89bb50-5268-4382-aebd-e45ee5ff2f9f.png)
 
 ### 6. Data lifecycle management
 

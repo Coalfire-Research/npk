@@ -878,9 +878,9 @@ local regionKeys = std.objectFields(settings.regions);
 
 					cors_rule: {
 					    allowed_headers: ["*"],
-					    allowed_methods: ["GET", "HEAD", "DELETE"],
+					    allowed_methods: ["GET", "PUT", "POST", "HEAD", "DELETE"],
 					    allowed_origins: ["*"],
-					    expose_headers : ["x-amz-meta-lines", "x-amz-meta-size", "x-amz-meta-type", "content-length"],
+					    expose_headers : ["x-amz-meta-lines", "x-amz-meta-size", "x-amz-meta-type", "content-length", "ETag"],
 					    max_age_seconds: 3000
 					},
 

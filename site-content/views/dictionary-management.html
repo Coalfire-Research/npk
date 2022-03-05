@@ -72,60 +72,72 @@
               </div>
             </form>
 
-            <!-- Start campaign form -->
             <div class="row">
-              <div class="col-lg-12">
-                <div class="card border border-white shadow-none">
-                  <div class="card-header bg-dark text-white">Wordlist/Rules Upload</div>
-                  <div class="card-body">
-                    <div class="row">
-                      <div class="col-lg-12">
-                        <div class="mb-3" ng-hide="large_file_uploading">
-
-                          <p>
-                            Select the type of file to upload:
-                          </p>
-
-                          <div class="form-check form-check-inline pr-2">
-                            <input class="form-check-input" type="radio" id="typewordlist" value="wordlist" ng-model="type" ng-change="generatePresignedPost()">
-                            <label class="form-check-label text-dark" for="typewordlist"><strong>Wordlist</strong></label>
+                <div class="col-lg-12">
+                  <div class="card border border-white shadow-none">
+                    <div class="card-header bg-dark text-white">Upload Dictionaries</div>
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-lg-6">
+                          <div id="wordlistupload">
+                            <input type="file" name="wordlistfile" onchange="angular.element(this).scope().uploadFile('wordlist')" id="wordlistfile" hidden="true">
+                            <label for="wordlistfile" ng-show="upload_ready">
+                              <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1">
+                                <i class="fa fa-upload"></i>
+                                <span>Upload Wordlist</span>
+                              </div>
+                            </label>
+                          
+                            <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1" ng-show="uploading_hashes" style="width: 60%; ">
+                              <div class="progress mt-3" style="margin-top: 0px !important;">
+                                <div class="progress-bar bg-secondary" style="width:{{ uploadProgress }}%"></div>
+                              </div>
+                            </div>
+                            <div class="btn btn-lg btn-outline-success waves-effect waves-light m-1" ng-show="upload_finished">
+                              <i class="fa fa-check"></i>
+                              <span>Uploaded Successfully!</span>
+                            </div>
                           </div>
-
-                          <div class="form-check form-check-inline pl-2">
-                            <input class="form-check-input" type="radio" id="typerules" value="rules" ng-model="type" ng-change="generatePresignedPost()">
-                            <label class="form-check-label text-dark" for="typerules"><strong>Rules</strong></label>
+                        </div>
+                        <div class="col-lg-6">
+                          <div id="rulesupload">
+                            <input type="file" name="rulesfile" onchange="angular.element(this).scope().uploadFile('rules')" id="rulesfile" hidden="true">
+                            <label for="rulesfile" ng-show="upload_ready">
+                              <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1">
+                                <i class="fa fa-upload"></i>
+                                <span>Upload Rules</span>
+                              </div>
+                            </label>
+                          
+                            <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1" ng-show="uploading_hashes" style="width: 60%; ">
+                              <div class="progress mt-3" style="margin-top: 0px !important;">
+                                <div class="progress-bar bg-secondary" style="width:{{ uploadProgress }}%"></div>
+                              </div>
+                            </div>
+                            <div class="btn btn-lg btn-outline-success waves-effect waves-light m-1" ng-show="upload_finished">
+                              <i class="fa fa-check"></i>
+                              <span>Uploaded Successfully!</span>
+                            </div>
                           </div>
-
+                        </div>
+                        <div class="col-lg-12">
                           <hr>
 
-                          <form id="largeFile" action="" method="POST" ng-submit="largeFileSubmit()" enctype="multipart/form-data">
-                            <div id="s3HiddenElems">
-                            </div>
-                            
-                            <div ng-show="!!type">
-                              <input class="pb-3" id="largeFileInput" name="file" type="file" onchange="angular.element(this).scope().generatePresignedPost()">
-                              <input type="submit">
-                              <hr>
-                            </div>
-                          </form>
-
                           <p>
-                            Files must be plain-text or GZipped. 5GB maximum file size.
-                            <br />
-                            GZipped files are supported with a '.gz' extension only.
+                            <small>
+                              Files must be plain-text or Gzipped.<br />
+                              Gzipped files must use '.gz' file extension. Tarballs are not supported.<br />
+                              Max plain-text size: <b>~7.5 GiB</b>
+                              Max Gzipped size: <b>~51 GiB</b>
+                            </small>
                           </p>
-
-                        </div>
-                        <div class="bg-dark text-center" ng-show="large_file_uploading" style="padding: 25px;">
-                          <img height="50px" width="50px" src="assets/images/loading.gif">
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <!-- End large file upload form -->
+
           </div>
         </div>
       </div>

@@ -684,7 +684,7 @@ angular
 
     $scope.upload_ready = true;
     $scope.uploading_hashes = false;
-    $scope.uploadProgress = 30;
+    $scope.uploadProgress = 0;
     $scope.upload_finished = false;
 
     $scope.familySortOrder = 'effectiveness';
@@ -1247,7 +1247,6 @@ angular
     $scope.quotas = QUOTAS;
 
     $scope.uploadHashFile = function() {
-      var reader = new FileReader();
       var file = $('#hashfile')[0].files[0];
 
       if (!file) {
@@ -1258,31 +1257,28 @@ angular
       $scope.uploading_hashes = true;
       $scope.$digest();
 
-      reader.onloadend = function() {
-        var uploader = new AWS.S3.ManagedUpload({
-          params: {Bucket: USERDATA_BUCKET.name, Key: AWS.config.credentials.identityId + "/uploads/" + file.name, Body: reader.result, ContentType: "text/plain"}
-        })
-        .on('httpUploadProgress', function(evt) {
-          $scope.uploadProgress = Math.floor(evt.loaded / evt.total * 100);
-          $scope.$digest();
-        })
-        .send(function(err, result) {
-          if (err) {
-            console.log("Upload failed. " + err);
-            return false;
-          }
+      $('#textuploadbtn').hide();
+      var uploader = new AWS.S3.ManagedUpload({
+        params: {Bucket: USERDATA_BUCKET.name, Key: AWS.config.credentials.identityId + "/uploads/" + file.name, Body: file.slice(0, file.length), ContentType: "text/plain"}
+      })
+      .on('httpUploadProgress', function(evt) {
+        $scope.uploadProgress = Math.floor(evt.loaded / file.size * 100);
+        $scope.$digest();
+      })
+      .send(function(err, result) {
+        if (err) {
+          console.log("Upload failed. " + err);
+          return false;
+        }
 
-          console.log("Success");
-          $scope.uploading_hashes = false;
-          $scope.upload_finished = true;
-          $scope.uploadedFile = file.name;
-          $scope.$digest();
+        console.log("Success");
+        $scope.uploading_hashes = false;
+        $scope.upload_finished = true;
+        $scope.uploadedFile = file.name;
+        $scope.$digest();
 
-          $scope.getHashFiles();
-        });
-      };
-
-      reader.readAsArrayBuffer(file);
+        $scope.getHashFiles();
+      });
     };
 
     $scope.uploadHashText = function() {
@@ -1298,6 +1294,7 @@ angular
 
       $scope.upload_ready = false;
       $scope.uploading_hashes = true;
+      $('#fileuploadbtn').hide();
 
       var uploader = new AWS.S3.ManagedUpload({
         params: {Bucket: USERDATA_BUCKET.name, Key: AWS.config.credentials.identityId + "/uploads/" + filename, Body: body, ContentType: "text/plain"}
@@ -2434,6 +2431,54 @@ angular
         console.log(data);
       });
     }
+
+    $scope.upload_ready = true;
+    $scope.uploading_hashes = false;
+    $scope.uploadProgress = 0;
+    $scope.upload_finished = false;
+
+    $scope.uploadFile = function(type) {
+      var reader = new FileReader();
+      var file = $(`#${type}file`)[0].files[0];
+
+      if (!file) {
+        return false;
+      }
+
+      $scope.upload_ready = false;
+      $scope.uploading_hashes = true;
+      $scope.$digest();
+
+      const btnToHide = (type == "wordlist") ? "#rulesupload" : "#wordlistupload";
+      $(btnToHide).hide();
+
+      var uploader = new AWS.S3.ManagedUpload({
+        params: {Bucket: DICTIONARY_BUCKET.name, Key: `to_process/${type}/${file.name}`, Body: file.slice(0, file.length), ContentType: file.type}
+      })
+      .on('httpUploadProgress', function(evt) {
+        $scope.uploadProgress = Math.floor(evt.loaded / file.size * 100);
+        $scope.$digest();
+      })
+      .send(function(err, result) {
+        if (err) {
+          console.log("Upload failed. " + err);
+          return false;
+        }
+
+        console.log("Success");
+        $scope.uploading_hashes = false;
+        $scope.upload_finished = true;
+        $scope.uploadedFile = file.name;
+        $scope.populateFiles();
+
+        $timeout(() => {
+          $(btnToHide).show();
+          $scope.upload_finished = false;
+          $scope.upload_ready = true;
+        }, 3000);
+
+      });
+    };
 
     $scope.type = undefined;
 

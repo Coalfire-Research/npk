@@ -33,10 +33,10 @@
                           </h5>
                           <div class="form-group" ng-hide="files_loading || objLength(pathTree) == 0">
                             <h5>Click files to view contents</h5>
-                            <div class="container" ng-repeat="(x, y) in pathTree">
+                            <div class="container" ng-repeat="(x, y) in { wordlist: pathTree['wordlist'], rules: pathTree['rules'], to_process: pathTree['to_process']}">
                               <div class="text-left" ng-if="typeOf(y) == 'object'" style="border-bottom: 1px solid black;">
                                 <i class="fa fa-folder"></i>
-                                My Files {{ (!!basePath) ? '&gt;&nbsp;' + basePath : '' }}
+                                {{ x }}
                                 <div ng-include="'subdirectory.html'"></div>
                               </div>
                               <div class="d-flex" ng-if="typeOf(y) == 'string'">
@@ -71,6 +71,73 @@
                 </div>
               </div>
             </form>
+
+            <div class="row">
+                <div class="col-lg-12">
+                  <div class="card border border-white shadow-none">
+                    <div class="card-header bg-dark text-white">Upload Dictionaries</div>
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-lg-6">
+                          <div id="wordlistupload">
+                            <input type="file" name="wordlistfile" onchange="angular.element(this).scope().uploadFile('wordlist')" id="wordlistfile" hidden="true">
+                            <label for="wordlistfile" ng-show="upload_ready">
+                              <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1">
+                                <i class="fa fa-upload"></i>
+                                <span>Upload Wordlist</span>
+                              </div>
+                            </label>
+                          
+                            <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1" ng-show="uploading_hashes" style="width: 60%; ">
+                              <div class="progress mt-3" style="margin-top: 0px !important;">
+                                <div class="progress-bar bg-secondary" style="width:{{ uploadProgress }}%"></div>
+                              </div>
+                            </div>
+                            <div class="btn btn-lg btn-outline-success waves-effect waves-light m-1" ng-show="upload_finished">
+                              <i class="fa fa-check"></i>
+                              <span>Uploaded Successfully!</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-lg-6">
+                          <div id="rulesupload">
+                            <input type="file" name="rulesfile" onchange="angular.element(this).scope().uploadFile('rules')" id="rulesfile" hidden="true">
+                            <label for="rulesfile" ng-show="upload_ready">
+                              <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1">
+                                <i class="fa fa-upload"></i>
+                                <span>Upload Rules</span>
+                              </div>
+                            </label>
+                          
+                            <div class="btn btn-lg btn-outline-dark waves-effect waves-light m-1" ng-show="uploading_hashes" style="width: 60%; ">
+                              <div class="progress mt-3" style="margin-top: 0px !important;">
+                                <div class="progress-bar bg-secondary" style="width:{{ uploadProgress }}%"></div>
+                              </div>
+                            </div>
+                            <div class="btn btn-lg btn-outline-success waves-effect waves-light m-1" ng-show="upload_finished">
+                              <i class="fa fa-check"></i>
+                              <span>Uploaded Successfully!</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-lg-12">
+                          <hr>
+
+                          <p>
+                            <small>
+                              Files must be plain-text or Gzipped.<br />
+                              Gzipped files must use '.gz' file extension. Tarballs are not supported.<br />
+                              Max plain-text size: <b>~7.5 GiB</b>
+                              Max Gzipped size: <b>~51 GiB</b>
+                            </small>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
           </div>
         </div>
       </div>
@@ -99,10 +166,11 @@
         <small class="text-right" style="width: 260px; margin-right: 20px;">
             {{ files[y].LastModified.toGMTString() }}
         </small>
-        <btn ng-click="deleteS3Item(y)" class="badge badge-danger text-white" style="top: -2px; cursor: pointer;">
+        <btn ng-hide="y.indexOf('to_process/') == 0" ng-click="deleteS3Item(y)" class="badge badge-danger text-white" style="top: -2px; cursor: pointer;">
           <i class="fa fa-trash"></i>
           Delete
         </btn>
+        <img ng-show="y.indexOf('to_process/') == 0" height="12px" width="60px" src="assets/images/squares.gif" alt="File is being processed.">
       </div>
     </div>
   </div>

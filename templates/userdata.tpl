@@ -63,12 +63,19 @@ jq -r '.rulesFiles[]' manifest.json | xargs -L1 -I'{}' aws --region $BUCKETREGIO
 # Unzip them
 # 7z x ./npk-wordlist/* -o./npk-wordlist/
 # 7z x ./npk-rules/* -o./npk-rules/
-jq -r '.dictionaryFile' manifest.json | xargs -L1 -I'{}' 7z x ./npk-{} -o./npk-wordlist/
-jq -r '.rulesFiles[]' manifest.json | xargs -L1 -I'{}' 7z x ./npk-{} -o./npk-rules/
+
+jq -r '.dictionaryFile' manifest.json | grep \.7z$ | xargs -L1 -I'{}' 7z x ./npk-{} -o./npk-wordlist/
+jq -r '.dictionaryFile' manifest.json | grep \.gz$ | xargs -L1 -I'{}' gunzip ./npk-{}
+
+jq -r '.rulesFiles[]' manifest.json | grep \.7z$ | xargs -L1 -I'{}' 7z x ./npk-{} -o./npk-rules/
+jq -r '.rulesFiles[]' manifest.json | grep \.gz$ | xargs -L1 -I'{}' gunzip ./npk-{}
+
+
+ls -alh ./npk-rules/
 
 # Delete the originals
 jq -r '.dictionaryFile' manifest.json | xargs -L1 -I'{}' rm ./npk-{}
-jq -r '.rulesFiles[]' manifest.json | xargs -L1 -I'{}' rm ./npk-{}
+jq -r '.rulesFiles[]' manifest.json | xargs -L1 -I'{}' rm -f ./npk-{}
 
 # Link the output file to potfiles
 ln -s /var/log/cloud-init-output.log /potfiles/$${INSTANCEID}-output.log

@@ -2,13 +2,12 @@
   "name": "npk_community",
   "version": "2.6.0",
   "description": "NPK distributed hash cracking platform",
-  "main": "index.js",
+  "main": "bin/index.js",
   "scripts": {
-    "apply": "`cat .ENVVARS` && terraform apply",
-    "init": "`cat .ENVVARS` && terraform init",
-    "generate": "node index.js",
-    "deploy": "node index.js && `cat .ENVVARS` && terraform init -force-copy && terraform apply -auto-approve",
-    "destroy": "`cat .ENVVARS` && terraform destroy"
+    "deploy": "node bin/index.js deploy",
+    "configure": "node bin/index.js deploy -i",
+    "update": "node bin/index.js deploy",
+    "destroy": "cd render-npk; npx terraform destroy"
   },
   "repository": {
     "type": "git",
@@ -25,8 +24,10 @@
   },
   "homepage": "https://github.com/c6fc/npk#readme",
   "dependencies": {
-    "@hanazuki/node-jsonnet": "^0.4.2",
+    "@c6fc/sonnetry": "^2.0.5",
     "@jahed/terraform": "^0.15.5",
-    "aws-sdk": "^2.1018.0"
+    "aws-sdk": "^2.1018.0",
+    "inquirer": "^8.2.0",
+    "yargs": "^17.3.1"
   }
 }

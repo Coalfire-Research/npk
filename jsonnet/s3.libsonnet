@@ -2,7 +2,7 @@ local cors_rule(origin) = {
 	"allowed_headers": ["*"],
 	"allowed_methods": ["GET", "HEAD", "PUT", "POST", "DELETE"],
 	"allowed_origins": [origin],
-	"expose_headers": ["x-amz-meta-lines", "x-amz-meta-size", "x-amz-meta-type", "content-length"],
+	"expose_headers": ["x-amz-meta-lines", "x-amz-meta-size", "x-amz-meta-type", "content-length", "ETag"],
 	"max_age_seconds": 3000
 };
 

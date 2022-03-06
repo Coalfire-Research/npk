@@ -115,6 +115,24 @@
 						"${aws_dynamodb_table.campaigns.arn}/index/Events"
 					]
 				}, {
+					sid: "s3Del",
+					actions: [
+						"s3:DeleteObject",
+					],
+					resources: [
+						"${aws_s3_bucket.dictionary.arn}/wordlist/*",
+						"${aws_s3_bucket.dictionary.arn}/rules/*",
+						"${aws_s3_bucket.dictionary.arn}/to_process/*"
+					]
+				}, {
+					sid: "s3Put",
+					actions: [
+						"s3:PutObject",
+					],
+					resources: [
+						"${aws_s3_bucket.dictionary.arn}/to_process/*"
+					]
+				}, {
 					sid: "cognitoAdmin",
 					actions: [
 						"cognito-idp:AdminAddUserToGroup",

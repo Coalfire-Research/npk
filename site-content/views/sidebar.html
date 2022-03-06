@@ -34,6 +34,11 @@
           <i class="icon-user"></i> <span>User Administration</span>
         </a>
       </li>
+      <li ng-show="cognitoSvc.isAdmin()">
+        <a href="#/dictionaries" class="waves-effect">
+          <i class="icon-notebook"></i> <span>Dictionaries</span>
+        </a>
+      </li>
       <li>
         <a href="#/user-settings" class="waves-effect">
           <i class="icon-settings"></i> <span>Settings</span>

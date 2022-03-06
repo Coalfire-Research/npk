@@ -48,9 +48,9 @@ angular
 
           $scope.settings = result;
 
-          $scope.settings.admin.favoriteHashTypes = $scope.settings.admin.favoriteHashTypes || [];
+          /*$scope.settings.admin.favoriteHashTypes = $scope.settings.admin.favoriteHashTypes || [];
           $scope.settings.self.favoriteHashTypes = $scope.settings.self.favoriteHashTypes || [];
-          $scope.settings.favoriteHashTypes = [].concat($scope.settings.self.favoriteHashTypes).concat($scope.settings.admin.favoriteHashTypes);
+          $scope.settings.favoriteHashTypes = [].concat($scope.settings.self.favoriteHashTypes).concat($scope.settings.admin.favoriteHashTypes);*/
 
           // console.log(pricingSvc.hashTypes.$dirty);
 
@@ -684,7 +684,7 @@ angular
 
     $scope.upload_ready = true;
     $scope.uploading_hashes = false;
-    $scope.uploadProgress = 30;
+    $scope.uploadProgress = 0;
     $scope.upload_finished = false;
 
     $scope.familySortOrder = 'effectiveness';
@@ -1247,7 +1247,6 @@ angular
     $scope.quotas = QUOTAS;
 
     $scope.uploadHashFile = function() {
-      var reader = new FileReader();
       var file = $('#hashfile')[0].files[0];
 
       if (!file) {
@@ -1258,31 +1257,28 @@ angular
       $scope.uploading_hashes = true;
       $scope.$digest();
 
-      reader.onloadend = function() {
-        var uploader = new AWS.S3.ManagedUpload({
-          params: {Bucket: USERDATA_BUCKET.name, Key: AWS.config.credentials.identityId + "/uploads/" + file.name, Body: reader.result, ContentType: "text/plain"}
-        })
-        .on('httpUploadProgress', function(evt) {
-          $scope.uploadProgress = Math.floor(evt.loaded / evt.total * 100);
-          $scope.$digest();
-        })
-        .send(function(err, result) {
-          if (err) {
-            console.log("Upload failed. " + err);
-            return false;
-          }
+      $('#textuploadbtn').hide();
+      var uploader = new AWS.S3.ManagedUpload({
+        params: {Bucket: USERDATA_BUCKET.name, Key: AWS.config.credentials.identityId + "/uploads/" + file.name, Body: file.slice(0, file.length), ContentType: "text/plain"}
+      })
+      .on('httpUploadProgress', function(evt) {
+        $scope.uploadProgress = Math.floor(evt.loaded / file.size * 100);
+        $scope.$digest();
+      })
+      .send(function(err, result) {
+        if (err) {
+          console.log("Upload failed. " + err);
+          return false;
+        }
 
-          console.log("Success");
-          $scope.uploading_hashes = false;
-          $scope.upload_finished = true;
-          $scope.uploadedFile = file.name;
-          $scope.$digest();
+        console.log("Success");
+        $scope.uploading_hashes = false;
+        $scope.upload_finished = true;
+        $scope.uploadedFile = file.name;
+        $scope.$digest();
 
-          $scope.getHashFiles();
-        });
-      };
-
-      reader.readAsArrayBuffer(file);
+        $scope.getHashFiles();
+      });
     };
 
     $scope.uploadHashText = function() {
@@ -1298,6 +1294,7 @@ angular
 
       $scope.upload_ready = false;
       $scope.uploading_hashes = true;
+      $('#fileuploadbtn').hide();
 
       var uploader = new AWS.S3.ManagedUpload({
         params: {Bucket: USERDATA_BUCKET.name, Key: AWS.config.credentials.identityId + "/uploads/" + filename, Body: body, ContentType: "text/plain"}
@@ -1613,9 +1610,8 @@ angular
     $scope.files = {};
     $scope.basePath = "";
     $scope.pathTree = {};
-    $scope.files_loading = false;
+    $scope.files_loading = true;
     $scope.populateFiles = function() {
-      $scope.files_loading = true;
       $scope.$parent.npkDB.listBucketContents(USERDATA_BUCKET.name, "self/" + $scope.basePath, USERDATA_BUCKET.region).then((data) => {
         Object.keys(data.Contents).forEach(function (e) {
           $scope.files[data.Contents[e].Key] = data.Contents[e];
@@ -1987,10 +1983,10 @@ angular
 
     $scope.availableSettings = {
       admin: {
-        "favoriteHashTypes": "array"
+        // "favoriteHashTypes": "array"
       },
       self: {
-        "favoriteHashTypes": "array",
+        // "favoriteHashTypes": "array",
         "notificationsRead": "number"
       },
     };
@@ -2344,6 +2340,218 @@ angular
 
     $scope.$on('$routeChangeSuccess', function() {
       $scope.onReady();
+    });
+  }])
+  .controller('dmCtrl', ['$scope', '$timeout', '$routeParams', '$location', 'DICTIONARY_BUCKET', function($scope, $timeout, $routeParams, $location, DICTIONARY_BUCKET) {
+
+    $scope.files = {};
+    $scope.basePath = "";
+    $scope.pathTree = {};
+    $scope.files_loading = true;
+    $scope.populateFiles = function() {
+      $scope.$parent.npkDB.listBucketContents(DICTIONARY_BUCKET.name, "", DICTIONARY_BUCKET.region).then((data) => {
+        $scope.files = {};
+        Object.keys(data.Contents).forEach(function (e) {
+          $scope.files[data.Contents[e].Key] = data.Contents[e];
+        });
+
+        $scope.pathTree = $scope.getPathTree(Object.keys($scope.files));
+
+        $scope.files_loading = false;
+        $scope.$digest();
+      });
+    }
+
+    $scope.large_file_uploading = false;
+    $scope.largeFileSubmit = function() {
+      $scope.large_file_uploading = true;
+
+      var filename = $('#largeFileInput').val().split('\\').slice(-1)[0];
+      var key = `to_process/${$scope.type}/${filename}`;
+      $scope.watchForFile(key);
+    }
+
+    $scope.delay = function(t, v) {
+       return new Promise(function(resolve) { 
+           setTimeout(resolve.bind(null, v), t)
+       });
+    }
+
+    $scope.watchToProcess = function() {
+      if (!!$scope.pathTree.to_process) {
+        $scope.populateFiles();
+      }
+
+      $scope.delay(3000).then(() => $scope.watchToProcess());
+    }
+
+    $scope.watchToProcess();
+
+    $scope.watchForFile = function(key) {
+      return new Promise((success, failure) => {
+        if (Object.keys($scope.files).indexOf(key) < 0) {
+          $scope.populateFiles();
+
+          return $scope.delay(1000).then(() => $scope.watchForFile(key));
+        }
+
+        $scope.large_file_uploading = false;
+        $scope.$digest()
+
+        return success(true);
+      });
+    }
+
+    $scope.generatePresignedPost = function() {
+
+      var s3 = new AWS.S3({ region: DICTIONARY_BUCKET.region });
+      var filename = $('#largeFileInput').val()?.split('\\')?.slice(-1)?.[0];
+
+      if (!filename || !$scope.type) {
+        return false;
+      }
+
+      var key = `to_process/${$scope.type}/${filename}`;
+
+      s3.createPresignedPost({
+        Bucket: DICTIONARY_BUCKET.name,
+        Fields: {
+          key: key
+        },
+        ContentType: "text/plain"
+      }, (err, data) => {
+        $('form#largeFile').attr('action', data.url);
+
+        $('div#s3HiddenElems').empty();
+
+        data.fields['key'] = key;
+        Object.keys(data.fields).forEach((key) => {
+          $('div#s3HiddenElems').append(`<input type="hidden" name="${key}" value="${data.fields[key]}" />`);
+        });
+        console.log(data);
+      });
+    }
+
+    $scope.upload_ready = true;
+    $scope.uploading_hashes = false;
+    $scope.uploadProgress = 0;
+    $scope.upload_finished = false;
+
+    $scope.uploadFile = function(type) {
+      var reader = new FileReader();
+      var file = $(`#${type}file`)[0].files[0];
+
+      if (!file) {
+        return false;
+      }
+
+      $scope.upload_ready = false;
+      $scope.uploading_hashes = true;
+      $scope.$digest();
+
+      const btnToHide = (type == "wordlist") ? "#rulesupload" : "#wordlistupload";
+      $(btnToHide).hide();
+
+      var uploader = new AWS.S3.ManagedUpload({
+        params: {Bucket: DICTIONARY_BUCKET.name, Key: `to_process/${type}/${file.name}`, Body: file.slice(0, file.length), ContentType: file.type}
+      })
+      .on('httpUploadProgress', function(evt) {
+        $scope.uploadProgress = Math.floor(evt.loaded / file.size * 100);
+        $scope.$digest();
+      })
+      .send(function(err, result) {
+        if (err) {
+          console.log("Upload failed. " + err);
+          return false;
+        }
+
+        console.log("Success");
+        $scope.uploading_hashes = false;
+        $scope.upload_finished = true;
+        $scope.uploadedFile = file.name;
+        $scope.populateFiles();
+
+        $timeout(() => {
+          $(btnToHide).show();
+          $scope.upload_finished = false;
+          $scope.upload_ready = true;
+        }, 3000);
+
+      });
+    };
+
+    $scope.type = undefined;
+
+    $scope.objLength = function(what) {
+      if (typeof what == "undefined") { 
+        return 0;
+      }
+
+      return Object.keys(what).length;
+    };
+
+    $scope.deleteS3Item = function(key) {
+      console.log(key);
+      $scope.$parent.npkDB.s3.deleteObject({
+        Bucket: DICTIONARY_BUCKET.name,
+        Key: key
+      }, function(err, data) {
+        if (err) {
+          console.log(err);
+        } else {
+          delete $scope.files[key];
+          $scope.populateFiles();
+          $scope.$digest();
+        }
+      });
+    };
+
+    $scope.getPathTree = function(paths) {
+      var pathTree = {};
+      paths.forEach(path => {
+        var levels = path.split("/");
+        var file = levels.pop();
+
+        levels.reduce((prev, lvl, i) => {
+          if (levels.length - i - 1) {
+            return prev[lvl] = prev[lvl] || {};
+          } else {
+            var tmp = (prev[lvl] || {});
+            tmp[file] = path;
+            return prev[lvl] = tmp;
+          } 
+        }, pathTree);
+      });
+
+      return pathTree;
+    }
+
+    $scope.typeOf = function(what) {
+      return typeof what;
+    }
+
+    $scope.signedUrlOf = function(file) {
+      return $scope.$parent.npkDB.getSignedUrl('getObject', {
+        Bucket: DICTIONARY_BUCKET.name,
+        Key: file,
+        ResponseContentType: "text/plain"
+      });
+    }
+
+    $scope.onReady = function() {
+      $scope.$parent.startApp();
+
+      if (!!$routeParams.basePath) {
+        $scope.basePath = $routeParams.basePath;
+        console.log($scope.basePath);
+      }
+
+      $scope.populateFiles();
+    };
+
+    $scope.$on('$routeChangeSuccess', function() {
+       
+       $scope.onReady();
     });
   }])
   ;

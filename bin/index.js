@@ -299,6 +299,8 @@ async function configureInteractive() {
 		questions.shift();
 	}
 
+	await drainStdin(0);
+
 	const answers = await inquirer.prompt(questions);
 
 	const deployNow = answers.deploy;
@@ -310,6 +312,22 @@ async function configureInteractive() {
 		console.log("[-] Exiting on user command. Use 'npm run deploy' to deploy");
 		process.exit(0);
 	}
+}
+
+function drainStdin(duration) {
+	return new Promise((success, failure) => {
+		const onData = function() {};
+		const onEnd = function() {
+			process.stdin.removeListener('data', onData);
+			process.stdin.removeListener('end', onEnd);
+			return success();
+		};
+
+		process.stdin.on('data', onData);
+		process.stdin.on('end', onEnd);
+
+		setTimeout(onEnd, duration);
+	});
 }
 
 function showHelloBanner() {

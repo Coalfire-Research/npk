@@ -56,26 +56,17 @@ Configure how long data will stay in NPK with configurable lifecycle durations d
 
 3. Paste in the one-liner: `curl https://npkproject.io/cloudshell_install.sh | bash`
 4. Use the wizard to complete the configuration
-5. (Optional) If you said 'no' at the end of the wizard, run `npm run deploy -- -ys`
-
-## Advanced Install
-
-If you want to add advanced features like Georestrictions, SAML auth, or custom data lifecycles, follow the simple install, then modify the settings file at `/home/cloudshell-user/npk/npk-settings.json`. It's recommended that you keep a copy of your settings file, but it's not a big deal if you lose it - just re-run the easy install.
-
-* `campaign_data_ttl`: This is the number of seconds that uploaded files and cracked hashes will last before they are automatically deleted. **Defaults to `86400` or 7 days**.
-* `campaign_max_price`: The maximum number of dollars allowed to be spent on a single campaign.**Defaults to `50`**.
-* `georestrictions`: An array of https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 country codes that access should be ALLOWED. Traffic originating from other countries will not be permitted. Remove the entry entirely if you don't wish to use it. **Defaults to `[]`**.
-* `sAMLMetadataFile` or `sAMLMetadataUrl`: Only one can be configured. Leave them out entirely if you're not using SAML.
+5. (Optional) If you said 'no' at the end of the wizard, run `npm run deploy -- -ys` from the NPK directory.
 
 See https://github.com/c6fc/npk/wiki/Detailed-NPK-Settings for more details about advanced configurations, or https://github.com/c6fc/npk/wiki/Configuring-SAML-SSO for help configuring SAML SSO.
 
 ## Modify Install
 
-You can change the settings of an install without losing your existing campaigns. Edit `npk-settings.json` as necessary, then rerun `npm run deploy`. It's that easy!
+You can change the settings of an install without losing your existing campaigns. Edit `npk-settings.json` as necessary, then run `npm run update`. It's that easy!
 
 ```sh
 ~/npk$ vim npk-settings.json
-~/npk$ npm run deploy
+~/npk$ npm run update
 ```
 
 If it's been a while and your CloudShell has timed out (and you don't have an npk-settings.json file anymore), just run the installer again and provide the same answers. The deploy will re-attach to your existing environment easily.
@@ -91,8 +82,7 @@ Once NPK has been deployed, administrative users can use the NPK console to uplo
 You can completely turn down NPK and delete all of its data from AWS using the built-in Terraform binary:
 
 ```sh
-~/npk$ cd render-npk
-~/npk/render-npk$ npx terraform destroy
+~/npk$ npm run destroy
 ```
 
 If you don't have a `render-npx` directory, run `npm run deploy -- -y` first to create it.

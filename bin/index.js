@@ -386,11 +386,38 @@ function showHelpBanner() {
 
 			await sonnetry.auth();
 
+			const s3 = new sonnetry.aws.S3();
+			let bootstrap_bucket = await sonnetry.getBootstrapBucket();
+
+			if (!!bootstrap_bucket) {
+				try {
+					const settings = await s3.getObject({
+						Bucket: bootstrap_bucket,
+						Key: 'sonnetry/c6fc_npk/npk-settings.json'
+					}).promise();
+
+					fs.writeFileSync(settings, './npk-settings.json');
+				} catch (e) {
+					// That's fine.
+				}
+			}
+
 			if (argv.interactive || !fs.existsSync('./npk-settings.json')) {
 				await configureInteractive();
 			}
 
 			const success = await deploy(argv.skipInit, argv.autoApprove);
+
+			bootstrap_bucket = await sonnetry.getBootstrapBucket();
+			const settings = await fs.readFileSync('./npk-settings.json');
+
+			await s3.putObject({
+				Bucket: bootstrap_bucket,
+				Key: 'sonnetry/c6fc_npk/npk-settings.json',
+				Body: settings,
+				ContentType: 'application/json'
+			}).promise();
+
 			if (!success) showHelpBanner();
 
 		})

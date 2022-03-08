@@ -397,6 +397,8 @@ function showHelpBanner() {
 					}).promise();
 
 					fs.writeFileSync(settings, './npk-settings.json');
+
+					console.log('[+] Retrieved npk-settings.json from Sonnetry');
 				} catch (e) {
 					// That's fine.
 				}
@@ -417,6 +419,8 @@ function showHelpBanner() {
 				Body: settings,
 				ContentType: 'application/json'
 			}).promise();
+
+			console.log('\n[+] NPK settings saved to Sonnetry');
 
 			if (!success) showHelpBanner();
 

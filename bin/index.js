@@ -386,11 +386,42 @@ function showHelpBanner() {
 
 			await sonnetry.auth();
 
+			const s3 = new sonnetry.aws.S3();
+			let bootstrap_bucket = await sonnetry.getBootstrapBucket();
+
+			if (!!bootstrap_bucket) {
+				try {
+					const settings = await s3.getObject({
+						Bucket: bootstrap_bucket,
+						Key: 'sonnetry/c6fc_npk/npk-settings.json'
+					}).promise();
+
+					fs.writeFileSync('./npk-settings.json', settings.Body);
+
+					console.log('[+] Retrieved npk-settings.json from Sonnetry');
+				} catch (e) {
+					console.log('[-] No settings file found in Sonnetry. Will save after deploying.');
+				}
+			}
+
 			if (argv.interactive || !fs.existsSync('./npk-settings.json')) {
 				await configureInteractive();
 			}
 
 			const success = await deploy(argv.skipInit, argv.autoApprove);
+
+			bootstrap_bucket = await sonnetry.getBootstrapBucket();
+			const settings = await fs.readFileSync('./npk-settings.json');
+
+			await s3.putObject({
+				Bucket: bootstrap_bucket,
+				Key: 'sonnetry/c6fc_npk/npk-settings.json',
+				Body: settings,
+				ContentType: 'application/json'
+			}).promise();
+
+			console.log('\n[+] NPK settings saved to Sonnetry');
+
 			if (!success) showHelpBanner();
 
 		})
@@ -414,11 +445,9 @@ function showHelpBanner() {
 
 			if (fs.existsSync('./npk-settings.json')) {
 				const settings = JSON.parse(fs.readFileSync('./npk-settings.json'));
-				if (!!settings.awsProfile) {
+				if (!!settings.awsProfile && process.env.AWS_PROFILE != settings.awsProfile) {
 					process.env.AWS_PROFILE = settings.awsProfile;
-					delete process.env.AWS_ACCESS_KEY_ID;
-					delete process.env.AWS_SECRET_ACCESS_KEY;
-					delete process.env.AWS_SESSION_TOKEN;
+					console.log("[+] You were about to deploy to the wrong profile. I've corrected it for you.");
 				}
 			}
 

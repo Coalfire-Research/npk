@@ -166,11 +166,11 @@
         <small class="text-right" style="width: 260px; margin-right: 20px;">
             {{ files[y].LastModified.toGMTString() }}
         </small>
-        <btn ng-hide="y.indexOf('to_process/') == 0" ng-click="deleteS3Item(y)" class="badge badge-danger text-white" style="top: -2px; cursor: pointer;">
+        <btn ng-hide="y.indexOf('to_process/') == 0 && !olderThan(files[y].LastModified, 1260)" ng-click="deleteS3Item(y)" class="badge badge-danger text-white" style="top: -2px; cursor: pointer;">
           <i class="fa fa-trash"></i>
           Delete
         </btn>
-        <img ng-show="y.indexOf('to_process/') == 0" height="12px" width="60px" src="assets/images/squares.gif" alt="File is being processed.">
+        <img ng-show="y.indexOf('to_process/') == 0 && !olderThan(files[y].LastModified, 1260)" height="12px" width="60px" src="assets/images/squares.gif" alt="File is being processed.">
       </div>
     </div>
   </div>

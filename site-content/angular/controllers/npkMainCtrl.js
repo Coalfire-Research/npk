@@ -2490,6 +2490,10 @@ angular
       return Object.keys(what).length;
     };
 
+    $scope.olderThan = function (date, seconds) {
+      return (date.getTime() < Date.now() - (seconds * 1000));
+    };
+
     $scope.deleteS3Item = function(key) {
       console.log(key);
       $scope.$parent.npkDB.s3.deleteObject({

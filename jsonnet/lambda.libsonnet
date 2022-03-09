@@ -18,7 +18,11 @@ local lambda_function(name, config, role_policy) = {
 					"local-exec": {
 						command: "cd %s/lambda_functions/%s/ && npm install" % [sonnetry.path(), name],
 					}
-				}]
+				}], 
+				
+				triggers: {
+			        always: "${timestamp()}"
+			    }
 			}
 		},
 		aws_iam_role: {

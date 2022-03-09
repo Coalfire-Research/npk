@@ -115,6 +115,8 @@ exports.main = async function(event, context, callback) {
 
 		console.log(lapsed, size, size / lapsed, lines);
 
+		await copy(`s3://${bucket}/${key}`, `s3://${bucket}/${newKey}`)
+
 		await s3.copyObject({
 			Bucket: bucket,
 			CopySource: `/${bucket}/${key}`,

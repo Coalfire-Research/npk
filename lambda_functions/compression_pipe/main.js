@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const aws = require('aws-sdk');
+const copy = require('aws-s3-object-multipart-copy');
 const zlib = require('zlib');
 const util = require('util');
 const stream = require('stream');
@@ -114,6 +115,8 @@ exports.main = async function(event, context, callback) {
 		console.log(`[*] Stream unzipped ${Math.round(size / 1024)}KB in ${lapsed} seconds; ${Math.round(size / lapsed / 1024)}KB/s`);
 
 		console.log(lapsed, size, size / lapsed, lines);
+
+		await copy(`s3://${bucket}/${key}`, `s3://${bucket}/${newKey}`)
 
 		await s3.copyObject({
 			Bucket: bucket,

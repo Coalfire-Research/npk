@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 const aws = require('aws-sdk');
-const copy = require('aws-s3-object-multipart-copy');
 const zlib = require('zlib');
 const util = require('util');
 const stream = require('stream');

@@ -389,18 +389,20 @@ function showHelpBanner() {
 			const s3 = new sonnetry.aws.S3();
 			let bootstrap_bucket = await sonnetry.getBootstrapBucket();
 
-			if (!!bootstrap_bucket) {
-				try {
-					const settings = await s3.getObject({
-						Bucket: bootstrap_bucket,
-						Key: 'sonnetry/c6fc_npk/npk-settings.json'
-					}).promise();
+			if (!fs.existsSync('./npk-settings.json')) {
+				if (!!bootstrap_bucket) {
+					try {
+						const settings = await s3.getObject({
+							Bucket: bootstrap_bucket,
+							Key: 'sonnetry/c6fc_npk/npk-settings.json'
+						}).promise();
 
-					fs.writeFileSync('./npk-settings.json', settings.Body);
+						fs.writeFileSync('./npk-settings.json', settings.Body);
 
-					console.log('[+] Retrieved npk-settings.json from Sonnetry');
-				} catch (e) {
-					console.log('[-] No settings file found in Sonnetry. Will save after deploying.');
+						console.log('[+] Retrieved npk-settings.json from Sonnetry');
+					} catch (e) {
+						console.log('[-] No settings file found in Sonnetry. Will save after deploying.');
+					}
 				}
 			}
 

@@ -124,7 +124,7 @@
                       Region
                     </div>
                     <div class="card-body bg-dark p-1 pr-3">
-                      <button ng-click="selectRegion(cost)" ng-repeat="cost in selectedFamily.cost | orderBy:'instances[0].price':true | limitTo:5" class="btn btn-sm btn-block waves-effect waves-light m-1" ng-class="[
+                      <button ng-click="selectRegion(cost)" ng-repeat="cost in selectedFamily.cost | orderBy:'instances[0].price':true" class="btn btn-sm btn-block waves-effect waves-light m-1" ng-class="[
                         { 'btn-warning': (selectedRegion == cost && cost.quota < 16) },
                         { 'btn-outline-warning': (selectedRegion != cost && cost.quota < 16) },
                         { 'btn-success': (selectedRegion == cost && cost.quota >= 16) },

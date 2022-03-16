@@ -5,26 +5,31 @@ if (count($argv) < 2) {
 	exit();
 }
 
-$benchmark = explode("Hashmode: ", file_get_contents($argv[1]));
+//$benchmark = explode("Hashmode: ", file_get_contents($argv[1]));
+$benchmark = explode("Hash-Mode ", file_get_contents($argv[1]));
 $speeds = array();
 
 array_shift($benchmark);
 while (count($benchmark) > 0) {
 	$entry = array_shift($benchmark);
-	$entry = explode(" - ", $entry);
+	// $entry = explode(" - ", $entry);
+	$entry = explode(" ", $entry);
 
+	//array_shift($entry);
 	$id = array_shift($entry);
-	echo $id . "\n";
-	$entry = explode("\n", implode(" - ", $entry));
+	echo "id: " . $id . "\n";
+	$entry = explode("\n", implode(" ", $entry));
 
-	$name = array_shift($entry);
-	echo $name . "\n";
+	$name = substr(array_shift($entry), 1, -1);
+	echo "name: " . $name . "\n";
 	array_shift($entry);
 
 	$speed = array();
 	foreach($entry as $line) {
 		echo $line;
 		preg_match("/\:\s*?([\d\.]+)\s(.{0,1}H\/s)\s/", $line, $matches);
+
+		print_r($matches);
 
 		if (count($matches) > 0) {
 			$hashes = $matches[1];

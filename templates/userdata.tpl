@@ -148,7 +148,7 @@ if [[ ! -f /root/nodeath ]]; then
 	poweroff
 fi
 
-# # Use this to generate benchmarks
+# Use this to generate benchmarks
 # /root/hashcat/hashcat.bin -O -w 4 -b --benchmark-all | tee /potfiles/benchmark-results.txt
 # aws --region $USERDATAREGION s3 cp /potfiles/benchmark-results.txt s3://$USERDATA/$ManifestPath/potfiles/
 

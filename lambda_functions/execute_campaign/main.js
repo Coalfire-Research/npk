@@ -205,7 +205,7 @@ exports.main = async function(event, context, callback) {
 	            },{
 	            	Name: "name",
 	            	// Values: ["amzn2-ami-graphics-hvm-2*"]
-	            	Values: ["Deep Learning AMI (Amazon Linux 2) Version *"]
+	            	Values: ["Deep Learning AMI GPU TensorFlow * (Amazon Linux 2) *"]
 	            },{
 	            	Name: "root-device-type",
 	            	Values: ["ebs"]

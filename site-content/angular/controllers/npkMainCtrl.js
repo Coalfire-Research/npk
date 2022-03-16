@@ -1429,9 +1429,9 @@ angular
       }
 
       // TODO: Implement max price here.
-      if ($scope.totalPrice > 100) {
-        $scope.orderWarnings.push("Total price exceeds campaign limits. Your instances may terminate earlier than you intend.");
-      }
+      /*if ($scope.totalPrice > 100) {
+        $scope.orderWarnings.push(`Total price exceeds campaign limit of ${}. Your instances may terminate earlier than you intend.`);
+      }*/
 
       if ($scope.orderErrors.length > 0) {
         $('#orderErrorModal').modal('show');

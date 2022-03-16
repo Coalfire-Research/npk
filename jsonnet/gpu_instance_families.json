@@ -37,5 +37,13 @@
 		"instances": {
 			"p4d.24xlarge": [8, 96]
 		}
+	},
+	"NVIDIA A10G": {
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g5.xlarge": [1, 4],
+			"g5.12xlarge": [4, 96],
+			"g5.metal": [8, 192]
+		}
 	}
 }

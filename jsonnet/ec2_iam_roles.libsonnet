@@ -100,6 +100,7 @@
 					],
 					"resources": [
 						"${aws_s3_bucket.user_data.arn}",
+						"arn:aws:s3:::ec2-amd-linux-drivers"
 					],
 					"condition": {
 						"test": "StringLike",

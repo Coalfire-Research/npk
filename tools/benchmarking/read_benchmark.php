@@ -58,6 +58,10 @@ while (count($benchmark) > 0) {
 		}
 	}
 
+	if (count($speed) == 0) {
+		continue;
+	}
+
 	$speed = array_sum($speed) / count($speed);
 
 	$speeds[$id] = $speed;

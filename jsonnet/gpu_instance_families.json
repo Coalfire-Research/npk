@@ -45,5 +45,25 @@
 			"g5.12xlarge": [4, 96],
 			"g5.metal": [8, 192]
 		}
+		
+	},
+	"NVIDIA T4G": {
+		"architecture": "arm64",
+		"ami": "Deep Learning AMI Graviton GPU CUDA *",
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g5g.xlarge": [1, 4],
+			"g5g.metal": [2, 64]
+		}
+	},
+	"Radeon Pro V520": {
+		"ami": "amzn2-ami-amd-hvm-*-x86_64-*",
+		"owner": "679593333241",
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g4ad.xlarge": [1, 16],
+			"g4ad.8xlarge": [2, 32],
+			"g4ad.16xlarge": [4, 64]
+		}
 	}
 }

@@ -274,7 +274,7 @@ exports.main = async function(event, context, callback) {
 
 		// Calculate the necessary volume size
 
-		const volumeSize = Math.ceil(manifest.wordlistSize / 1073741824) + 1;
+		const volumeSize = Math.ceil(manifest.wordlistSize / 1073741824) * 2;
 		console.log(`Wordlist is ${manifest.wordlistSize / 1073741824}GiB. Allocating ${volumeSize}GiB`);
 
 		// Build a launchSpecification for each AZ in the target region.

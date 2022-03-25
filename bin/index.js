@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require("fs");
+const path = require("path");
 const yargs = require("yargs");
 const readline = require("readline");
 
@@ -205,9 +206,7 @@ async function deploy(skipInit, autoApprove) {
 		console.trace(e);
 		console.log('\n[!] Failed to apply configuration.')
 		return false;
-	}
-
-	console.log("[+] NPK successfully deployed. Happy hunting.");
+	}	
 
 	return true;
 }
@@ -330,6 +329,63 @@ function drainStdin(duration) {
 	});
 }
 
+function checkAWSProfile() { 
+	if (fs.existsSync('./npk-settings.json')) {
+		const settings = JSON.parse(fs.readFileSync('./npk-settings.json'));
+		if (!!settings.awsProfile && process.env.AWS_PROFILE != settings.awsProfile) {
+			process.env.AWS_PROFILE = settings.awsProfile;
+			console.log("[+] You were about to deploy to the wrong profile. I've corrected it for you.");
+		}
+	}
+
+	return true;
+}
+
+async function initializeSettings(argv) { 
+	await sonnetry.bootstrap('c6fc_npk');
+	if (!fs.existsSync('./npk-settings.json')) {
+		const settingsContent = await sonnetry.getArtifact('npk-settings');
+		if (!!settingsContent) {
+			fs.writeFileSync('./npk-settings.json', settingsContent.toString());
+			console.log('[+] Retrieved NPK settings from Sonnetry');
+		}
+	}
+
+	if (argv.interactive || !fs.existsSync('./npk-settings.json')) {
+		await configureInteractive();
+	}
+
+	const settings = JSON.parse(fs.readFileSync('./npk-settings.json'));
+
+	// Get the persisted SAML Metadata File
+	if (!!settings.sAMLMetadataFile) {
+		if (!fs.existsSync(settings.sAMLMetadataFile)) {
+			const sAMLMetadataFileContent = await sonnetry.getArtifact('sAMLMetadataFile');
+
+			if (!!sAMLMetadataFileContent) {
+				fs.mkdirSync(path.dirname(settings.sAMLMetadataFile), { recursive: true });
+				fs.writeFileSync(settings.sAMLMetadataFile, sAMLMetadataFileContent.toString());
+				console.log('[+] Retrieved SAML metadata file from Sonnetry');
+			}
+		}
+	}
+
+	return settings;
+}
+
+async function persistSettings(settings) {
+	await sonnetry.putArtifact('npk-settings', JSON.stringify(settings));
+
+	// Get the persisted SAML Metadata File
+	if (!!settings.sAMLMetadataFile) {
+		const sAMLMetadataFileContent = fs.readFileSync(settings.sAMLMetadataFile);
+		await sonnetry.putArtifact('sAMLMetadataFile', sAMLMetadataFileContent);
+		console.log('[+] SAML metadata file saved to Sonnetry');
+	}
+
+	console.log('[+] NPK settings saved to Sonnetry');
+}
+
 function showHelloBanner() {
 	console.log("***********************************************************");
 	console.log(" Hello friend! Thanks for using NPK!");
@@ -375,56 +431,21 @@ function showHelpBanner() {
 		}, async (argv) => {
 
 			showHelloBanner();
-
-			if (fs.existsSync('./npk-settings.json')) {
-				const settings = JSON.parse(fs.readFileSync('./npk-settings.json'));
-				if (!!settings.awsProfile && process.env.AWS_PROFILE != settings.awsProfile) {
-					process.env.AWS_PROFILE = settings.awsProfile;
-					console.log("[+] You were about to deploy to the wrong profile. I've corrected it for you.");
-				}
-			}
-
+			checkAWSProfile();
+			
 			await sonnetry.auth();
-
-			const s3 = new sonnetry.aws.S3();
-			let bootstrap_bucket = await sonnetry.getBootstrapBucket();
-
-			if (!fs.existsSync('./npk-settings.json')) {
-				if (!!bootstrap_bucket) {
-					try {
-						const settings = await s3.getObject({
-							Bucket: bootstrap_bucket,
-							Key: 'sonnetry/c6fc_npk/npk-settings.json'
-						}).promise();
-
-						fs.writeFileSync('./npk-settings.json', settings.Body);
-
-						console.log('[+] Retrieved npk-settings.json from Sonnetry');
-					} catch (e) {
-						console.log('[-] No settings file found in Sonnetry. Will save after deploying.');
-					}
-				}
-			}
-
-			if (argv.interactive || !fs.existsSync('./npk-settings.json')) {
-				await configureInteractive();
-			}
+			const settings = await initializeSettings(argv);
 
 			const success = await deploy(argv.skipInit, argv.autoApprove);
 
-			bootstrap_bucket = await sonnetry.getBootstrapBucket();
-			const settings = await fs.readFileSync('./npk-settings.json');
+			if (!success) {
+				showHelpBanner();
+				return false;
+			}
 
-			await s3.putObject({
-				Bucket: bootstrap_bucket,
-				Key: 'sonnetry/c6fc_npk/npk-settings.json',
-				Body: settings,
-				ContentType: 'application/json'
-			}).promise();
+			await persistSettings(settings);
 
-			console.log('\n[+] NPK settings saved to Sonnetry');
-
-			if (!success) showHelpBanner();
+			console.log("\n[+] NPK successfully deployed. Happy hunting.");
 
 		})
 		.command("destroy", "Removes NPK and destroys all resources", (yargs) => {
@@ -444,24 +465,21 @@ function showHelpBanner() {
 		}, async (argv) => {
 
 			showHelloBanner();
-
-			if (fs.existsSync('./npk-settings.json')) {
-				const settings = JSON.parse(fs.readFileSync('./npk-settings.json'));
-				if (!!settings.awsProfile && process.env.AWS_PROFILE != settings.awsProfile) {
-					process.env.AWS_PROFILE = settings.awsProfile;
-					console.log("[+] You were about to deploy to the wrong profile. I've corrected it for you.");
-				}
-			}
-
+			checkAWSProfile();
+			
 			await sonnetry.auth();
+			const settings = await initializeSettings(argv);
 
-			if (argv.interactive || !fs.existsSync('./npk-settings.json')) {
-				await configureInteractive();
+			const success = await sonnetry.destroy(argv.skipInit, argv.autoApprove);
+
+			if (!success) {
+				showHelpBanner();
+				return false;
 			}
 
-			const success = await deploy(argv.skipInit, argv.autoApprove);
-			if (!success) showHelpBanner();
+			await persistSettings(settings);
 
+			console.log("\n[+] NPK successfully destroyed. Until next time, Mr. Wick.");
 		})
 		.showHelpOnFail(false)
 		.help("help")

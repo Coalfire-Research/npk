@@ -56,7 +56,7 @@ Configure how long data will stay in NPK with configurable lifecycle durations d
 
 3. Paste in the one-liner: `curl https://npkproject.io/cloudshell_install.sh | bash`
 4. Use the wizard to complete the configuration
-5. (Optional) If you said 'no' at the end of the wizard, run `npm run deploy -- -ys` from the NPK directory.
+5. (Optional) If you said 'no' at the end of the wizard, run `npm run deploy -- -ys` from the `/aws/mde/npk` directory.
 
 See https://github.com/c6fc/npk/wiki/Detailed-NPK-Settings for more details about advanced configurations, or https://github.com/c6fc/npk/wiki/Configuring-SAML-SSO for help configuring SAML SSO.
 

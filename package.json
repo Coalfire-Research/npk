@@ -7,7 +7,7 @@
     "deploy": "node bin/index.js deploy",
     "configure": "node bin/index.js deploy -i",
     "update": "node bin/index.js deploy",
-    "destroy": "cd render-npk; npx terraform destroy"
+    "destroy": "node bin/index.js destroy"
   },
   "repository": {
     "type": "git",
@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/c6fc/npk#readme",
   "dependencies": {
-    "@c6fc/sonnetry": "^2.0.5",
+    "@c6fc/sonnetry": "^2.1.0",
     "@jahed/terraform": "^0.15.5",
     "aws-sdk": "^2.1018.0",
     "inquirer": "^8.2.0",

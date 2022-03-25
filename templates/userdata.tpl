@@ -31,7 +31,7 @@ echo "Using dictionary bucket $BUCKET";
 mkdir /potfiles
 
 # format & mount /dev/xvdb
-if [[ -f /dev/xvdb ]]; then
+if [[ -e /dev/xvdb ]]; then
 	mkfs.ext4 /dev/xvdb
 	mkdir /xvdb
 	mount /dev/xvdb /xvdb/

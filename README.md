@@ -16,6 +16,8 @@ Let's face it - even the beastliest cracking rig spends a lot of time at idle. Y
 
 Paste a one-liner into AWS CloudShell. Pretty easy.
 
+```cloudshell-user$ source <(curl https://npkproject.io/cloudshell_install.sh)```
+
 ![cloudshell_oneliner](https://user-images.githubusercontent.com/143415/160295789-7b4f21fa-4ac3-4900-b78a-7a974b9f48ac.png)
 
 There are also [Step-by-step instructions](https://github.com/c6fc/npk/wiki/Step-by-step-Installation) if you want them.

@@ -167,15 +167,15 @@ if [[ "$(jq -r '.attackType' manifest.json)" != "3" && "$(jq -r '.mask' manifest
 	fi
 fi
 
-# Use this for normal operations
-# node compute-node/hashcat_wrapper.js
-# echo "[*] Hashcat wrapper finished with status code $?"
-# aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
-# sleep 30
+Use this for normal operations
+node compute-node/hashcat_wrapper.js
+echo "[*] Hashcat wrapper finished with status code $?"
+aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
+sleep 30
 
-# if [[ ! -f /root/nodeath ]]; then
-# 	poweroff
-# fi
+if [[ ! -f /root/nodeath ]]; then
+	poweroff
+fi
 # ===============================
 
 # Use this to generate benchmarks
@@ -186,10 +186,10 @@ fi
 # ===============================
 
 # Use this to generate wordlist benchmarks
-aws s3 cp s3://$BUCKET/components-v3/hashstash.7z .
-7z x hashstash.7z
-ls hashstash | awk ' { system("./hashcat/hashcat.bin -O -w 4 --keep-guessing --runtime 20 -m " $1 " -a 0 -r npk-rules/npk-maskprocessor.rule -r npk-rules/OneRuleToRuleThemAll.rule ./hashstash/" $1 " ./npk-wordlist/rockyou.txt | grep -e Speed.# -e Hash.Mode | tee -a /potfiles/wordlist-benchmark-results.txt") } '
-aws --region $USERDATAREGION s3 cp /potfiles/wordlist-benchmark-results.txt s3://$USERDATA/$ManifestPath/potfiles/
+# aws s3 cp s3://$BUCKET/components-v3/hashstash.7z .
+# 7z x hashstash.7z
+# ls hashstash | awk ' { system("./hashcat/hashcat.bin -O -w 4 --keep-guessing --runtime 20 -m " $1 " -a 0 -r npk-rules/npk-maskprocessor.rule -r npk-rules/OneRuleToRuleThemAll.rule ./hashstash/" $1 " ./npk-wordlist/rockyou.txt | grep -e Speed.# -e Hash.Mode | tee -a /potfiles/wordlist-benchmark-results.txt") } '
+# aws --region $USERDATAREGION s3 cp /potfiles/wordlist-benchmark-results.txt s3://$USERDATA/$ManifestPath/potfiles/
 
-poweroff
+# poweroff
 # ===============================

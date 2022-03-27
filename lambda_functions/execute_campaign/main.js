@@ -4,6 +4,29 @@ const fs = require('fs');
 const aws = require('aws-sdk');
 
 const accountDetails = JSON.parse(fs.readFileSync('./accountDetails.json', 'ascii'));
+const archs = Object.keys(accountDetails.families).reduce((acc, curr) => {
+	Object.keys(accountDetails.families[curr].instances).forEach((instance) => {
+		acc[instance] = accountDetails.families[curr].architecture || "x86_64";
+	});
+
+	return acc;
+}, {});
+
+const amis = Object.keys(accountDetails.families).reduce((acc, curr) => {
+	Object.keys(accountDetails.families[curr].instances).forEach((instance) => {
+		acc[instance] = accountDetails.families[curr].ami || false;
+	});
+
+	return acc;
+}, {});
+
+const owners = Object.keys(accountDetails.families).reduce((acc, curr) => {
+	Object.keys(accountDetails.families[curr].instances).forEach((instance) => {
+		acc[instance] = accountDetails.families[curr].owner || false;
+	});
+
+	return acc;
+}, {});
 
 const ddb = new aws.DynamoDB({ region: accountDetails.primaryRegion });
 const s3 = new aws.S3({ region: accountDetails.primaryRegion });
@@ -189,6 +212,35 @@ exports.main = async function(event, context, callback) {
 	const ec2 = new aws.EC2({region: manifest.region});
 	let pricing, image;
 
+	const imageFilters = [{
+        Name: "virtualization-type",
+        Values: ["hvm"]
+    },{
+    	Name: "root-device-type",
+    	Values: ["ebs"]
+    }];
+
+	imageFilters.push({
+    	Name: "architecture",
+    	Values: [archs[manifest.instanceType]]
+    });
+
+    const defaultImageName = "Deep Learning AMI GPU TensorFlow * (Amazon Linux 2) *";
+
+	imageFilters.push({
+    	Name: "name",
+    	Values: [amis[manifest.instanceType] || defaultImageName]
+    });
+
+    const defaultImageOwner = "898082745236";
+
+	imageFilters.push({
+    	Name: "owner-id",
+    	Values: [owners[manifest.instanceType] || defaultImageOwner]
+    });
+
+    console.log(imageFilters);
+
 	try {
 		[pricing, image] = await Promise.all([
 			ec2.describeSpotPriceHistory({
@@ -199,21 +251,7 @@ exports.main = async function(event, context, callback) {
 			}).promise(),
 
 			ec2.describeImages({
-				Filters: [{
-	                Name: "virtualization-type",
-	                Values: ["hvm"]
-	            },{
-	            	Name: "name",
-	            	// Values: ["amzn2-ami-graphics-hvm-2*"]
-	            	Values: ["Deep Learning AMI GPU TensorFlow * (Amazon Linux 2) *"]
-	            },{
-	            	Name: "root-device-type",
-	            	Values: ["ebs"]
-	            },{
-	            	Name: "owner-id",
-	            	//Values: ["679593333241"]
-	            	Values: ["898082745236"]
-	            }]
+				Filters: imageFilters
 			}).promise()
 		]);
 	} catch (e) {
@@ -225,13 +263,18 @@ exports.main = async function(event, context, callback) {
 		entry.CreationDate > newest.CreationDate ? entry : newest
 	, { CreationDate: '1980-01-01T00:00:00.000Z' });
 
+	if (!!!image.ImageId) {
+		console.log("Unable to find a suitable AMI.");
+		return respond(500, {}, "Unable to find a suitable AMI.", false);
+	}
+
 	let spotFleetParams;
 
 	try {
 
 		// Calculate the necessary volume size
 
-		const volumeSize = Math.ceil(manifest.wordlistSize / 1073741824) + 1;
+		const volumeSize = Math.ceil(manifest.wordlistSize / 1073741824) * 2;
 		console.log(`Wordlist is ${manifest.wordlistSize / 1073741824}GiB. Allocating ${volumeSize}GiB`);
 
 		// Build a launchSpecification for each AZ in the target region.

@@ -280,6 +280,8 @@ exports.main = async function(event, context, callback) {
 	// Promises are all done. Let's calculate the instance costs, and roll them up to the fleet.
 	try {
 
+		console.log(spotPrices);
+
 		Object.keys(spotFleets).forEach((fleetId) => {
 			const fleet = spotFleets[fleetId];
 
@@ -287,7 +289,13 @@ exports.main = async function(event, context, callback) {
 			Object.keys(fleet.instances).forEach((instanceId) => {
 				const instance = fleet.instances[instanceId];
 
-				const prices = spotPrices[fleet.region + ':' + instance.instanceType][instance.availabilityZone];
+				const prices = spotPrices?.[fleet.region + ':' + instance.instanceType]?.[instance.availabilityZone];
+
+				if (!!!prices) {
+					badInstance = true;
+					return false;
+				}
+				
 				prices[new Date().getTime()] = prices[Object.keys(prices).slice(-1)];
 
 				const timestamps = Object.keys(prices).sort(function(a, b) { return a - b; });
@@ -297,6 +305,7 @@ exports.main = async function(event, context, callback) {
 
 				if (instance.history.startTime == 0) {
 					badInstance = true;
+					return false;
 				}
 
 				let duration = instance.history.endTime - instance.history.startTime;

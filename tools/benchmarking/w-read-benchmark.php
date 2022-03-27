@@ -6,7 +6,7 @@ if (count($argv) < 2) {
 }
 
 //$benchmark = explode("Hashmode: ", file_get_contents($argv[1]));
-$benchmark = explode("Hash-Mode ", file_get_contents($argv[1]));
+$benchmark = explode("Hash.Mode........: ", file_get_contents($argv[1]));
 $speeds = array();
 
 array_shift($benchmark);
@@ -22,11 +22,11 @@ while (count($benchmark) > 0) {
 
 	$name = substr(array_shift($entry), 1, -1);
 	echo "name: " . $name . "\n";
-	array_shift($entry);
+
 
 	$speed = array();
 	foreach($entry as $line) {
-		echo $line;
+		echo "[ " . $line . " ]";
 		preg_match("/\:\s*?([\d\.]+)\s(.{0,1}H\/s)\s/", $line, $matches);
 
 		print_r($matches);

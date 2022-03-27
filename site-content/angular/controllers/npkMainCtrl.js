@@ -660,6 +660,7 @@ angular
   .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKET', 'USERDATA_BUCKET', 'APIGATEWAY_URL', 'QUOTAS', 'FAMILIES', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKET, USERDATA_BUCKET, APIGATEWAY_URL, QUOTAS, FAMILIES) {
 
     $scope.pricingSvc = pricingSvc;
+    pricingSvc.gpuSpeeds = pricingSvc.gpuWordlistSpeeds;
     // window.campaignCtrl = $scope;
 
     $scope.hashType = 1000;
@@ -870,6 +871,14 @@ angular
       $scope.updateWordlistAttack();
     });
 
+    $scope.$watch('selectedInstance', function() {
+      $scope.updateWordlistAttack();
+    });
+
+    $scope.$watch('use_wordlist', function() {
+      $scope.updateWordlistAttack();
+    });
+
     $scope.$watch('selectedRules', function() {
       $scope.updateWordlistAttack();
     });
@@ -902,6 +911,7 @@ angular
       });
 
       if (!$scope.selectedInstance) {
+        $scope.updateTotalKeyspace();
         return Promise.resolve(true);
       }
 
@@ -960,12 +970,14 @@ angular
     $scope.totalDuration = 0;
     $scope.updateTotalKeyspace = function() {
 
-      if (!$scope.selectedInstance) return false;
+      if (!!$scope.selectedInstance) {
 
-      $scope.totalKeyspace = (($scope.use_mask) ? $scope.maskKeyspace : 1) * (($scope.use_wordlist) ? $scope.wordlistAttackStats.total.keyspace : 1);
-      $scope.totalDuration = $scope.totalKeyspace / (($scope.selectedInstance != "none") ? (FAMILIES[$scope.selectedFamily.gpu].instances[$scope.selectedInstance.instanceType][0] * (pricingSvc.gpuSpeeds[$scope.selectedFamily.gpu][$scope.hashType] /4)) : 1);
+        $scope.totalKeyspace = (($scope.use_mask) ? $scope.maskKeyspace : 1) * (($scope.use_wordlist) ? $scope.wordlistAttackStats.total.keyspace : 1);
+        $scope.totalDuration = $scope.totalKeyspace / (($scope.selectedInstance != "none") ? (FAMILIES[$scope.selectedFamily.gpu].instances[$scope.selectedInstance.instanceType][0] * (pricingSvc.gpuSpeeds[$scope.selectedFamily.gpu][$scope.hashType])) : 1);
 
-      $scope.updateCoverage();
+        $scope.updateCoverage();
+      }
+      
       $scope.compileManualCommands();
 
       if ($scope.useTargetOverride) {
@@ -1035,6 +1047,8 @@ angular
         $('#maskConfig').css('opacity', 0.4);
         $('#maskConfig button').each(function(i, e) { $(e).prop('disabled', true)});
       }
+
+      $scope.updateTotalKeyspace();
     };
 
     $scope.toggleManual = function() {
@@ -1072,6 +1086,13 @@ angular
 
     $scope.$watch('attackType', function() {
       $scope.compileManualCommands();
+
+      pricingSvc.gpuSpeeds = pricingSvc.gpuWordlistSpeeds;
+      if ($scope.attackType == 3) {
+        pricingSvc.gpuSpeeds = pricingSvc.gpuMaskSpeeds;
+      }
+
+      $scope.getInstanceOptions();
     });
 
     $scope.$watch('manual_arguments', function() {

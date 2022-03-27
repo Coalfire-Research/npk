@@ -17,6 +17,8 @@
 		}
 	},
 	"NVIDIA K80": {
+		"ami": "amzn2-ami-graphics-hvm-2*",
+		"owner": "679593333241",
 		"quotaCode": "L-7212CCBC",
 		"instances": {
 			"p2.xlarge": [1, 4],
@@ -25,6 +27,8 @@
 		}
 	},
 	"NVIDIA V100": {
+		"ami": "amzn2-ami-graphics-hvm-2*",
+		"owner": "679593333241",
 		"quotaCode": "L-7212CCBC",
 		"instances": {
 			"p3.2xlarge": [1, 8],

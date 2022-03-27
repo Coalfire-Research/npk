@@ -16,7 +16,9 @@ Let's face it - even the beastliest cracking rig spends a lot of time at idle. Y
 
 Paste a one-liner into AWS CloudShell. Pretty easy.
 
-![cloudshell_oneliner](https://user-images.githubusercontent.com/143415/156902079-670f7386-ce60-4e9f-8ef0-2429eb906261.png)
+```source <(curl https://npkproject.io/cloudshell_install.sh)```
+
+![cloudshell_oneliner](https://user-images.githubusercontent.com/143415/160295789-7b4f21fa-4ac3-4900-b78a-7a974b9f48ac.png)
 
 There are also [Step-by-step instructions](https://github.com/c6fc/npk/wiki/Step-by-step-Installation) if you want them.
 
@@ -54,22 +56,39 @@ Configure how long data will stay in NPK with configurable lifecycle durations d
 2. Click the AWS CloudShell button in the top right corner.
 ![cloudshell_icon](https://user-images.githubusercontent.com/143415/156901055-5107d4b2-c5b4-4ca5-8454-57e7504e2316.png)
 
-3. Paste in the one-liner: `curl https://npkproject.io/cloudshell_install.sh | bash`
+3. Paste in the one-liner: `source <(curl https://npkproject.io/cloudshell_install.sh)`
 4. Use the wizard to complete the configuration
-5. (Optional) If you said 'no' at the end of the wizard, run `npm run deploy -- -ys` from the `/aws/mde/npk` directory.
+
+When the deploy finishes, you'll be dropped to a custom prompt, which indicates that NPK is deployed and CloudShell is connected to it.
+
+![deployed_prompt](https://user-images.githubusercontent.com/143415/160296855-d2b5a383-445f-44a7-8a06-0051ad215536.png)
+
+If you said 'no' at the end of the wizard, you can run `npm run deploy` from this prompt to finish the deployment.
 
 See https://github.com/c6fc/npk/wiki/Detailed-NPK-Settings for more details about advanced configurations, or https://github.com/c6fc/npk/wiki/Configuring-SAML-SSO for help configuring SAML SSO.
 
+## Connect to an existing installation
+
+To connect to an existing NPK installation (which is needed to modify or uninstall NPK), log into the AWS account where NPK resides, click the CloudShell icon, and paste in the one-liner:
+
+```source <(curl https://npkproject.io/cloudshell_install.sh)```
+
+CloudShell will now connect to NPK (which may take a minute or two), after which you'll drop to a new prompt that looks like this:
+
+![deployed_prompt](https://user-images.githubusercontent.com/143415/160296855-d2b5a383-445f-44a7-8a06-0051ad215536.png)
+
+You're now connected to your NPK installation. This can be performed by any user in the AWS account with admin rights, and can be performed in any region.
+
 ## Modify Install
 
-You can change the settings of an install without losing your existing campaigns. Edit `npk-settings.json` as necessary, then run `npm run update`. It's that easy!
+You can change the settings of an install without losing your existing campaigns. Use the instructions above to connect to your NPK installation, then edit `npk-settings.json` as necessary and run `npm run update`. It's that easy!
 
 ```sh
-~/npk$ vim npk-settings.json
-~/npk$ npm run update
+cloudshell-user$ source <(curl https://npkproject.io/cloudshell_install.sh)
+@c6fc/npk> vim npk-settings.json
+< ... change your settings however you need >
+@c6fc/npk> npm run update
 ```
-
-If it's been a while and your CloudShell has timed out (and you don't have an npk-settings.json file anymore), just run the installer again and provide the same answers. The deploy will re-attach to your existing environment easily.
 
 ## Uploading your own dictionaries and rule files
 
@@ -79,13 +98,12 @@ Once NPK has been deployed, administrative users can use the NPK console to uplo
 
 ## Uninstall
 
-You can completely turn down NPK and delete all of its data from AWS using the built-in Terraform binary:
+You can completely turn down NPK and delete all of its data from AWS very easily. Just attach your CloudShell to NPK, then run `npm run destroy`:
 
 ```sh
-~/npk$ npm run destroy
+cloudshell-user$ source <(curl https://npkproject.io/cloudshell_install.sh)
+@c6fc/npk> npm run destroy
 ```
-
-If you don't have a `render-npx` directory, run `npm run deploy -- -y` first to create it.
 
 # Official Discord Channel
 

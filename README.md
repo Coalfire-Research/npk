@@ -16,7 +16,7 @@ Let's face it - even the beastliest cracking rig spends a lot of time at idle. Y
 
 Paste a one-liner into AWS CloudShell. Pretty easy.
 
-```cloudshell-user$ source <(curl https://npkproject.io/cloudshell_install.sh)```
+```source <(curl https://npkproject.io/cloudshell_install.sh)```
 
 ![cloudshell_oneliner](https://user-images.githubusercontent.com/143415/160295789-7b4f21fa-4ac3-4900-b78a-7a974b9f48ac.png)
 
@@ -71,7 +71,7 @@ See https://github.com/c6fc/npk/wiki/Detailed-NPK-Settings for more details abou
 
 To connect to an existing NPK installation (which is needed to modify or uninstall NPK), log into the AWS account where NPK resides, click the CloudShell icon, and paste in the one-liner:
 
-```cloudshell-user$ source <(curl https://npkproject.io/cloudshell_install.sh)```
+```source <(curl https://npkproject.io/cloudshell_install.sh)```
 
 CloudShell will now connect to NPK (which may take a minute or two), after which you'll drop to a new prompt that looks like this:
 

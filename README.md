@@ -52,6 +52,8 @@ Configure how long data will stay in NPK with configurable lifecycle durations d
 
 **ProTip:** To keep things clean and distinct from other things you may have in AWS, it's STRONGLY recommended that you deploy NPK in a fresh account. You can create a new account easily from the 'Organizations' console in AWS. **By 'STRONGLY recommended', I mean 'seriously don't install this next to other stuff'.**
 
+**Note: If you have an older version of NPK that you deployed without the one-liner, you'll need to destroy it before installing the new version**
+
 1. Log into the AWS Console for the account you want to deploy to.
 2. Click the AWS CloudShell button in the top right corner.
 ![cloudshell_icon](https://user-images.githubusercontent.com/143415/156901055-5107d4b2-c5b4-4ca5-8454-57e7504e2316.png)
@@ -68,6 +70,8 @@ If you said 'no' at the end of the wizard, you can run `npm run deploy` from thi
 See https://github.com/c6fc/npk/wiki/Detailed-NPK-Settings for more details about advanced configurations, or https://github.com/c6fc/npk/wiki/Configuring-SAML-SSO for help configuring SAML SSO.
 
 ## Connect to an existing installation
+
+**Note: If you have an older version of NPK that you deployed without the one-liner, you'll need to destroy it before installing the new version**
 
 To connect to an existing NPK installation (which is needed to modify or uninstall NPK), log into the AWS account where NPK resides, click the CloudShell icon, and paste in the one-liner:
 

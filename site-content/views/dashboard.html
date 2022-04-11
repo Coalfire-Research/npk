@@ -123,6 +123,10 @@
                             <div ng-if="campaign.spotRequestHistory.slice(-1)[0].EventType != 'error'">
                               <h6 class="card-text text-white">
                                 No status reports received. Nodes may still be starting.<br />
+                                {{ campaigns[campaign._id].spotRequestStatus }}
+                                <div ng-if="objLength(campaigns[campaign._id].spotRequestStatus) < 1" class="text-center">
+                                  <img height="20px" width="20px" src="assets/images/loading.gif">
+                                </div>
                               </h6>
                             </div>
                             <div ng-if="campaign.spotRequestHistory.slice(-1)[0].EventType == 'error'">
@@ -138,56 +142,62 @@
                               </small>
                             </div>
                             <div ng-repeat="(nid, node) in campaigns[campaign._id].spotRequestStatus">
-                              <a ng-href="#/campaigns/{{ campaign._id }}/nodes/{{ nid }}"><small>{{ nid }}</small></a>
+                              <a class="badge badge-primary" ng-href="#/file-management/campaigns/{{ campaign._id.split(':')[2] }}/potfiles/{{ nid }}-output"><small>{{ nid }}</small></a>
                               <small class="ml-3 text-white">
                                 {{ campaigns[campaign._id].spotRequestStatus[nid].State }} / {{ campaigns[campaign._id].spotRequestStatus[nid].Status.Code }};&nbsp;&nbsp;&nbsp;[ {{ campaigns[campaign._id].spotRequestStatus[nid].Status.Message }} ]
                               </small>
                             </div>
-                            <div ng-if="!campaigns[campaign._id].spotRequestStatus" class="text-center">
-                              <img height="20px" width="20px" src="assets/images/loading.gif">
-                            </div>
                           </div>
-                          <h6 class="text-white" ng-if="objLength(campaign.nodes) > 0">Nodes</h6>
+                          <h6 class="text-white" ng-if="objLength(campaign.nodes) > 0">
+                            Nodes for
+                            <a ng-href="#/campaign-management/{{ campaign._id.split(':')[2] }}">
+                              {{ campaign._id.split(':')[2] }}
+                            </a>
+                            
+                            </small>
+                          </h6>
                           <div class="row" ng-if="objLength(campaign.nodes) > 0" style="margin: 0px;">
                              <div class="col-lg-12">
                               <div ng-repeat="(nid, node) in campaign.nodes" ng-if="objLength(campaign.nodes) > 0" class="text-left">
                                 <div class="row">
                                   <div class="col-lg-2" style="margin-top: 1px;">
                                     <p class="text-center" style="line-height: 1">
-                                      <a ng-href="#/campaigns/{{ id }}/nodes/{{ nid }}"><small>{{ nid }}</small></a><br />
-                                      <small>{{ node['latest'].status }}</small>
-                                      <small>[{{ node['latest'].recoveredHashes }} / {{ campaign.hashes }}]</small>
+                                      <a class="badge badge-primary" ng-href="#/file-management/campaigns/{{ campaign._id.split(':')[2] }}/potfiles/{{ nid }}-output"><small>{{ nid }}</small></a><br>
                                     </p>
                                   </div>
-                                  <div class="col-lg-10 text-center" style="padding-top: 8px;">
+                                  <div class="col-lg-10 text-center pt-2">
                                    <div class="progress" style="height: 6px;">
                                       <div class="progress-bar bg-warning progress-bar-striped" ng-class="{'progress-bar-animated': campaign.active}" role="progressbar" style="width: {{ ((node.first - campaign.startTime) / campaign.durationSeconds) * 100 }}%"></div>
                                       <div class="progress-bar bg-primary progress-bar-striped" ng-class="{'progress-bar-animated': campaign.active}" role="progressbar" style="width: {{ ((node.firstRecovery - node.first) / campaign.durationSeconds) * 100 }}%"></div>
                                       <div class="progress-bar bg-success progress-bar-striped" ng-class="{'progress-bar-animated': campaign.active}" role="progressbar" style="width: {{ ((node.last - node.firstRecovery) / campaign.durationSeconds) * 100 }}%"></div>
                                       <div class="progress-bar bg-dark progress-bar-striped" ng-if="node.last.status == 'COMPLETED' || (now() - node.last) > 120" ng-class="{'progress-bar-animated': campaign.active}" role="progressbar" style="width: {{ ((now() - node.last) / campaign.durationSeconds) * 100 }}%"></div>
                                    </div>
-                                   <small ng-if="node['latest'].startTime">
+                                 </div>
+                               </div>
+                               <div class="row">
+                                 <div class="col-lg-12 text-center p-0 pb-2 mb-2">
+                                  <small ng-if="node['latest'].startTime" class="mb-2">
                                     Spot Status: [ {{ campaigns[campaign._id].spotRequestStatus[nid].State }}; {{ campaigns[campaign._id].spotRequestStatus[nid].Status.Code }} ]
                                     &nbsp;&nbsp;&nbsp;
-                                    Spot Fulfillment Message: [ {{ campaigns[campaign._id].spotRequestStatus[nid].Status.Message }} ]
-                                    <br>
+                                    Spot Fulfillment Message: [ {{ campaigns[campaign._id].spotRequestStatus[nid].Status.Message.split(':').pop() }} ]
+                                    <br/>
                                     Hashcat: {{ node['latest'].progress | number:2 }}% | 
                                     Time: {{ ((node.last - campaign.startTime) / campaign.durationSeconds) * 100 | number:2 }}% | 
-                                    Price: {{ (campaign.price / campaign.targetPrice) * 100 | number:2 }}%
+                                    Price: {{ (campaign.price / campaign.targetPrice) * 100 | number:2 }}%;
+                                    {{ node['latest'].status }} [{{ node['latest'].recoveredHashes }} / {{ campaign.hashes }}]
                                   </small>
                                   </div>
                                 </div>
-                                <div class="row">
-                                  <div class="col-lg-2 card-body card text-warning text-center border border-dark bg-dark" style="margin-right: 10px; height: 60px; padding-top: 5px;" ng-repeat="(gpu, hashrate) in node['latest'].performance track by $index">
-                                    <big>GPU {{ gpu }}</big>
-                                    <small>{{ hashrate | toHs }}</small>
+                                <div class="row row-flex justify-content-center pb-5">
+                                  <div class="col-lg-2 text-center text-success bg-dark border border-success shadow-success m-1 pt-2 p-1" ng-repeat="(gpu, hashrate) in node['latest'].performance track by $index">
+                                    {{ hashrate | toHs }}
                                   </div>
                                 </div>
                              </div>
                              <div ng-repeat="(nid, node) in campaigns[campaign._id].spotRequestStatus" ng-hide="campaign.nodes.hasOwnProperty(nid)">
                               <div class="row">
                                 <div class="col-lg-2" style="margin-top: 1px;">
-                                  <a ng-href="#/campaigns/{{ id }}/nodes/{{ nid }}"><small>{{ nid }}</small></a>
+                                  <a class="badge badge-primary" ng-href="#/file-management/campaigns/{{ campaign._id.split(':')[2] }}/potfiles/{{ nid }}-output"><small>{{ nid }}</small></a>
                                 </div>
                                 <div class="col-lg-10 text-center" style="padding-top: 8px;">
                                   <small class="ml-3 text-white">

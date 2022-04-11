@@ -612,6 +612,10 @@ angular
           $scope.$digest();
 
           $('#messageModal').modal('show');
+
+          $timeout(function() {
+            $scope.populateDashboard()
+          }, 2000);
           
           // location.href = location.href.split('#')[0];
         }).fail(function(xhr, a, b) {
@@ -657,7 +661,7 @@ angular
 
       });
    }])
-  .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKET', 'USERDATA_BUCKET', 'APIGATEWAY_URL', 'QUOTAS', 'FAMILIES', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKET, USERDATA_BUCKET, APIGATEWAY_URL, QUOTAS, FAMILIES) {
+  .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKET', 'USERDATA_BUCKET', 'APIGATEWAY_URL', 'QUOTAS', 'FAMILIES', 'FAMILYREGIONS', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKET, USERDATA_BUCKET, APIGATEWAY_URL, QUOTAS, FAMILIES, FAMILYREGIONS) {
 
     $scope.pricingSvc = pricingSvc;
     pricingSvc.gpuSpeeds = pricingSvc.gpuWordlistSpeeds;
@@ -693,6 +697,7 @@ angular
     $scope.instanceOptions = [];
 
     $scope.families = FAMILIES;
+    $scope.familyRegions = FAMILYREGIONS;
 
     // $scope.instances = {};
 

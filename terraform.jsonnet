@@ -44,6 +44,7 @@ local settings = {
 	wwwEndpoint: "${aws_cloudfront_distribution.npk.domain_name}",
 	primaryRegion: "us-west-2"
 } + npksettings + {
+	familyRegions: validatedSettings.familyRegions,
 	families: gpu_instance_families,
 	regions: validatedSettings.regions,
 	quotas: validatedSettings.quotas,
@@ -1002,6 +1003,7 @@ local regionKeys = std.objectFields(settings.regions);
 						use_SAML: settings.useSAML,
 						saml_domain: "",
 						saml_redirect: "",
+						familyRegions: std.strReplace(std.manifestJsonEx(settings.familyRegions, ""), "\n", ""),
 						families: std.strReplace(std.manifestJsonEx(settings.families, ""), "\n", ""),
 						quotas: std.strReplace(std.manifestJsonEx(settings.quotas, ""), "\n", ""),
 						regions: std.strReplace(std.manifestJsonEx(settings.regions, ""), "\n", ""),

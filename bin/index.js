@@ -143,6 +143,38 @@ async function deploy(skipInit, autoApprove) {
 	
 	console.log("[+] Retrieved quotas.");
 
+	const instanceRegions = {};
+	const instanceTypes = Object.keys(families).reduce((instances, family) => {
+		const firstInstance = Object.keys(families[family].instances)[0];
+		instances[firstInstance] = family;
+		instanceRegions[family] = [];
+
+		return instances;
+	}, {});
+
+	const offeringsPromises = regions.reduce((offerings, region) => {
+		const ec2 = new aws.EC2({ region });
+
+		offerings.push(ec2.describeInstanceTypeOfferings({
+			LocationType: "region"
+		}).promise().then((data) => {
+
+			const instances = data.InstanceTypeOfferings
+				.filter(e => Object.keys(instanceTypes).includes(e.InstanceType))
+				.map(e => {
+					instanceRegions[instanceTypes[e.InstanceType]].push(region);
+				});
+		}));
+
+		return offerings;
+	}, []);
+
+	await Promise.all(offeringsPromises);
+
+	validatedSettings.familyRegions = instanceRegions;
+
+	console.log("[+] Retrieved per-region instance support.");
+
 	// Retrieve availability zones for regions with appropriate quotas.
 	const azs = {};
 	const azPromises = Object.keys(regionQuotas).reduce((promises, region) => {

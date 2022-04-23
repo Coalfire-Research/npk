@@ -21,6 +21,7 @@ angular.module('app')
 		"SAMLRedirectUrl": "${saml_redirect}",
 		"SAMLIdp": "NPKSAML"
 	})
+	.constant('FAMILYREGIONS', ${familyRegions})
 	.constant('FAMILIES', ${families})
 	.constant('QUOTAS', ${quotas})
 	.constant('REGIONS', ${regions})

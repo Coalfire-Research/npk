@@ -5,6 +5,12 @@ angular
     		return JSON.stringify(what, null, ' ').trim();
     	};
     })
+    .filter('fieldMemberOf', function() {
+    	return function(source, field, mask) {
+    		return source
+    			.filter(e => mask.includes(e[field]));
+    	}
+    })
     .filter('equals', function() {
     	return function(items, equals) {
     		if (typeof items != "object") {

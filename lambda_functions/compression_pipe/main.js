@@ -6,6 +6,11 @@ const zlib = require('zlib');
 const util = require('util');
 const stream = require('stream');
 
+const accountDetails = JSON.parse(fs.readFileSync('./accountDetails.json', 'ascii'));
+
+const variables = JSON.parse(JSON.stringify(process.env));
+variables.subnets = JSON.parse(variables.subnets);
+
 const pipe = util.promisify(stream.pipeline);
 
 function uploadStream(Bucket, Key, s3) {
@@ -29,7 +34,13 @@ exports.main = async function(event, context, callback) {
 
 	const s3 = new aws.S3({ region: event.awsRegion });
 	const bucket = event.s3.bucket.name;
+	const keysize = event.s3.object.size;
 	const key = event.s3.object.key;
+
+	if (keysize > 1500 * Math.pow(1024, 3)) {
+		console.log("[!] Max file size is 2.5TiB.");
+		return false;
+	}
 
 	// Get the filename. #sorrynotsorry.
 	const basename = key
@@ -70,6 +81,123 @@ exports.main = async function(event, context, callback) {
 		newKey = `${type}/${basename}-${Date.now()}.gz`
 	} catch (e) {
 		// all good.
+	}
+
+	// Use EC2 for compression if the size is over 4GB:
+	if (keysize > 4 * Math.pow(1024, 3)) {
+		const sq = new aws.ServiceQuotas({ region: event.awsRegion });
+		const ec2 = new aws.EC2({ region: event.awsRegion });
+
+		let instanceType = "i3en.2xlarge";
+		const i3Quota = await sq.getServiceQuota({
+			ServiceCode: 'ec2',
+			QuotaCode: 'L-34B43A08'
+		}).promise()
+
+		// console.log(i3Quota.Quota);
+
+		if (i3Quota.Quota.Value < 4) {
+			console.log("[!] Insufficient quota.");
+			return false;
+		}
+
+		if (i3Quota.Quota.Value < 8) {
+			if (keysize > 1500 * Math.pow(1024, 3)) {
+				console.log("[!] Your limited quota limits your max file size to 1.5TiB.");
+				return false;
+			}
+
+			console.log("[-] Using smaller instance due to quota limitations.");
+			instanceType = "i3en.2xlarge";
+		}
+
+		// Build a launchSpecification for each AZ in the target region.
+		const instance_userdata = new Buffer.from(fs.readFileSync(__dirname + '/userdata.sh', 'utf-8')
+			.replace("{{targetfile}}", `s3://${bucket}/${key}`)
+			.replace("{{targetfiletype}}", type)
+			.replace("{{dictionarybucket}}", variables.dictionaryBucket))
+			.toString('base64');
+
+		const images = await ec2.describeImages({
+			Filters: [{
+		        Name: "virtualization-type",
+		        Values: ["hvm"]
+		    }, {
+		    	Name: "root-device-type",
+		    	Values: ["ebs"]
+		    }, {
+		    	Name: "architecture",
+    			Values: ["x86_64"]
+		    }, {
+		    	Name: "owner-id",
+    			Values: ["137112412989"]
+		    }, {
+		    	Name: "name",
+		    	Values: ["amzn2-ami-hvm-2.0.20*"]
+		    }]
+		}).promise()
+
+		const image = images.Images.reduce((newest, entry) => 
+			entry.CreationDate > newest.CreationDate ? entry : newest
+		, { CreationDate: '1980-01-01T00:00:00.000Z' });
+
+		if (!!!image.ImageId) {
+			console.log("Unable to find a suitable AMI.");
+			return false;
+		}
+
+		const launchSpecificationTemplate = {
+            ImageId: image.ImageId,
+			KeyName: "npk-key",
+			InstanceType: instanceType,
+            NetworkInterfaces: [{
+				DeviceIndex: 0,
+				DeleteOnTermination: true,
+				AssociatePublicIpAddress: true
+			}],
+            IamInstanceProfile: {
+				Arn: variables.compressionProfile
+			},
+            TagSpecifications: [{
+				ResourceType: "instance",
+				Tags: [{
+					Key: "TargetFile",
+					Value: newKey
+				}]
+			}],
+            UserData: instance_userdata
+        }
+
+		// Create a copy of the launchSpecificationTemplate for each AvailabilityZone in the campaign's region.
+		const launchSpecifications = Object.keys(variables.subnets).reduce((specs, entry) => {
+			const az = JSON.parse(JSON.stringify(launchSpecificationTemplate)); // Have to deep-copy to avoid referential overrides.
+
+			az.NetworkInterfaces[0].SubnetId = variables.subnets[entry];
+
+			return specs.concat(az);
+		}, []);
+
+		const spotFleetParams = {
+			SpotFleetRequestConfig: {
+				AllocationStrategy: "lowestPrice",
+				IamFleetRole: variables.iamFleetRole,
+				InstanceInterruptionBehavior: "terminate",
+				LaunchSpecifications: launchSpecifications,
+				SpotPrice: "0.90",
+				TargetCapacity: 1,
+				ReplaceUnhealthyInstances: false,
+				TerminateInstancesWithExpiration: true,
+				Type: "request",
+				ValidFrom: (new Date().getTime() / 1000),
+				ValidUntil: (new Date().getTime() / 1000) + (4 * 3600)
+			}
+		};
+
+		const sfr = await ec2.requestSpotFleet(spotFleetParams).promise();
+
+		console.log(`[+] Successfully requested Spot fleet [ ${sfr.SpotFleetRequestId} ]`);
+
+		return true;
 	}
 
 	const raw = s3.getObject({

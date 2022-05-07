@@ -258,7 +258,7 @@ exports.main = async function(event, context, callback) {
 				Key: entity + '/' + campaign.hashFile
 		}).promise().then((data) => {
 
-			if (data.ContentType != "text/plain") {
+			if (data.ContentType.indexOf("text/plain") != 0) {
 				return respond(400, {}, "Content Type " + data.ContentType + " not permitted. Use text/plain.", false);
 			}
 

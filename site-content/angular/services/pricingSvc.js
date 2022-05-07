@@ -55,7 +55,6 @@ angular
 				const result = { [family]: [] };
 
 				for (let region of FAMILYREGIONS[family]) {
-					console.log(region);
 					const instanceTypes = Object.keys(FAMILIES[family].instances).reduce((names, name) => {
 						if (!QUOTAS?.[region]?.[FAMILIES[family].quotaCode]) {
 							return names;

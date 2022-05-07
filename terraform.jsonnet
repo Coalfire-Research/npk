@@ -328,6 +328,46 @@ local regionKeys = std.objectFields(settings.regions);
 		resource: dynamodb_settings
 	},
 	'ec2_iam_roles.tf.json': ec2_iam_roles,
+	'ec2_iam_roles-compress.tf.json': {
+		resource: iam.iam_role(
+			"npk_ec2_compress",
+			"NPk Compression Nodes",
+			{},
+	        {
+	        	EC2Compression: [{
+					Sid: "s3ToProcess",
+					Effect: "Allow",
+					Action: [
+						"s3:GetObject",
+						"s3:DeleteObject"
+					],
+					Resource: "arn:aws:s3:::${aws_s3_bucket.dictionary.id}/to_process/*"
+				}, {
+					Sid: "s3PutFiles",
+					Effect: "Allow",
+					Action: "s3:PutObject",
+					Resource: [
+						"arn:aws:s3:::${aws_s3_bucket.dictionary.id}/wordlist/*",
+						"arn:aws:s3:::${aws_s3_bucket.dictionary.id}/rules/*"
+					]
+				}]
+	        },
+			[{
+				Effect: "Allow",
+				Principal: {
+					Service: "ec2.amazonaws.com"
+				},
+				Action: "sts:AssumeRole"
+			}]
+		) + {
+			aws_iam_instance_profile: {
+				npk_ec2_compress: {
+					name_prefix: "npk_ec2_compress_",
+					role: "${aws_iam_role.npk_ec2_compress.name}"
+				}
+			}
+		}
+	},
 	'keepers.tf.json': {
 		resource: keepers.resource(settings.adminEmail),
 		output: keepers.output	
@@ -361,9 +401,17 @@ local regionKeys = std.objectFields(settings.regions);
 		timeout: 900,
 		memory_size: 2048,
 
-		environment:: {
-			variables: {}
-		},
+		environment: {
+			variables: {
+				compressionProfile: "${aws_iam_instance_profile.npk_ec2_compress.arn}",
+				iamFleetRole: "${aws_iam_role.npk_fleet_role.arn}",
+				subnets: std.manifestJsonEx([
+					"${aws_subnet.npk-%s-subnet-%s.id}" % [settings.primaryRegion, az]
+					for az in settings.regions[settings.primaryRegion]
+				], ""),
+				dictionaryBucket: "${aws_s3_bucket.dictionary.id}",
+			}
+		}
 	}, {
 		statement: [{
 			sid: "s3ToProcess",
@@ -385,6 +433,31 @@ local regionKeys = std.objectFields(settings.regions);
 				"arn:aws:s3:::${aws_s3_bucket.dictionary.id}/wordlist/*",
 				"arn:aws:s3:::${aws_s3_bucket.dictionary.id}/rules/*",
 			]
+		}, {
+			sid: "passrole",
+			actions: [
+				"iam:PassRole"
+			],
+			resources: [
+				"${aws_iam_role.npk_ec2_compress.arn}",
+				"${aws_iam_role.npk_fleet_role.arn}"
+			]
+		}, {
+			sid: "ec2",
+			actions: [
+				"ec2:DescribeImages",
+				"ec2:DescribeSubnets",
+				"ec2:RequestSpotFleet",
+				"ec2:RunInstances",
+				"ec2:CreateTags"
+			],
+			resources: ["*"]
+		}, {
+			sid: "sq",
+			actions: [
+				"servicequotas:GetServiceQuota"
+			],
+			resources: ["*"]
 		}]
 	}),
 	'lambda-compression_pipe-permission.tf.json': {
@@ -1091,5 +1164,5 @@ local regionKeys = std.objectFields(settings.regions);
 	for region in std.objectFields(settings.regions)
 } + {
 	['../lambda_functions/%s/accountDetails.json' % name]: accountDetails
-	for name in ['create_campaign', 'delete_campaign', 'execute_campaign', 'spot_monitor']
+	for name in ['compression_pipe', 'create_campaign', 'delete_campaign', 'execute_campaign', 'spot_monitor']
 }

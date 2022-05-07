@@ -18,6 +18,10 @@ Paste a one-liner into AWS CloudShell. Pretty easy.
 
 ```source <(curl https://npkproject.io/cloudshell_install.sh)```
 
+If you'd like to use the `dev` branch to use beta features, use this one-liner instead:
+
+```source <(curl https://npkproject.io/cloudshell_install_dev.sh)```
+
 ![cloudshell_oneliner](https://user-images.githubusercontent.com/143415/160295789-7b4f21fa-4ac3-4900-b78a-7a974b9f48ac.png)
 
 There are also [Step-by-step instructions](https://github.com/c6fc/npk/wiki/Step-by-step-Installation) if you want them.

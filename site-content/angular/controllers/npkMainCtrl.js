@@ -1129,6 +1129,7 @@ angular
         "./hashcat/hashcat.bin",
         "--quiet",
         "-O",
+        "-w"
         "4",
         "-m",
         $scope.hashType,

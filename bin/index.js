@@ -14,6 +14,7 @@ const sonnetry = new Sonnet({
 	cleanBeforeRender: true
 });
 
+let computedQuotas;
 
 async function deploy(skipInit, autoApprove) {
 
@@ -73,6 +74,64 @@ async function deploy(skipInit, autoApprove) {
 		}
 	}
 
+	// Get AZ/Quota info
+	const azQuotas = await getAZsWithQuota();
+	Object.assign(validatedSettings, azQuotas);
+
+	const iam = new aws.IAM();
+
+	try {
+		await iam.getRole({
+			RoleName: "AWSServiceRoleForEC2Spot"
+		}).promise();
+	} catch (e) {
+		console.log(`[*] EC2 spot SLR is not present. Creating...`);
+
+		try {
+			await iam.createServiceLinkedRole({
+				AWSServiceName: "spot.amazonaws.com"
+			}).promise();
+		} catch (e) {
+			console.trace(e);
+			console.log(`[!] Unable to create service linked role: ${e}`);
+		}
+	}
+
+	console.log("\n[*] All prerequisites finished. Generating infrastructure configurations.");
+
+	Object.assign(validatedSettings, computedQuotas);
+
+	sonnetry.export('validatedSettings', validatedSettings);
+
+	try {
+		await sonnetry.render('terraform.jsonnet');
+	} catch (e) {
+		console.trace(e);
+		console.log(`\n[!] Failed to generate NPK configurations.`);
+		return false;
+	}
+
+	sonnetry.write();
+
+	console.log(`[+] Configurations updated successfully. Preparing to deploy.`);
+
+	try {
+		sonnetry.apply(skipInit, autoApprove);
+	} catch (e) {
+		console.trace(e);
+		console.log('\n[!] Failed to apply configuration.')
+		return false;
+	}	
+
+	return true;
+}
+
+async function getAZsWithQuota() {
+
+	const aws = sonnetry.aws;
+
+	const result = {};
+
 	// Generate region list. AZ's are done later to only capture those with appropriate quotas.
 	const ec2 = new aws.EC2({ region: "us-east-1" });
 	let regions;
@@ -89,7 +148,7 @@ async function deploy(skipInit, autoApprove) {
 		return false;
 	}
 
-	validatedSettings.providerRegions = regions;
+	result.providerRegions = regions;
 
 	console.log("[+] Retrieved all active regions");
 
@@ -139,7 +198,7 @@ async function deploy(skipInit, autoApprove) {
 		return false;
 	}
 
-	validatedSettings.quotas = regionQuotas;
+	result.quotas = regionQuotas;
 	
 	console.log("[+] Retrieved quotas.");
 
@@ -171,7 +230,7 @@ async function deploy(skipInit, autoApprove) {
 
 	await Promise.all(offeringsPromises);
 
-	validatedSettings.familyRegions = instanceRegions;
+	result.familyRegions = instanceRegions;
 
 	console.log("[+] Retrieved per-region instance support.");
 
@@ -193,54 +252,11 @@ async function deploy(skipInit, autoApprove) {
 
 	await Promise.all(azPromises);
 
-	validatedSettings.regions = azs;
+	result.regions = azs;
 
 	console.log("[+] Retrieved availability zones.");
 
-	const iam = new aws.IAM();
-
-	try {
-		await iam.getRole({
-			RoleName: "AWSServiceRoleForEC2Spot"
-		}).promise();
-	} catch (e) {
-		console.log(`[*] EC2 spot SLR is not present. Creating...`);
-
-		try {
-			await iam.createServiceLinkedRole({
-				AWSServiceName: "spot.amazonaws.com"
-			}).promise();
-		} catch (e) {
-			console.trace(e);
-			console.log(`[!] Unable to create service linked role: ${e}`);
-		}
-	}
-
-	console.log("\n[*] All prerequisites finished. Generating infrastructure configurations.");
-
-	sonnetry.export('validatedSettings', validatedSettings);
-
-	try {
-		await sonnetry.render('terraform.jsonnet');
-	} catch (e) {
-		console.trace(e);
-		console.log(`\n[!] Failed to generate NPK configurations.`);
-		return false;
-	}
-
-	sonnetry.write();
-
-	console.log(`[+] Configurations updated successfully. Preparing to deploy.`);
-
-	try {
-		sonnetry.apply(skipInit, autoApprove);
-	} catch (e) {
-		console.trace(e);
-		console.log('\n[!] Failed to apply configuration.')
-		return false;
-	}	
-
-	return true;
+	return result;	
 }
 
 async function configureInteractive() {
@@ -291,25 +307,14 @@ async function configureInteractive() {
 			type: 'list',
 			name: 'primaryRegion',
 			message: 'Which region do you plan to use most?',
-			choices: regions,
+			choices: Object.keys(computedQuotas.regions),
+			// choices: regions,
 			default: settings.primaryRegion ?? "us-west-2"
 		}, {
 			type: 'input',
 			name: 'adminEmail',
 			message: 'What is the admin user\'s email address?',
 			default: settings.adminEmail ?? ""
-		}, {
-			type: 'input',
-			name: 'criticalEventsSMS',
-			message: 'Enter an SMS-enabled phone number for critical events, including country code:',
-			default: settings.criticalEventsSMS ?? "+",
-			filter(value) {
-				if (value.match("^\d*$")) {
-					return "+" + value;
-				}
-
-				return value
-			}
 		}, {
 			type: 'input',
 			name: 'campaign_max_price',
@@ -482,6 +487,8 @@ function showHelpBanner() {
 			checkAWSProfile();
 			
 			await sonnetry.auth();
+
+			computedQuotas = await getAZsWithQuota();
 			const settings = await initializeSettings(argv);
 
 			const success = await deploy(argv.skipInit, argv.autoApprove);
@@ -516,6 +523,8 @@ function showHelpBanner() {
 			checkAWSProfile();
 			
 			await sonnetry.auth();
+
+			computedQuotas = await getAZsWithQuota();
 			const settings = await initializeSettings(argv);
 
 			const success = await sonnetry.destroy(argv.skipInit, argv.autoApprove);

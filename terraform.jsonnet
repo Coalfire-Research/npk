@@ -387,9 +387,9 @@ local regionKeys = std.objectFields(settings.regions);
 					public_key: "${tls_private_key.ssh.public_key_openssh}"
 				} for region in regionKeys
 			},
-			local_file: {
+			local_sensitive_file: {
 				ssh_key: {
-					sensitive_content: "${tls_private_key.ssh.private_key_pem}",
+					content: "${tls_private_key.ssh.private_key_pem}",
 					filename: "${path.module}/npk.pem",
 					file_permission: "0600"
 				}
@@ -1019,8 +1019,8 @@ local regionKeys = std.objectFields(settings.regions);
 					depends_on: ["aws_cloudfront_distribution.npk"],
 
 					topic_arn: "${aws_sns_topic.critical_events.arn}",
-					protocol: "sms",
-					endpoint: settings.criticalEventsSMS
+					protocol: "email",
+					endpoint: settings.adminEmail
 				}
 			}
 		}

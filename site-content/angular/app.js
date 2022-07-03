@@ -276,14 +276,13 @@ angular
 	   			return cognito.routeRequireAdmin();
 	   		}]
 	   	})
-
-	   	/*
-	   	.when('/:realm/:name', {
-	   		templateUrl: "profile.html",
-	   		controller: "profileCtrl",
-	   		controllerAs: "pCtrl"
+	   	.when('/quota', {
+	   		templateUrl: "views/quota.html",
+	   		controller: "htCtrl",
+	   		resolveRedirectTo: ['cognito', function(cognito) {
+	   			return cognito.routeRequireAdmin();
+	   		}]
 	   	})
-	   	*/
 
 	   	.otherwise({
 	   		redirectTo: "/",

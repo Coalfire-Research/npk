@@ -1129,6 +1129,7 @@ angular
         "./hashcat/hashcat.bin",
         "--quiet",
         "-O",
+        "-w",
         "4",
         "-m",
         $scope.hashType,
@@ -2578,6 +2579,27 @@ angular
       }
 
       $scope.populateFiles();
+    };
+
+    $scope.$on('$routeChangeSuccess', function() {
+       
+       $scope.onReady();
+    });
+  }]).controller('htCtrl', ['$scope', '$timeout', '$routeParams', '$location', 'DICTIONARY_BUCKET', 'QUOTAS', 'FAMILIES', 'FAMILYREGIONS', 'REGIONS', function($scope, $timeout, $routeParams, $location, DICTIONARY_BUCKET, QUOTAS, FAMILIES, FAMILYREGIONS, REGIONS) {
+
+    $scope.loading = false;
+    $scope.quotas = QUOTAS;
+    $scope.families = FAMILIES;
+    $scope.familyregions = FAMILYREGIONS;
+    $scope.all_regions = Object.keys(REGIONS);
+
+    $scope.onReady = function() {
+      $scope.$parent.startApp();
+
+      if (!!$routeParams.basePath) {
+        $scope.basePath = $routeParams.basePath;
+        console.log($scope.basePath);
+      }
     };
 
     $scope.$on('$routeChangeSuccess', function() {

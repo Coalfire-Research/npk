@@ -55,6 +55,9 @@
                   <div class="card border border-white shadow-none">
                     <div class="card-header bg-dark text-white">
                       GPU Family
+                      <a href="#/quota" class="text-white ml-2" data-toggle="tooltip" data-placement="top" data-original-title="Click to understand quotas and instance availability" onclick="$(this).tooltip('hide');">
+                        <i class="icon-question"></i>
+                      </a>
                       <br />
                       <div class="btn-group mt-1" role="group">
                         <button class="btn btn-sm" ng-class="familySortOrder == 'effectiveness' ? 'btn-secondary' : 'btn-outline-secondary'" ng-click="setFamilySortOrder('effectiveness')">Best</button>

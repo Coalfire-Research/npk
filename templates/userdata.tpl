@@ -167,7 +167,7 @@ if [[ "$(jq -r '.attackType' manifest.json)" != "3" && "$(jq -r '.mask' manifest
 	fi
 fi
 
-Use this for normal operations
+# Use this for normal operations
 node compute-node/hashcat_wrapper.js
 echo "[*] Hashcat wrapper finished with status code $?"
 aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/

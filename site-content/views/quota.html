@@ -14,12 +14,12 @@
           </div>
           <div class="card-body text-left"  ng-repeat="(gpu, family) in families">
             
-            <table class="text-white border border-white" style="width: 100%">
+            <table class="text-white border border-white">
               <thead class="text-center">
                 <tr class="text-dark bg-white border border-white">
                   <th class="border border-dark" width="200">GPU</th>
                   <th class="border border-dark" width="170">Instance</th>
-                  <th class="border pt-2" ng-class="!familyregions[gpu].includes(region) ? 'bg-dark text-white border-white' : 'bg-white text-dark border-dark'" ng-repeat="region in all_regions" style="line-height: 1.2;">
+                  <th class="border pt-2" width="150" ng-class="!familyregions[gpu].includes(region) ? 'bg-dark text-white border-white' : 'bg-white text-dark border-dark'" ng-repeat="region in all_regions" style="line-height: 1.2;">
                     {{ region }}
                     <br>
                     <div ng-if="familyregions[gpu].includes(region) && !!quotas[region][families[gpu].quotaCode]" class="badge badge-sm badge-dark mb-2">
@@ -36,12 +36,16 @@
               </thead>
               <tbody on-finish-render>
                 <tr class="text-white border border-white" ng-repeat="family in families[gpu].instances | toArray | orderBy: '[1]'">
-                  <td ng-if="$first" class="text-center border border-white p-3" rowspan="10">
+                  <td ng-if="$first" class="text-center border border-white p-3" style="line-height: 0.8; font-variant: small-caps;" rowspan="10">
                     <b>{{ gpu }}</b>
-                    <br>
-                    <small>{{ families[gpu].quotaCode }}</small>
+                    <br><br>
+                    <small>
+                      quota code
+                      <br>
+                      {{ families[gpu].quotaCode }}
+                    </small>
                   </td>
-                  <td class="text-center p-2">
+                  <td class="text-center p-2" style="line-height: 1.3;">
                     <b>{{ family._id }}</b>
                     <br>
                     <small>GPUs: {{ family[0] }}; vCPUs: {{ family[1] }}</small>

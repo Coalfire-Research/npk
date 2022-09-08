@@ -62,10 +62,12 @@ function getHashcatParams(manifest) {
 	var params = [
 		"--quiet",
 		"-O",
-		"--remove",
-		"--potfile-path=/potfiles/" + instance_id + ".potfile",
 		"-o",
 		"/potfiles/cracked_hashes-" + instance_id + ".txt",
+		"--outfile-check-dir",
+		"/potfiles/",
+		"--outfile-check-timer",
+		"30",
 		"-w",
 		"4",
 		"-m",
@@ -286,22 +288,21 @@ var sendFinished = function (completed) {
 			return failure(false);
 		}
 
-		var recoveredHashes;
-		if (fs.existsSync("/potfiles/cracked_hashes-" + instance_id + ".txt")) {
-			try {
-				recoveredHashes = fs.readFileSync("/potfiles/cracked_hashes-" + instance_id + ".txt", "ascii").trim().split("\n").length || 0;	
-			} catch (e) {
-				console.log("Unable to read potfile:", e);
-				console.log("Sending a recoveredHashes value of 0");
-				recoveredHashes = 0;
-			}
-		} else {
-			console.log("Hashcat didn't create a potfile. No hashes were recovered.");
-			console.log("Sending a recoveredHashes value of 0");
-			recoveredHashes = 0;
-		}
+		const recoveredHashes = [
+			...new Set(fs.readdirSync("/potfiles")
+				.filter(f => /^cracked_hashes-/.test(f))
+				.reduce((a, c) => 
+					a.concat(fs.readFileSync(`/potfiles/${c}`, "ascii").trim().split("\n")),
+					[]
+				)
+			)
+		];
 
-		apiClient.invokeApi(nodeParams, nodeTemplate, "POST", {}, {completed: completed, recoveredHashes: recoveredHashes}).then(function(result) {
+		console.log(`Got [${recoveredHashes.length}] hashes from all files.`)
+
+		fs.writeFileSync('/potfiles/all_cracked_hashes.txt', recoveredHashes.join("\n"));
+
+		apiClient.invokeApi(nodeParams, nodeTemplate, "POST", {}, { completed, recoveredHashes: recoveredHashes.length }).then(function(result) {
 			console.log("Node marked as complete.");
 			success(true);
 		}).catch(function(err) {

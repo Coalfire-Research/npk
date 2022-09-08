@@ -202,7 +202,7 @@ local regionKeys = std.objectFields(settings.regions);
 			aws_api_gateway_base_path_mapping: {
 				npk: {
 					api_id: "${aws_api_gateway_rest_api.npk.id}",
-					stage_name: "${aws_api_gateway_deployment.npk.stage_name}",
+					stage_name: "${aws_api_gateway_stage.npk.stage_name}",
 					domain_name: "${aws_api_gateway_domain_name.npk.domain_name}",
 					base_path: "v1"
 				}

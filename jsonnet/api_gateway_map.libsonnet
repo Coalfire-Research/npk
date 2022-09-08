@@ -104,9 +104,27 @@ local rest_api(name, map) =
 				} + map.parameters
 			},
 			aws_api_gateway_deployment: {
-				[name]: map.deployment + {
+				[name]: {
 					rest_api_id: "${aws_api_gateway_rest_api.%s.id}" % [name],
-					depends_on: ["aws_api_gateway_integration.%s" % [integration] for integration in std.objectFields(api_map.resource.aws_api_gateway_integration)]
+					depends_on: ["aws_api_gateway_integration.%s" % [integration] for integration in std.objectFields(api_map.resource.aws_api_gateway_integration)],
+
+					triggers: {
+						always: "${timestamp()}"
+					},
+
+					lifecycle: {
+						create_before_destroy: true
+					}
+				}
+			},
+			aws_api_gateway_stage: {
+				[name]: map.deployment + {
+					deployment_id: "${aws_api_gateway_deployment.%s.id}" % name,
+					rest_api_id: "${aws_api_gateway_rest_api.%s.id}" % [name],
+
+					lifecycle: {
+						create_before_destroy: true
+					}
 				}
 			}
 		}

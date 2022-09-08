@@ -78,8 +78,6 @@ angular
 
 					price = price.reduce((all, current) => {
 						if (!!current.price) {
-
-
 							all.push(current);
 						}
 
@@ -101,7 +99,7 @@ angular
 			getSpotPriceHistory: function (instanceType, forceRegion) {
 				var self = this;
 
-				if (!!self?.spotPrice?.[instanceType]) {
+				if (!!!forceRegion && !!self?.spotPrice?.[instanceType]) {
 					return Promise.resolve(self.spotPrice[instanceType]);
 				}
 

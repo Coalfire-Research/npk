@@ -277,7 +277,7 @@
 						"execute-api:Invoke"
 					],
 					resources: [
-						"${aws_api_gateway_deployment.npk.execution_arn}/*/userproxy/*"
+						"${aws_api_gateway_stage.npk.execution_arn}/*/userproxy/*"
 					]
 				}]
 			},

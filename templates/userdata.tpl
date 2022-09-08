@@ -170,7 +170,8 @@ fi
 # Use this for normal operations
 node compute-node/hashcat_wrapper.js
 echo "[*] Hashcat wrapper finished with status code $?"
-aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
+# aws s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/
+aws --region $USERDATAREGION s3 sync /potfiles/ s3://$USERDATA/$ManifestPath/potfiles/ --include "*$${INSTANCEID}*" --include "*benchmark-results*" --include "all_cracked_hashes.txt"
 sleep 30
 
 if [[ ! -f /root/nodeath ]]; then

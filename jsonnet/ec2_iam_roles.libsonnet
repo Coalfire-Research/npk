@@ -115,7 +115,7 @@
 						"execute-api:Invoke"
 					],
 					"resources": [
-						"${aws_api_gateway_stage.npk.execution_arn}/*/statusreport/*"
+						"${aws_api_gateway_deployment.npkv3.execution_arn}/*/statusreport/*"
 					]
 				}]
 			}

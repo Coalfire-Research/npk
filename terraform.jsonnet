@@ -70,7 +70,7 @@ local regionKeys = std.objectFields(settings.regions);
 	[if settings.useCustomDNS then 'acm.tf.json' else null]: {
 		resource: acm.certificate("main", "*.%s" % [settings.dnsBaseName], [settings.dnsBaseName], settings.route53Zone)
 	},
-	'api_gateway.tf.json': api_gateway_map.rest_api('npk', {
+	'api_gateway.tf.json': api_gateway_map.rest_api('npkv3', {
   		parameters: {
   			endpoint_configuration: {
   				types: ["EDGE"]
@@ -189,7 +189,7 @@ local regionKeys = std.objectFields(settings.regions);
 				npk: {
 					name: "npk",
 					type: "COGNITO_USER_POOLS",
-					rest_api_id: "${aws_api_gateway_rest_api.npk.id}",
+					rest_api_id: "${aws_api_gateway_rest_api.npkv3.id}",
 					provider_arns: [
 						"${aws_cognito_user_pool.npk.arn}"
 					]
@@ -200,9 +200,9 @@ local regionKeys = std.objectFields(settings.regions);
 	[if settings.useCustomDNS then 'api_gateway_addons-useCustomDNS.tf.json' else null]: {
 		resource: {
 			aws_api_gateway_base_path_mapping: {
-				npk: {
-					api_id: "${aws_api_gateway_rest_api.npk.id}",
-					stage_name: "${aws_api_gateway_stage.npk.stage_name}",
+				npkv3: {
+					api_id: "${aws_api_gateway_rest_api.npkv3.id}",
+					stage_name: "${aws_api_gateway_deployment.npkv3.stage_name}",
 					domain_name: "${aws_api_gateway_domain_name.npk.domain_name}",
 					base_path: "v1"
 				}
@@ -496,7 +496,7 @@ local regionKeys = std.objectFields(settings.regions);
 				apigateway: if settings.useCustomDNS then
 					settings.apiEndpoint
 				else
-					"${aws_api_gateway_rest_api.npk.id}.execute-api.%s.amazonaws.com" % [settings.primaryRegion]
+					"${aws_api_gateway_rest_api.npkv3.id}.execute-api.%s.amazonaws.com" % [settings.primaryRegion]
 			}
 		},
 	}, {
@@ -608,7 +608,7 @@ local regionKeys = std.objectFields(settings.regions);
 				apigateway: if settings.useCustomDNS then
 					settings.apiEndpoint
 				else
-					"${aws_api_gateway_rest_api.npk.id}.execute-api.%s.amazonaws.com" % [settings.primaryRegion]
+					"${aws_api_gateway_rest_api.npkv3.id}.execute-api.%s.amazonaws.com" % [settings.primaryRegion]
 			}
 		},
 
@@ -1083,7 +1083,7 @@ local regionKeys = std.objectFields(settings.regions);
 						api_gateway_url: if settings.useCustomDNS then
 								settings.apiEndpoint
 							else
-								"${element(split(\"/\", aws_api_gateway_deployment.npk.invoke_url), 2)}"
+								"${element(split(\"/\", aws_api_gateway_deployment.npkv3.invoke_url), 2)}"
 					} + (if settings.useSAML && !settings.useCustomDNS then {
 						saml_domain: "${aws_cognito_user_pool_domain.saml.domain}.auth." + settings.primaryRegion + ".amazoncognito.com",
 						saml_redirect: "https://${aws_cloudfront_distribution.npk.domain_name}"

@@ -110,6 +110,10 @@ local rest_api(name, map) =
 
 					triggers: {
 						always: "${timestamp()}"
+					},
+
+					lifecycle: {
+						create_before_destroy: true
 					}
 				}
 			}

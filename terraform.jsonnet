@@ -1086,6 +1086,7 @@ local regionKeys = if std.length(settings.restrict_to_regions) == 0 then
 						families: std.strReplace(std.manifestJsonEx(settings.families, ""), "\n", ""),
 						quotas: std.strReplace(std.manifestJsonEx(settings.quotas, ""), "\n", ""),
 						regions: std.strReplace(std.manifestJsonEx(settings.regions, ""), "\n", ""),
+						restrict_to_regions: std.strReplace(std.manifestJsonEx(settings.restrict_to_regions, ""), "\n", ""),
 						api_gateway_url: if settings.useCustomDNS then
 								settings.apiEndpoint
 							else

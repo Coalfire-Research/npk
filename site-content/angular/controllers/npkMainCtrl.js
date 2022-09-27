@@ -2585,13 +2585,19 @@ angular
        
        $scope.onReady();
     });
-  }]).controller('htCtrl', ['$scope', '$timeout', '$routeParams', '$location', 'DICTIONARY_BUCKET', 'QUOTAS', 'FAMILIES', 'FAMILYREGIONS', 'REGIONS', function($scope, $timeout, $routeParams, $location, DICTIONARY_BUCKET, QUOTAS, FAMILIES, FAMILYREGIONS, REGIONS) {
+  }]).controller('htCtrl', ['$scope', '$timeout', '$routeParams', '$location', 'DICTIONARY_BUCKET', 'QUOTAS', 'FAMILIES', 'FAMILYREGIONS', 'REGIONS', 'RESTRICT_TO_REGIONS', function($scope, $timeout, $routeParams, $location, DICTIONARY_BUCKET, QUOTAS, FAMILIES, FAMILYREGIONS, REGIONS, RESTRICT_TO_REGIONS) {
 
     $scope.loading = false;
     $scope.quotas = QUOTAS;
     $scope.families = FAMILIES;
     $scope.familyregions = FAMILYREGIONS;
-    $scope.all_regions = Object.keys(REGIONS);
+    $scope.restrictToRegions = RESTRICT_TO_REGIONS.join(', ');
+
+    if (RESTRICT_TO_REGIONS.length == 0) {
+      $scope.all_regions = Object.keys(REGIONS);
+    } else {
+      $scope.all_regions = RESTRICT_TO_REGIONS
+    }
 
     $scope.onReady = function() {
       $scope.$parent.startApp();

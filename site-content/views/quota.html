@@ -11,6 +11,9 @@
             Region/Instance Family Entitlements <small>(Regions with zero quota are not shown)</small>
             <div class="card-action">
             </div>
+            <div ng-if="restrictToRegions.length!=0">
+              Currently restricted to regions: {{ restrictToRegions }}
+            </div>
           </div>
           <div class="card-body text-left"  ng-repeat="(gpu, family) in families">
             

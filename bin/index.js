@@ -42,7 +42,8 @@ async function deploy(skipInit, autoApprove) {
 		'adminEmail',
 		'sAMLMetadataFile',
 		'sAMLMetadataUrl',
-		'primaryRegion'
+		'primaryRegion',
+		'restrict_to_regions'
 	];
 
 	const badSettings = Object.keys(settings)
@@ -310,6 +311,12 @@ async function configureInteractive() {
 			choices: Object.keys(computedQuotas.regions),
 			// choices: regions,
 			default: settings.primaryRegion ?? "us-west-2"
+		}, {
+			type: 'checkbox',
+			name: 'restrict_to_regions',
+			message: 'Restrict deployment to regions (except global services, and primary region) - leave empty to deploy to all regions?',
+			choices: Object.keys(computedQuotas.regions),
+			default: settings.restrict_to_regions ?? []
 		}, {
 			type: 'input',
 			name: 'adminEmail',

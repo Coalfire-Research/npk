@@ -42,7 +42,8 @@ local settings = {
 	campaign_max_price: 50,
 	awsProfile: "default",
 	wwwEndpoint: "${aws_cloudfront_distribution.npk.domain_name}",
-	primaryRegion: "us-west-2"
+	primaryRegion: "us-west-2",
+	restrict_to_regions: []
 } + npksettings + {
 	familyRegions: validatedSettings.familyRegions,
 	families: gpu_instance_families,

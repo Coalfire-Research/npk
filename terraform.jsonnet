@@ -60,12 +60,17 @@ local settings = {
 
 local accountDetails = {
 	primaryRegion: settings.primaryRegion,
+	restrict_to_regions: settings.restrict_to_regions,
 	families: gpu_instance_families,
 	regions: validatedSettings.regions,
 	quotas: validatedSettings.quotas
 };
 
-local regionKeys = std.objectFields(settings.regions);
+local regionKeys = if std.length(settings.restrict_to_regions) == 0 then
+		std.objectFields(settings.regions)
+	else
+		[region for region in std.objectFields(settings.regions) if std.member(settings.restrict_to_regions, region) || region == settings.primaryRegion]
+	;
 
 {
 	[if settings.useCustomDNS then 'acm.tf.json' else null]: {

@@ -661,7 +661,7 @@ angular
 
       });
    }])
-  .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKET', 'USERDATA_BUCKET', 'APIGATEWAY_URL', 'QUOTAS', 'FAMILIES', 'FAMILYREGIONS', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKET, USERDATA_BUCKET, APIGATEWAY_URL, QUOTAS, FAMILIES, FAMILYREGIONS) {
+  .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKET', 'USERDATA_BUCKET', 'APIGATEWAY_URL', 'QUOTAS', 'FAMILIES', 'FAMILYREGIONS', 'RESTRICT_TO_REGIONS', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKET, USERDATA_BUCKET, APIGATEWAY_URL, QUOTAS, FAMILIES, FAMILYREGIONS, RESTRICT_TO_REGIONS) {
 
     $scope.pricingSvc = pricingSvc;
     pricingSvc.gpuSpeeds = pricingSvc.gpuWordlistSpeeds;
@@ -742,6 +742,12 @@ angular
 
         pricingSvc.getFamilySpotPriceHistory(gpu).then((data) => {
           
+          if (RESTRICT_TO_REGIONS.length > 0) {
+            data[gpu] = data[gpu].filter(option => {
+              return RESTRICT_TO_REGIONS.includes(option.region);
+            });
+          }
+
           if (data[gpu].length > 0) {
             const cheapest = data[gpu].reduce((cheapest, option) => {
               option.instances.forEach(instance => {

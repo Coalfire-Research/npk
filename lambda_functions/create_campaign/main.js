@@ -22,7 +22,12 @@ let cb = "";
 let origin = "";
 let variables = {};
 
-var allowed_regions = Object.keys(accountDetails.quotas);
+var allowed_regions = []
+if (accountDetails.restrict_to_regions == 0) {
+	allowed_regions = Object.keys(accountDetails.quotas);
+} else {
+	allowed_regions = accountDetails.restrict_to_regions
+}
 
 exports.main = async function(event, context, callback) {
 

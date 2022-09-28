@@ -1467,6 +1467,10 @@ angular
         $scope.orderWarnings.push(`Total price exceeds campaign limit of ${}. Your instances may terminate earlier than you intend.`);
       }*/
 
+      if(RESTRICT_TO_REGIONS.length > 0 && ! RESTRICT_TO_REGIONS.includes($scope.selectedRegion.region)) {
+        $scope.orderErrors.push(`Region '${$scope.selectedRegion.region}' is not in the approved AWS Regions`);
+      }
+
       if ($scope.orderErrors.length > 0) {
         $('#orderErrorModal').modal('show');
 

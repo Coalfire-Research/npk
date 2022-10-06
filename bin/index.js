@@ -244,6 +244,7 @@ async function getAZsWithQuota() {
 		promises.push(ec2.describeAvailabilityZones().promise().then((data) => {
 			data.AvailabilityZones
 				.filter(a => a.State == "available")
+				.filter(a => a.ZoneType == "availability-zone")
 				.map(a => azs[region].push(a.ZoneName));
 		}));
 

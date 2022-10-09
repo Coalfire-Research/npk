@@ -741,7 +741,7 @@ angular
       await Promise.all(Object.keys(FAMILIES).map(async (gpu) => {
 
         pricingSvc.getFamilySpotPriceHistory(gpu).then((data) => {
-          
+
           if (data[gpu].length > 0) {
             const cheapest = data[gpu].reduce((cheapest, option) => {
               option.instances.forEach(instance => {

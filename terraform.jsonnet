@@ -42,7 +42,7 @@ local settings = {
 	campaign_max_price: 50,
 	awsProfile: "default",
 	wwwEndpoint: "${aws_cloudfront_distribution.npk.domain_name}",
-	primaryRegion: "us-west-2"
+	primaryRegion: "us-west-2",
 } + npksettings + {
 	familyRegions: validatedSettings.familyRegions,
 	families: gpu_instance_families,
@@ -1161,7 +1161,7 @@ local regionKeys = std.objectFields(settings.regions);
 	}
 } + {
 	['vpc-%s.tf.json' % region]: vpc.public_vpc("npk", region, "172.21.16.0/20", settings.regions[region], ['s3'])
-	for region in std.objectFields(settings.regions)
+	for region in regionKeys
 } + {
 	['../lambda_functions/%s/accountDetails.json' % name]: accountDetails
 	for name in ['compression_pipe', 'create_campaign', 'delete_campaign', 'execute_campaign', 'spot_monitor']

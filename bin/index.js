@@ -490,6 +490,12 @@ function showHelpBanner() {
 			await sonnetry.auth();
 
 			computedQuotas = await getAZsWithQuota();
+
+			if (computedQuotas === false) {
+				console.log(`[!] Unable to proceed.`);
+				return false;
+			}
+
 			const settings = await initializeSettings(argv);
 
 			const success = await deploy(argv.skipInit, argv.autoApprove);
@@ -526,6 +532,12 @@ function showHelpBanner() {
 			await sonnetry.auth();
 
 			computedQuotas = await getAZsWithQuota();
+
+			if (computedQuotas === false) {
+				console.log(`[!] Unable to proceed.`);
+				return false;
+			}
+			
 			const settings = await initializeSettings(argv);
 
 			const success = await sonnetry.destroy(argv.skipInit, argv.autoApprove);

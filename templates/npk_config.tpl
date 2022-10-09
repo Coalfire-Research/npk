@@ -25,6 +25,7 @@ angular.module('app')
 	.constant('FAMILIES', ${families})
 	.constant('QUOTAS', ${quotas})
 	.constant('REGIONS', ${regions})
+	.constant('RESTRICT_TO_REGIONS', ${restrict_to_regions})
 	.constant('USERDATA_BUCKET', {
 		name: "${userdata_bucket}",
 		region: "${primary_region}"

@@ -8,11 +8,13 @@
       <div class="col-lg-12">
         <div class="card bg-transparent shadow-none border border-secondary-light">
           <div class="card-header bg-transparent text-white border-secondary-light">
-            Region/Instance Family Entitlements <small>(Regions with zero quota are not shown)</small>
+            Region/Instance Family Entitlements
             <div class="card-action">
             </div>
-            <div ng-if="restrictToRegions.length!=0">
-              Currently restricted to regions: {{ restrictToRegions }}
+            <div>
+              <small>
+                Regions with zero quota are not shown. Configured regions: {{ all_regions.join(', ') }}.
+              </small>
             </div>
           </div>
           <div class="card-body text-left"  ng-repeat="(gpu, family) in families">

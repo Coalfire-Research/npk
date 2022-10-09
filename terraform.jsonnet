@@ -43,7 +43,6 @@ local settings = {
 	awsProfile: "default",
 	wwwEndpoint: "${aws_cloudfront_distribution.npk.domain_name}",
 	primaryRegion: "us-west-2",
-	restrict_to_regions: []
 } + npksettings + {
 	familyRegions: validatedSettings.familyRegions,
 	families: gpu_instance_families,
@@ -60,17 +59,12 @@ local settings = {
 
 local accountDetails = {
 	primaryRegion: settings.primaryRegion,
-	restrict_to_regions: settings.restrict_to_regions,
 	families: gpu_instance_families,
 	regions: validatedSettings.regions,
 	quotas: validatedSettings.quotas
 };
 
-local regionKeys = if std.length(settings.restrict_to_regions) == 0 then
-		std.objectFields(settings.regions)
-	else
-		[region for region in std.objectFields(settings.regions) if std.member(settings.restrict_to_regions, region) || region == settings.primaryRegion]
-	;
+local regionKeys = std.objectFields(settings.regions);
 
 {
 	[if settings.useCustomDNS then 'acm.tf.json' else null]: {
@@ -1086,7 +1080,6 @@ local regionKeys = if std.length(settings.restrict_to_regions) == 0 then
 						families: std.strReplace(std.manifestJsonEx(settings.families, ""), "\n", ""),
 						quotas: std.strReplace(std.manifestJsonEx(settings.quotas, ""), "\n", ""),
 						regions: std.strReplace(std.manifestJsonEx(settings.regions, ""), "\n", ""),
-						restrict_to_regions: std.strReplace(std.manifestJsonEx(settings.restrict_to_regions, ""), "\n", ""),
 						api_gateway_url: if settings.useCustomDNS then
 								settings.apiEndpoint
 							else

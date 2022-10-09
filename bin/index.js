@@ -43,7 +43,7 @@ async function deploy(skipInit, autoApprove) {
 		'sAMLMetadataFile',
 		'sAMLMetadataUrl',
 		'primaryRegion',
-		'restrict_to_regions'
+		'useRegions'
 	];
 
 	const badSettings = Object.keys(settings)
@@ -183,6 +183,9 @@ async function getAZsWithQuota() {
 					regionQuotas[region][q.QuotaCode] = q.Value;
 					maxQuota = (q.Value > maxQuota) ? q.Value : maxQuota;
 				});
+		}).catch(e => {
+			console.log(`[-] Unable to get quotas for ${region}, but this isn't fatal.`);
+			regions = regions.filter(r => r != region);
 		}));
 
 		return quotas;
@@ -224,6 +227,9 @@ async function getAZsWithQuota() {
 				.map(e => {
 					instanceRegions[instanceTypes[e.InstanceType]].push(region);
 				});
+		}).catch(e => {
+			console.log(`[-] Unable to get instance support for ${region}, but this isn't fatal.`);
+			regions = regions.filter(r => r != region);
 		}));
 
 		return offerings;
@@ -247,6 +253,9 @@ async function getAZsWithQuota() {
 				.filter(a => a.State == "available")
 				.filter(a => a.ZoneType == "availability-zone")
 				.map(a => azs[region].push(a.ZoneName));
+		}).catch(e => {
+			console.log(`[-] Unable to get availability zones for ${region}, but this isn't fatal.`);
+			regions = regions.filter(r => r != region);
 		}));
 
 		return promises;
@@ -314,10 +323,10 @@ async function configureInteractive() {
 			default: settings.primaryRegion ?? "us-west-2"
 		}, {
 			type: 'checkbox',
-			name: 'restrict_to_regions',
-			message: 'Restrict deployment to regions (except global services, and primary region) - leave empty to deploy to all regions?',
+			name: 'useRegions',
+			message: 'Which regions would you like to use?',
 			choices: Object.keys(computedQuotas.regions),
-			default: settings.restrict_to_regions ?? []
+			default: settings.useRegions ?? Object.keys(computedQuotas.regions)
 		}, {
 			type: 'input',
 			name: 'adminEmail',
@@ -349,6 +358,10 @@ async function configureInteractive() {
 
 	const deployNow = answers.deploy;
 	delete answers.deploy;
+
+	if (!answers.useRegions.includes(answers.primaryRegion)) {
+		answers.useRegions.push(answers.primaryRegion);
+	}
 
 	fs.writeFileSync('npk-settings.json', JSON.stringify(Object.assign(settings, answers), null, '\t'));
 
@@ -497,7 +510,17 @@ function showHelpBanner() {
 			await sonnetry.auth();
 
 			computedQuotas = await getAZsWithQuota();
+
+			if (computedQuotas === false) {
+				console.log(`[!] Unable to proceed.`);
+				return false;
+			}
+
 			const settings = await initializeSettings(argv);
+
+			if (!!settings?.useRegions) {
+				Object.keys(computedQuotas.regions).map(r => { settings.useRegions.includes(r) || delete computedQuotas.regions[r] })
+			}
 
 			const success = await deploy(argv.skipInit, argv.autoApprove);
 
@@ -533,7 +556,17 @@ function showHelpBanner() {
 			await sonnetry.auth();
 
 			computedQuotas = await getAZsWithQuota();
+
+			if (computedQuotas === false) {
+				console.log(`[!] Unable to proceed.`);
+				return false;
+			}
+
 			const settings = await initializeSettings(argv);
+
+			if (!!settings?.useRegions) {
+				Object.keys(computedQuotas.regions).map(r => { settings.useRegions.includes(r) || delete computedQuotas.regions[r] })
+			}
 
 			const success = await sonnetry.destroy(argv.skipInit, argv.autoApprove);
 

@@ -661,7 +661,7 @@ angular
 
       });
    }])
-  .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKET', 'USERDATA_BUCKET', 'APIGATEWAY_URL', 'QUOTAS', 'FAMILIES', 'FAMILYREGIONS', 'RESTRICT_TO_REGIONS', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKET, USERDATA_BUCKET, APIGATEWAY_URL, QUOTAS, FAMILIES, FAMILYREGIONS, RESTRICT_TO_REGIONS) {
+  .controller('campaignCtrl', ['$scope', '$routeParams', '$timeout', 'pricingSvc', 'DICTIONARY_BUCKET', 'USERDATA_BUCKET', 'APIGATEWAY_URL', 'QUOTAS', 'FAMILIES', 'FAMILYREGIONS', function($scope, $routeParams, $timeout, pricingSvc, DICTIONARY_BUCKET, USERDATA_BUCKET, APIGATEWAY_URL, QUOTAS, FAMILIES, FAMILYREGIONS) {
 
     $scope.pricingSvc = pricingSvc;
     pricingSvc.gpuSpeeds = pricingSvc.gpuWordlistSpeeds;
@@ -741,12 +741,6 @@ angular
       await Promise.all(Object.keys(FAMILIES).map(async (gpu) => {
 
         pricingSvc.getFamilySpotPriceHistory(gpu).then((data) => {
-          
-          if (RESTRICT_TO_REGIONS.length > 0) {
-            data[gpu] = data[gpu].filter(option => {
-              return RESTRICT_TO_REGIONS.includes(option.region);
-            });
-          }
 
           if (data[gpu].length > 0) {
             const cheapest = data[gpu].reduce((cheapest, option) => {
@@ -1466,10 +1460,6 @@ angular
       /*if ($scope.totalPrice > 100) {
         $scope.orderWarnings.push(`Total price exceeds campaign limit of ${}. Your instances may terminate earlier than you intend.`);
       }*/
-
-      if(RESTRICT_TO_REGIONS.length > 0 && ! RESTRICT_TO_REGIONS.includes($scope.selectedRegion.region)) {
-        $scope.orderErrors.push(`Region '${$scope.selectedRegion.region}' is not in the approved AWS Regions`);
-      }
 
       if ($scope.orderErrors.length > 0) {
         $('#orderErrorModal').modal('show');
@@ -2595,19 +2585,13 @@ angular
        
        $scope.onReady();
     });
-  }]).controller('htCtrl', ['$scope', '$timeout', '$routeParams', '$location', 'DICTIONARY_BUCKET', 'QUOTAS', 'FAMILIES', 'FAMILYREGIONS', 'REGIONS', 'RESTRICT_TO_REGIONS', function($scope, $timeout, $routeParams, $location, DICTIONARY_BUCKET, QUOTAS, FAMILIES, FAMILYREGIONS, REGIONS, RESTRICT_TO_REGIONS) {
+  }]).controller('htCtrl', ['$scope', '$timeout', '$routeParams', '$location', 'DICTIONARY_BUCKET', 'QUOTAS', 'FAMILIES', 'FAMILYREGIONS', 'REGIONS', function($scope, $timeout, $routeParams, $location, DICTIONARY_BUCKET, QUOTAS, FAMILIES, FAMILYREGIONS, REGIONS) {
 
     $scope.loading = false;
     $scope.quotas = QUOTAS;
     $scope.families = FAMILIES;
     $scope.familyregions = FAMILYREGIONS;
-    $scope.restrictToRegions = RESTRICT_TO_REGIONS.join(', ');
-
-    if (RESTRICT_TO_REGIONS.length == 0) {
-      $scope.all_regions = Object.keys(REGIONS);
-    } else {
-      $scope.all_regions = RESTRICT_TO_REGIONS
-    }
+    $scope.all_regions = Object.keys(REGIONS);
 
     $scope.onReady = function() {
       $scope.$parent.startApp();

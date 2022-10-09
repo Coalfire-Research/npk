@@ -76,7 +76,7 @@
 			}
 		}
 	},
-	data(settings)::
+	data(settings, apiName)::
 	local regionKeys = std.objectFields(settings.regions);
 	{
 		aws_iam_policy_document: {
@@ -277,7 +277,7 @@
 						"execute-api:Invoke"
 					],
 					resources: [
-						"${aws_api_gateway_deployment.npkv3.execution_arn}/*/userproxy/*"
+						"${aws_api_gateway_deployment.%s.execution_arn}/*/userproxy/*" % apiName
 					]
 				}]
 			},

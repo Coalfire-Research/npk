@@ -1,4 +1,4 @@
-{
+{ roles(apiName):: {
 	"resource": {
 		"aws_iam_instance_profile": {
 			"npk_node": {
@@ -115,10 +115,10 @@
 						"execute-api:Invoke"
 					],
 					"resources": [
-						"${aws_api_gateway_deployment.npkv3.execution_arn}/*/statusreport/*"
+						"${aws_api_gateway_deployment.%s.execution_arn}/*/statusreport/*" % apiName
 					]
 				}]
 			}
 		}
 	}
-}
+}}

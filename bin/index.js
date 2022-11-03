@@ -98,6 +98,23 @@ async function deploy(skipInit, autoApprove) {
 		}
 	}
 
+	try {
+		await iam.getRole({
+			RoleName: "AWSServiceRoleForEC2SpotFleet"
+		}).promise();
+	} catch (e) {
+		console.log(`[*] EC2 spot fleet SLR is not present. Creating...`);
+
+		try {
+			await iam.createServiceLinkedRole({
+				AWSServiceName: "spotfleet.amazonaws.com"
+			}).promise();
+		} catch (e) {
+			console.trace(e);
+			console.log(`[!] Unable to create service linked role: ${e}`);
+		}
+	}
+
 	console.log("\n[*] All prerequisites finished. Generating infrastructure configurations.");
 
 	Object.assign(validatedSettings, computedQuotas);

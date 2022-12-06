@@ -235,7 +235,7 @@
 						"dynamodb:PutItem",
 					],
 					resources: [
-						"${aws_dynamodb_table.campaigns.arn}",
+						//"${aws_dynamodb_table.campaigns.arn}",
 						"${aws_dynamodb_table.settings.arn}"
 					],
 					condition: [{

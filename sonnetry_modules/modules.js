@@ -1,0 +1,1 @@
+exports.random = [() => Math.random().toString().split('.')[1]];

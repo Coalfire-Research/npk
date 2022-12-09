@@ -61,7 +61,7 @@
             <tbody ng-repeat="event in events | filter:filter | orderBy:'startTime'" on-finish-render>
               <tr>
                 <td>
-                  <small>{{ event.startTime | momentns:'format' }}</small>
+                  <small>{{ event.startTime / 1000 | momentns:'format' }}</small>
                 </td>
                 <td>
                   <small>

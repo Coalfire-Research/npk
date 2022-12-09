@@ -47,7 +47,7 @@
 		"instances": {
 			"g5.xlarge": [1, 4],
 			"g5.12xlarge": [4, 96],
-			"g5.metal": [8, 192]
+			"g5.48xlarge": [8, 192]
 		}
 		
 	},

@@ -76,7 +76,7 @@
 			}
 		}
 	},
-	data(settings)::
+	data(settings, apiName)::
 	local regionKeys = std.objectFields(settings.regions);
 	{
 		aws_iam_policy_document: {
@@ -235,7 +235,7 @@
 						"dynamodb:PutItem",
 					],
 					resources: [
-						"${aws_dynamodb_table.campaigns.arn}",
+						//"${aws_dynamodb_table.campaigns.arn}",
 						"${aws_dynamodb_table.settings.arn}"
 					],
 					condition: [{
@@ -277,7 +277,7 @@
 						"execute-api:Invoke"
 					],
 					resources: [
-						"${aws_api_gateway_deployment.npk.execution_arn}/*/userproxy/*"
+						"${aws_api_gateway_deployment.%s.execution_arn}/*/userproxy/*" % apiName
 					]
 				}]
 			},

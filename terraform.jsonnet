@@ -1,5 +1,6 @@
 local aws = import 'aws-sdk';
 local sonnetry = import 'sonnetry';
+local modules = import 'modules';
 
 local provider = import 'jsonnet/provider.libsonnet';
 
@@ -42,7 +43,7 @@ local settings = {
 	campaign_max_price: 50,
 	awsProfile: "default",
 	wwwEndpoint: "${aws_cloudfront_distribution.npk.domain_name}",
-	primaryRegion: "us-west-2"
+	primaryRegion: "us-west-2",
 } + npksettings + {
 	familyRegions: validatedSettings.familyRegions,
 	families: gpu_instance_families,
@@ -64,13 +65,15 @@ local accountDetails = {
 	quotas: validatedSettings.quotas
 };
 
+local apiName = "npkv3-%s" % std.md5(modules.random())[0:5];
+
 local regionKeys = std.objectFields(settings.regions);
 
 {
 	[if settings.useCustomDNS then 'acm.tf.json' else null]: {
 		resource: acm.certificate("main", "*.%s" % [settings.dnsBaseName], [settings.dnsBaseName], settings.route53Zone)
 	},
-	'api_gateway.tf.json': api_gateway_map.rest_api('npk', {
+	'api_gateway.tf.json': api_gateway_map.rest_api(apiName, {
   		parameters: {
   			endpoint_configuration: {
   				types: ["EDGE"]
@@ -189,7 +192,7 @@ local regionKeys = std.objectFields(settings.regions);
 				npk: {
 					name: "npk",
 					type: "COGNITO_USER_POOLS",
-					rest_api_id: "${aws_api_gateway_rest_api.npk.id}",
+					rest_api_id: "${aws_api_gateway_rest_api.%s.id}" % apiName,
 					provider_arns: [
 						"${aws_cognito_user_pool.npk.arn}"
 					]
@@ -200,9 +203,9 @@ local regionKeys = std.objectFields(settings.regions);
 	[if settings.useCustomDNS then 'api_gateway_addons-useCustomDNS.tf.json' else null]: {
 		resource: {
 			aws_api_gateway_base_path_mapping: {
-				npk: {
-					api_id: "${aws_api_gateway_rest_api.npk.id}",
-					stage_name: "${aws_api_gateway_deployment.npk.stage_name}",
+				[apiName]: {
+					api_id: "${aws_api_gateway_rest_api.%s.id}" % apiName,
+					stage_name: "${aws_api_gateway_deployment.%s.stage_name}" % apiName,
 					domain_name: "${aws_api_gateway_domain_name.npk.domain_name}",
 					base_path: "v1"
 				}
@@ -304,7 +307,7 @@ local regionKeys = std.objectFields(settings.regions);
 	},
 	'cognito_iam_roles.tf.json': {
 		resource: cognito_iam_roles.resource,
-		data: cognito_iam_roles.data(settings)
+		data: cognito_iam_roles.data(settings, apiName)
 	},
 	'cognito.tf.json': {
 		resource: cognito.resource(settings),
@@ -327,11 +330,11 @@ local regionKeys = std.objectFields(settings.regions);
 	'dynamodb_settings.tf.json': {
 		resource: dynamodb_settings
 	},
-	'ec2_iam_roles.tf.json': ec2_iam_roles,
+	'ec2_iam_roles.tf.json': ec2_iam_roles.roles(apiName),
 	'ec2_iam_roles-compress.tf.json': {
 		resource: iam.iam_role(
 			"npk_ec2_compress",
-			"NPk Compression Nodes",
+			"NPK Compression Nodes",
 			{},
 	        {
 	        	EC2Compression: [{
@@ -496,7 +499,7 @@ local regionKeys = std.objectFields(settings.regions);
 				apigateway: if settings.useCustomDNS then
 					settings.apiEndpoint
 				else
-					"${aws_api_gateway_rest_api.npk.id}.execute-api.%s.amazonaws.com" % [settings.primaryRegion]
+					"${aws_api_gateway_rest_api.%s.id}.execute-api.%s.amazonaws.com" % [apiName, settings.primaryRegion]
 			}
 		},
 	}, {
@@ -608,7 +611,7 @@ local regionKeys = std.objectFields(settings.regions);
 				apigateway: if settings.useCustomDNS then
 					settings.apiEndpoint
 				else
-					"${aws_api_gateway_rest_api.npk.id}.execute-api.%s.amazonaws.com" % [settings.primaryRegion]
+					"${aws_api_gateway_rest_api.%s.id}.execute-api.%s.amazonaws.com" % [apiName, settings.primaryRegion]
 			}
 		},
 
@@ -1083,7 +1086,7 @@ local regionKeys = std.objectFields(settings.regions);
 						api_gateway_url: if settings.useCustomDNS then
 								settings.apiEndpoint
 							else
-								"${element(split(\"/\", aws_api_gateway_deployment.npk.invoke_url), 2)}"
+								"${element(split(\"/\", aws_api_gateway_deployment.%s.invoke_url), 2)}" % apiName
 					} + (if settings.useSAML && !settings.useCustomDNS then {
 						saml_domain: "${aws_cognito_user_pool_domain.saml.domain}.auth." + settings.primaryRegion + ".amazoncognito.com",
 						saml_redirect: "https://${aws_cloudfront_distribution.npk.domain_name}"
@@ -1161,7 +1164,7 @@ local regionKeys = std.objectFields(settings.regions);
 	}
 } + {
 	['vpc-%s.tf.json' % region]: vpc.public_vpc("npk", region, "172.21.16.0/20", settings.regions[region], ['s3'])
-	for region in std.objectFields(settings.regions)
+	for region in regionKeys
 } + {
 	['../lambda_functions/%s/accountDetails.json' % name]: accountDetails
 	for name in ['compression_pipe', 'create_campaign', 'delete_campaign', 'execute_campaign', 'spot_monitor']

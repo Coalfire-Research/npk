@@ -130,11 +130,37 @@ exports.main = async function(event, context, callback) {
 					SpotFleetRequestIds: [campaign.spotFleetRequestId]
 				}).promise();
 			} catch(e) {
+
+				let update = await ddb.updateItem({
+					Key: {
+						userid: {S: entity},
+						keyid: {S: `campaigns:${campaignId}`}
+					},
+					TableName: "Campaigns",
+					AttributeUpdates: {
+						active: { Action: 'PUT', Value: { BOOL: false }},
+						status: { Action: 'PUT', Value: { S: "CANCELLED" }}
+					}
+				}).promise();
+
 				console.log("Failed to retrieve spot fleet request.", e);
 				return respond(500, {}, "Failed to retrieve spot fleet request.", false);
 			}
 
 			if (!sfr.SpotFleetRequestConfigs?.[0]?.SpotFleetRequestId) {
+
+				let update = await ddb.updateItem({
+					Key: {
+						userid: {S: entity},
+						keyid: {S: `campaigns:${campaignId}`}
+					},
+					TableName: "Campaigns",
+					AttributeUpdates: {
+						active: { Action: 'PUT', Value: { BOOL: false }},
+						status: { Action: 'PUT', Value: { S: "CANCELLED" }}
+					}
+				}).promise();
+
 				return respond(404, "Error retrieving spot fleet data: not found.", false);
 			}
 

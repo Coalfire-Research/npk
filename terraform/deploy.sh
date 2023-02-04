@@ -36,7 +36,7 @@ if [[ "$($TERBIN -v | grep v0.11 | wc -l)" != "1" ]]; then
 	ERR=1;
 	echo "Error: Wrong version of Terraform is installed. NPK requires Terraform v0.11.";
 	echo "-> Note: A non-default binary can be specified as positional script parameter:"
-	echo "-> e.g: ./deploy-selfhost.sh <terraform-v0.11-path>"
+	echo "-> e.g: ./deploy.sh <terraform-v0.11-path>"
 	echo ""
 fi
 

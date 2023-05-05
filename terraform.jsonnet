@@ -852,7 +852,7 @@ local regionKeys = std.objectFields(settings.regions);
 			required_providers: {
 				aws: {
 					source: "hashicorp/aws",
-					version: "~> 3.57.0"
+					version: "~> 4.66.0"
 				},
 				archive: {
 					source: "hashicorp/archive",
@@ -913,29 +913,41 @@ local regionKeys = std.objectFields(settings.regions);
 	's3.tf.json': {
 		resource: {
 			aws_s3_bucket: {
-				user_data: s3.bucket(
-					"npk-user-data-",
-					std.map(
-						s3.cors_rule,
-						[
-							"http://localhost"
-						] + if settings.useCustomDNS then
-								[ "https://%s" % [settings.wwwEndpoint] ]
-							else
-								[ "https://${aws_cloudfront_distribution.npk.domain_name}" ]
-					)
-				) + {
-					lifecycle_rule: {
-						enabled: "true",
+				user_data: s3.bucket("npk-user-data-"),
+				static_site: s3.bucket("npk-site-content-"),
+				logs: s3.bucket("npk-logs-")
+			},
+			aws_s3_bucket_acl: {
+				logs: {
+					bucket: "${aws_s3_bucket.logs.id}",
+					acl: "log-delivery-write",
+
+					depends_on: ["aws_s3_bucket_ownership_controls.logs"]
+				}
+			},
+			aws_s3_bucket_lifecycle_configuration: {
+				user_data: {
+					bucket: "${aws_s3_bucket.user_data.id}",
+
+					rule: {
+						id: "1",
+						status: "Enabled",
 						expiration: {
 							days: 7
 						},
-						abort_incomplete_multipart_upload_days: 1
+						abort_incomplete_multipart_upload: {
+							days_after_initiation: 1
+						}
 					}
-				},
-				static_site: s3.bucket("npk-site-content-"),
-				logs: s3.bucket("npk-logs-") + {
-					acl: "log-delivery-write"
+				}
+			},
+			aws_s3_bucket_ownership_controls: {
+				logs: {
+					bucket: "${aws_s3_bucket.logs.id}",
+
+					rule: [{
+						object_ownership: "BucketOwnerPreferred"
+					}]
 				}
 			}
 		},
@@ -950,8 +962,16 @@ local regionKeys = std.objectFields(settings.regions);
 			aws_s3_bucket: {
 				dictionary: {
 					bucket_prefix: "npk-dictionary-" + settings.primaryRegion + "-",
-					acl: "private",
 					force_destroy: true,
+
+					tags: {
+						Project: "NPK"
+					}
+				}
+			},
+			aws_s3_bucket_cors_configuration: {
+				dictionary: {
+					bucket: "${aws_s3_bucket.dictionary.id}",
 
 					cors_rule: {
 					    allowed_headers: ["*"],
@@ -960,10 +980,22 @@ local regionKeys = std.objectFields(settings.regions);
 					    expose_headers : ["x-amz-meta-lines", "x-amz-meta-size", "x-amz-meta-type", "content-length", "ETag"],
 					    max_age_seconds: 3000
 					},
+				},
+				user_data: {
+					bucket: "${aws_s3_bucket.user_data.id}",
 
-					tags: {
-						Project: "NPK"
-					}
+					cors_rule: {
+					    allowed_headers: ["*"],
+					    allowed_methods: ["GET", "PUT", "POST", "HEAD", "DELETE"],
+					    allowed_origins: [
+							"http://localhost"
+						] + if settings.useCustomDNS then
+								[ "https://%s" % [settings.wwwEndpoint] ]
+							else
+								[ "https://${aws_cloudfront_distribution.npk.domain_name}" ],
+					    expose_headers : ["x-amz-meta-lines", "x-amz-meta-size", "x-amz-meta-type", "content-length", "ETag"],
+					    max_age_seconds: 3000
+					},
 				}
 			},
 			aws_s3_bucket_notification: {

@@ -1,4 +1,4 @@
-#! /bin/bash -x
+#! /bin/bash -xe
 
 amazon-linux-extras install -y epel
 yum install -y wget p7zip

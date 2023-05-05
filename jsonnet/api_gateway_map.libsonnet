@@ -73,7 +73,9 @@ local rest_api_map(api, pathParts) = {
 			        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
 			        "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS,POST,PUT,DELETE'",
 			        "method.response.header.Access-Control-Allow-Origin": "'*'"
-			    }
+			    },
+
+			    depends_on: ["aws_api_gateway_integration.%s" % [std.asciiLower("%s_%s" % [thispath, method])]]
 			} else null
 			for method in std.objectFields(object.methods)
 		}),

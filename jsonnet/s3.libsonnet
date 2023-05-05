@@ -8,9 +8,9 @@ local cors_rule(origin) = {
 
 local bucket(name, cors=null) =
 	if std.type(cors) == "null" then
-		{ "bucket_prefix": name, "force_destroy": true, "acl": "private" }
+		{ "bucket_prefix": name, "force_destroy": true}
 	else
-		{ "bucket_prefix": name, "force_destroy": true, "acl": "private", "cors_rule": cors };
+		{ "bucket_prefix": name, "force_destroy": true, "cors_rule": cors };
 
 {
 	"cors_rule": cors_rule,

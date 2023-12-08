@@ -259,6 +259,8 @@ exports.main = async function(event, context, callback) {
 		return respond(500, {}, "Failed to retrieve price and image details.", false);
 	}
 
+	console.log(image);
+
 	image = image.Images.reduce((newest, entry) => 
 		entry.CreationDate > newest.CreationDate ? entry : newest
 	, { CreationDate: '1980-01-01T00:00:00.000Z' });

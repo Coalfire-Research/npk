@@ -53,7 +53,7 @@
 	},
 	"NVIDIA T4G": {
 		"architecture": "arm64",
-		"ami": "Deep Learning AMI Graviton GPU CUDA *",
+		"ami": "Deep Learning AMI Graviton *",
 		"quotaCode": "L-3819A6DF",
 		"instances": {
 			"g5g.xlarge": [1, 4],

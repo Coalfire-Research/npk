@@ -53,7 +53,8 @@
 	},
 	"NVIDIA T4G": {
 		"architecture": "arm64",
-		"ami": "Deep Learning AMI Graviton *",
+		"ami": "DCV-AmazonLinux2-aarch64-*-NVIDIA-*",
+		"owner": "877902723034",
 		"quotaCode": "L-3819A6DF",
 		"instances": {
 			"g5g.xlarge": [1, 4],

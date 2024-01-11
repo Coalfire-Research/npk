@@ -120,7 +120,7 @@ aws ec2 describe-spot-fleet-instances --region $REGION --spot-fleet-request-id $
 export INSTANCECOUNT=$(cat fleet_instances | wc -l)
 export INSTANCENUMBER=$(cat fleet_instances | grep -nr $INSTANCEID - | cut -d':' -f1)
 
-if [[ -f $(which yum) ]]; then
+if [[ $(uname -a | grep x86_64 | wc -l) -eq 1 ]]; then
 	aws s3 cp s3://$BUCKET/components-v3/hashcat.7z .
 	aws s3 cp s3://$BUCKET/components-v3/maskprocessor.7z .
 

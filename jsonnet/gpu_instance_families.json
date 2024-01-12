@@ -53,8 +53,8 @@
 	},
 	"NVIDIA T4G": {
 		"architecture": "arm64",
-		"ami": "DCV-AmazonLinux2-aarch64-*-NVIDIA-*",
-		"owner": "877902723034",
+		"ami": "aws-parallelcluster-*-ubuntu-*",
+		"owner": "247102896272",
 		"quotaCode": "L-3819A6DF",
 		"instances": {
 			"g5g.xlarge": [1, 4],

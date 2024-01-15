@@ -1,0 +1,32 @@
+{
+  "name": "npk_community",
+  "version": "2.6.0",
+  "description": "NPK distributed hash cracking platform",
+  "main": "bin/index.js",
+  "scripts": {
+    "deploy": "node bin/index.js deploy",
+    "configure": "node bin/index.js deploy -i",
+    "update": "node bin/index.js deploy",
+    "destroy": "node bin/index.js destroy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/c6fc/npk.git"
+  },
+  "engines": {
+    "node": ">=17.0.1",
+    "npm": ">=8.1.0"
+  },
+  "author": "brad@bradwoodward.io",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/c6fc/npk/issues"
+  },
+  "homepage": "https://github.com/c6fc/npk#readme",
+  "dependencies": {
+    "@c6fc/sonnetry": "^3.1.2",
+    "aws-sdk": "^2.1018.0",
+    "inquirer": "^8.2.0",
+    "yargs": "^17.3.1"
+  }
+}

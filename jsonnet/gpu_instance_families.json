@@ -1,0 +1,74 @@
+{
+	"NVIDIA M60": {
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g3s.xlarge": [1, 4],
+			"g3.4xlarge": [1, 16],
+			"g3.8xlarge": [2, 32],
+			"g3.16xlarge": [4, 64]
+		}
+	},
+	"NVIDIA T4": {
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g4dn.xlarge": [1, 4],
+			"g4dn.12xlarge": [4, 48],
+			"g4dn.metal": [8, 96]
+		}
+	},
+	"NVIDIA K80": {
+		"ami": "amzn2-ami-graphics-hvm-2*",
+		"owner": "679593333241",
+		"quotaCode": "L-7212CCBC",
+		"instances": {
+			"p2.xlarge": [1, 4],
+			"p2.8xlarge": [8, 32],
+			"p2.16xlarge": [16, 64]
+		}
+	},
+	"NVIDIA V100": {
+		"ami": "amzn2-ami-graphics-hvm-2*",
+		"owner": "679593333241",
+		"quotaCode": "L-7212CCBC",
+		"instances": {
+			"p3.2xlarge": [1, 8],
+			"p3.8xlarge": [4, 32],
+			"p3.16xlarge": [8, 64]
+		}
+	},
+	"NVIDIA A100": {
+		"quotaCode": "L-7212CCBC",
+		"instances": {
+			"p4d.24xlarge": [8, 96]
+		}
+	},
+	"NVIDIA A10G": {
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g5.xlarge": [1, 4],
+			"g5.12xlarge": [4, 96],
+			"g5.48xlarge": [8, 192]
+		}
+		
+	},
+	"NVIDIA T4G": {
+		"architecture": "arm64",
+		"ami": "aws-parallelcluster-*-ubuntu-*",
+		"owner": "247102896272",
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g5g.xlarge": [1, 4],
+			"g5g.metal": [2, 64]
+		}
+	},
+	"Radeon Pro V520": {
+		"ami": "amzn2-ami-amd-hvm-*-x86_64-*",
+		"owner": "679593333241",
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g4ad.xlarge": [1, 16],
+			"g4ad.8xlarge": [2, 32],
+			"g4ad.16xlarge": [4, 64]
+		}
+	}
+}

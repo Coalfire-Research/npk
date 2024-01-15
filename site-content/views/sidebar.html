@@ -3,7 +3,7 @@
      <div class="brand-logo">
       <a href="#/">
        <img src="assets/images/logo-icon.png" class="logo-icon" alt="logo icon">
-       <h5 class="logo-text">N-P-K</h5>
+       <h5 class="logo-text">NPK<small><small>v3</small></small></h5>
      </a>
 	 </div>
 	 <ul class="sidebar-menu do-nicescrol">
@@ -34,6 +34,11 @@
           <i class="icon-user"></i> <span>User Administration</span>
         </a>
       </li>
+      <li ng-show="cognitoSvc.isAdmin()">
+        <a href="#/dictionaries" class="waves-effect">
+          <i class="icon-notebook"></i> <span>Dictionaries</span>
+        </a>
+      </li>
       <li>
         <a href="#/user-settings" class="waves-effect">
           <i class="icon-settings"></i> <span>Settings</span>
@@ -42,6 +47,11 @@
       <li>
         <a href="#/events" class="waves-effect">
           <i class="icon-calendar"></i> <span>Events</span>
+        </a>
+      </li>
+      <li>
+        <a href="#/quota" class="waves-effect">
+          <i class="icon-speedometer"></i> <span>Quota</span>
         </a>
       </li>
     </ul>

@@ -5,6 +5,12 @@ angular
     		return JSON.stringify(what, null, ' ').trim();
     	};
     })
+    .filter('fieldMemberOf', function() {
+    	return function(source, field, mask) {
+    		return source
+    			.filter(e => mask.includes(e[field]));
+    	}
+    })
     .filter('equals', function() {
     	return function(items, equals) {
     		if (typeof items != "object") {
@@ -58,6 +64,18 @@ angular
 
 			return result;
 		};
+	})
+	.filter('toArray', function() {
+		return function(object) {
+			const newObject = Object.keys(object).reduce((acc, cur) => {
+				object[cur]._id = cur;
+				acc.push(object[cur]);
+
+				return acc;
+			}, []);
+
+			return newObject;
+		}
 	})
 	.filter('toHs', function() {
 		return function(number) {
@@ -209,6 +227,13 @@ angular
 	   			return cognito.routeRequireLogin();
 	   		}]
 	   	})
+	   	.when('/file-management/:basePath*', {
+	   		templateUrl: "views/file-management.html",
+	   		controller: "filesCtrl",
+	   		resolveRedirectTo: ['cognito', function(cognito) {
+	   			return cognito.routeRequireLogin();
+	   		}]
+	   	})
 	   	.when('/campaign-management', {
 	   		templateUrl: "views/campaign-management.html",
 	   		controller: "cmCtrl",
@@ -244,14 +269,20 @@ angular
 	   			return cognito.routeRequireAdmin();
 	   		}]
 	   	})
-
-	   	/*
-	   	.when('/:realm/:name', {
-	   		templateUrl: "profile.html",
-	   		controller: "profileCtrl",
-	   		controllerAs: "pCtrl"
+	   	.when('/dictionaries', {
+	   		templateUrl: "views/dictionary-management.html",
+	   		controller: "dmCtrl",
+	   		resolveRedirectTo: ['cognito', function(cognito) {
+	   			return cognito.routeRequireAdmin();
+	   		}]
 	   	})
-	   	*/
+	   	.when('/quota', {
+	   		templateUrl: "views/quota.html",
+	   		controller: "htCtrl",
+	   		resolveRedirectTo: ['cognito', function(cognito) {
+	   			return cognito.routeRequireAdmin();
+	   		}]
+	   	})
 
 	   	.otherwise({
 	   		redirectTo: "/",

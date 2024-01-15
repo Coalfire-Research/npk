@@ -32,6 +32,15 @@
                 </div>
               </div>
             </div>
+            <div class="col-lg-6">  
+              <div class="card bg-dark border border-secondary-dark shadow-none">
+                <div class="card-body">
+                  <p class="card-text text-white text-left">Search Events (All properties)</p>
+                  <hr>
+                  <input type="text" class="form-control" ng-model="filter.$">
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div><!--End Row-->
@@ -52,7 +61,7 @@
             <tbody ng-repeat="event in events | filter:filter | orderBy:'startTime'" on-finish-render>
               <tr>
                 <td>
-                  <small>{{ event.startTime | momentfn:'format' }}</small>
+                  <small>{{ event.startTime / 1000 | momentns:'format' }}</small>
                 </td>
                 <td>
                   <small>
@@ -72,7 +81,21 @@
                   <br>
                   Order was comprised of {{ event.instanceCount }}x {{ event.instanceType }} for {{ event.durationSeconds / 3600 }} hours.
                   <br>
-                  Campaign spent {{ event.price | currency:'$' }} of {{ event.targetPrice }} allotted.
+                  Campaign spent {{ event.price | currency:'$' }} of {{ event.targetPrice | currency:'$' }} allotted.
+                </td>
+              </tr>
+              <tr ng-if="event.eventType == 'NodeFinished' && event.status == 'ERROR'">
+                <td colspan="3">
+                  Instance {{ event.keyid.split(':')[2] }} (from campaign {{ event.keyid.split(':')[0] }}) finished with an error.
+                  <br>
+                  See the File Management section for the full log details.
+                </td>
+              </tr>
+              <tr ng-if="event.eventType == 'NodeFinished' && event.status == 'COMPLETED'">
+                <td colspan="3">
+                  Instance {{ event.keyid.split(':')[2] }} (from campaign {{ event.keyid.split(':')[0] }}) finished successfully.
+                  <br>
+                  Recovered {{ event.recoveredHashes }} plaintext values.
                 </td>
               </tr>
             </tbody>

@@ -1,0 +1,133 @@
+<div class="clearfix"></div>
+	
+  <link href="https://fonts.googleapis.com/css?family=Nanum+Gothic+Coding" rel="stylesheet">
+
+<div class="content-wrapper">
+  <div class="container-fluid">
+    <div class="row container">
+      <div class="col-lg-12">
+        <div class="card bg-transparent shadow-none border border-secondary-light">
+          <div class="card-header bg-transparent text-white border-secondary-light">
+            Region/Instance Family Entitlements
+            <div class="card-action">
+            </div>
+            <div>
+              <small>
+                Regions with zero quota are not shown. Configured regions: {{ all_regions.join(', ') }}.
+              </small>
+            </div>
+          </div>
+          <div class="card-body text-left"  ng-repeat="(gpu, family) in families">
+            
+            <table class="text-white border border-white">
+              <thead class="text-center">
+                <tr class="text-dark bg-white border border-white">
+                  <th class="border border-dark" width="200">GPU</th>
+                  <th class="border border-dark" width="170">Instance</th>
+                  <th class="border pt-2" width="150" ng-class="!familyregions[gpu].includes(region) ? 'bg-dark text-white border-white' : 'bg-white text-dark border-dark'" ng-repeat="region in all_regions" style="line-height: 1.2;">
+                    {{ region }}
+                    <br>
+                    <div ng-if="familyregions[gpu].includes(region) && !!quotas[region][families[gpu].quotaCode]" class="badge badge-sm badge-dark mb-2">
+                      {{ quotas[region][families[gpu].quotaCode] }} vCPU
+                    </div>
+                    <div ng-if="familyregions[gpu].includes(region) && !quotas[region][families[gpu].quotaCode]" class="badge badge-sm badge-danger mb-2">
+                      No Quota
+                    </div>
+                    <div ng-if="!familyregions[gpu].includes(region)" class="badge badge-sm badge-secondary mb-2">
+                      Unsupported
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody on-finish-render>
+                <tr class="text-white border border-white" ng-repeat="family in families[gpu].instances | toArray | orderBy: '[1]'">
+                  <td ng-if="$first" class="text-center border border-white p-3" style="line-height: 0.8; font-variant: small-caps;" rowspan="10">
+                    <b>{{ gpu }}</b>
+                    <br><br>
+                    <small>
+                      quota code
+                      <br>
+                      {{ families[gpu].quotaCode }}
+                    </small>
+                  </td>
+                  <td class="text-center p-2" style="line-height: 1.3;">
+                    <b>{{ family._id }}</b>
+                    <br>
+                    <small>GPUs: {{ family[0] }}; vCPUs: {{ family[1] }}</small>
+                  </td>
+                  <td class="border border-white p-2 text-center" ng-repeat="region in all_regions">
+                    <div ng-if="familyregions[gpu].includes(region) && !quotas[region][families[gpu].quotaCode]" class="text-danger" style="line-height: 1;">
+                      <small>Quota is zero</small>
+                    </div>
+                    <div ng-if="familyregions[gpu].includes(region) && quotas[region][families[gpu].quotaCode] > 0 && quotas[region][families[gpu].quotaCode] < family[1]" class="text-warning" style="line-height: 1;">
+                      <small>Insufficient quota</small>
+                    </div>
+                    <div ng-if="familyregions[gpu].includes(region) && quotas[region][families[gpu].quotaCode] >= family[1]" class="text-warning" style="line-height: 1;">
+                      <div class="btn btn-success">{{ (quotas[region][families[gpu].quotaCode] / family[1]).toString().split('.')[0] }} Instances</div>
+                    </div>
+                    <div ng-if="!familyregions[gpu].includes(region)" class="text-secondary" style="line-height: 1;">
+                      <small>Not supported<br>by this region</small>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/ng-template" id="subdirectory.html">
+  <div style="padding-left: 15px; border-left: 1px solid #999;" class="justify-content-between" ng-repeat="(x, y) in y">
+    <div class="text-left" ng-if="typeOf(y) == 'object'" style="border-bottom: 1px solid black;">
+      <i class="fa fa-folder"></i>
+      {{ x }}
+        <div ng-include="'subdirectory.html'"></div>
+    </div>
+    <div class="d-flex" ng-if="typeOf(y) == 'string'">
+      <h6>
+        <a href="{{ signedUrlOf(y) }}" target="_blank">
+          <i class="fa fa-file"></i>
+          {{ x }}
+        </a>
+      </h6>
+      <div class="text-right" style="position: absolute; right: 30px;">
+        <small class="text-right" style="margin-right: 35px;">
+            {{ files[y].Size | number }} Bytes
+        </small>
+        <small class="text-right" style="width: 260px; margin-right: 20px;">
+            {{ files[y].LastModified.toGMTString() }}
+        </small>
+        <btn ng-click="deleteS3Item(y)" class="badge badge-danger text-white" style="top: -2px; cursor: pointer;">
+          <i class="fa fa-trash"></i>
+          Delete
+        </btn>
+      </div>
+    </div>
+  </div>
+</script>
+
+<a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+  <!--End Back To Top Button-->
+
+<script src="assets/plugins/jquery-multi-select/jquery.multi-select.js"></script>
+<script src="assets/plugins/dropzone/js/dropzone.js"></script>
+<script type="text/javascript">
+  Dropzone.autoDiscover = false;
+</script>
+
+<!-- Range Slider -->
+<script src="assets/js/ion.rangeSlider.min.js"></script>
+
+<!-- Switchery Js-->
+<script src="assets/plugins/switchery/js/switchery.min.js"></script>
+<script>
+  // var elems = Array.prototype.slice.call(document.querySelectorAll('.js-switch'));
+  window.switchers = {};
+  $('.js-switch').each(function() {
+    var e = $(this);
+    window.switchers[e[0].id] = new Switchery(e[0], $(this).data());
+  });
+</script>

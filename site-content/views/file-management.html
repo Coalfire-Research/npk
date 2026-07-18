@@ -36,8 +36,8 @@
                             <div class="container" ng-repeat="(x, y) in pathTree">
                               <div class="text-left" ng-if="typeOf(y) == 'object'" style="border-bottom: 1px solid black;">
                                 <i class="fa fa-folder"></i>
-                                My Files
-                                  <div ng-include="'subdirectory.html'"></div>
+                                My Files {{ (!!basePath) ? '&gt;&nbsp;' + basePath : '' }}
+                                <div ng-include="'subdirectory.html'"></div>
                               </div>
                               <div class="d-flex" ng-if="typeOf(y) == 'string'">
                                 <h6>

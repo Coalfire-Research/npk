@@ -1,0 +1,688 @@
+Hash.Mode........: 0 (MD5)
+Speed.#1.........:  3082.7 MH/s (344.79ms) @ Accel:2048 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 10 (md5($pass.$salt))
+Speed.#1.........:  2528.9 MH/s (210.98ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 100 (SHA1)
+Speed.#1.........:  2061.3 MH/s (259.02ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 1000 (NTLM)
+Speed.#1.........:  3315.2 MH/s (320.96ms) @ Accel:2048 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 10000 (Django (PBKDF2-SHA256))
+Speed.#1.........:    28732 H/s (456.00ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 10100 (SipHash)
+Speed.#1.........:  2630.7 MH/s (203.47ms) @ Accel:512 Loops:256 Thr:256 Vec:1
+Hash.Mode........: 10200 (CRAM-MD5)
+Speed.#1.........:  1358.1 MH/s (196.51ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 10300 (SAP CODVN H (PWDSALTEDHASH) iSSHA-1)
+Speed.#1.........:  2340.1 kH/s (259.69ms) @ Accel:1024 Loops:511 Thr:128 Vec:1
+Hash.Mode........: 10400 (PDF 1.1 - 1.3 (Acrobat 2 - 4))
+Speed.#1.........:   180.0 MH/s (372.19ms) @ Accel:512 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 10410 (PDF 1.1 - 1.3 (Acrobat 2 - 4), collider #1)
+Speed.#1.........:   208.6 MH/s (316.09ms) @ Accel:512 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 10420 (PDF 1.1 - 1.3 (Acrobat 2 - 4), collider #2)
+Speed.#1.........:  1870.3 MH/s (72.16ms) @ Accel:1024 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 10500 (PDF 1.4 - 1.6 (Acrobat 5 - 8))
+Speed.#1.........:  6285.7 kH/s (50.89ms) @ Accel:1024 Loops:70 Thr:32 Vec:1
+Hash.Mode........: 10600 (PDF 1.7 Level 3 (Acrobat 9))
+Speed.#1.........:  1002.8 MH/s (266.46ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 10700 (PDF 1.7 Level 8 (Acrobat 10 - 11))
+Speed.#1.........:    20148 H/s (405.85ms) @ Accel:16 Loops:4 Thr:512 Vec:1
+Hash.Mode........: 10800 (SHA2-384)
+Speed.#1.........:   392.1 MH/s (341.62ms) @ Accel:256 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 10810 (sha384($pass.$salt))
+Speed.#1.........:   343.7 MH/s (389.08ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 10820 (sha384($salt.$pass))
+Speed.#1.........:   348.0 MH/s (384.27ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 10830 (sha384(utf16le($pass).$salt))
+Speed.#1.........:   338.0 MH/s (395.64ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 10840 (sha384($salt.utf16le($pass)))
+Speed.#1.........:   346.2 MH/s (386.31ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 10870 (sha384(utf16le($pass)))
+Speed.#1.........:   385.5 MH/s (346.94ms) @ Accel:256 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 10900 (PBKDF2-HMAC-SHA256)
+Speed.#1.........:   580.7 kH/s (426.70ms) @ Accel:16 Loops:999 Thr:1024 Vec:1
+Hash.Mode........: 110 (sha1($pass.$salt))
+Speed.#1.........:  1747.6 MH/s (305.05ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 1100 (Domain Cached Credentials (DCC), MS Cache)
+Speed.#1.........:  2462.8 MH/s (432.35ms) @ Accel:2048 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 11000 (PrestaShop)
+Speed.#1.........:  2013.4 MH/s (264.95ms) @ Accel:2048 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 11100 (PostgreSQL CRAM (MD5))
+Speed.#1.........:  1761.1 MH/s (303.14ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 11200 (MySQL CRAM (SHA1))
+Speed.#1.........:   858.3 MH/s (311.58ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 11300 (Bitcoin/Litecoin wallet.dat)
+Speed.#1.........:     2927 H/s (288.85ms) @ Accel:128 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 11400 (SIP digest authentication (MD5))
+Speed.#1.........:   458.5 MH/s (582.82ms) @ Accel:1024 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 11500 (CRC32)
+Speed.#1.........:   869.5 MH/s (305.81ms) @ Accel:8192 Loops:64 Thr:32 Vec:1
+Hash.Mode........: 11600 (7-Zip)
+Speed.#1.........:     3303 H/s (618.96ms) @ Accel:128 Loops:4096 Thr:128 Vec:1
+Hash.Mode........: 11700 (GOST R 34.11-2012 (Streebog) 256-bit, big-endian)
+Speed.#1.........: 24902.3 kH/s (336.55ms) @ Accel:8 Loops:256 Thr:256 Vec:1
+Hash.Mode........: 11750 (HMAC-Streebog-256 (key = $pass), big-endian)
+Speed.#1.........:  7921.3 kH/s (264.48ms) @ Accel:16 Loops:128 Thr:64 Vec:1
+Hash.Mode........: 11760 (HMAC-Streebog-256 (key = $salt), big-endian)
+Speed.#1.........: 10667.0 kH/s (393.18ms) @ Accel:16 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 11800 (GOST R 34.11-2012 (Streebog) 512-bit, big-endian)
+Speed.#1.........: 24939.3 kH/s (336.11ms) @ Accel:8 Loops:256 Thr:256 Vec:1
+Hash.Mode........: 11850 (HMAC-Streebog-512 (key = $pass), big-endian)
+Speed.#1.........:  6973.7 kH/s (300.45ms) @ Accel:16 Loops:128 Thr:64 Vec:1
+Hash.Mode........: 11860 (HMAC-Streebog-512 (key = $salt), big-endian)
+Speed.#1.........:  9042.0 kH/s (463.63ms) @ Accel:16 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 11900 (PBKDF2-HMAC-MD5)
+Speed.#1.........:  3123.5 kH/s (265.54ms) @ Accel:64 Loops:999 Thr:1024 Vec:1
+Hash.Mode........: 120 (sha1($salt.$pass))
+Speed.#1.........:  1831.3 MH/s (291.39ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 12000 (PBKDF2-HMAC-SHA1)
+Speed.#1.........:  1542.7 kH/s (304.20ms) @ Accel:64 Loops:999 Thr:512 Vec:1
+Hash.Mode........: 12100 (PBKDF2-HMAC-SHA512)
+Speed.#1.........:   223.4 kH/s (254.88ms) @ Accel:64 Loops:124 Thr:512 Vec:1
+Hash.Mode........: 12200 (eCryptfs)
+Speed.#1.........:     7079 H/s (288.88ms) @ Accel:8 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 12300 (Oracle T: Type (Oracle 12+))
+Speed.#1.........:    55036 H/s (295.38ms) @ Accel:32 Loops:256 Thr:512 Vec:1
+Hash.Mode........: 12400 (BSDi Crypt, Extended DES)
+Speed.#1.........:  1756.7 kH/s (267.68ms) @ Accel:2048 Loops:1024 Thr:32 Vec:1
+Hash.Mode........: 12500 (RAR3-hp)
+Speed.#1.........:    13849 H/s (589.70ms) @ Accel:32 Loops:16384 Thr:256 Vec:1
+Hash.Mode........: 12600 (ColdFusion 10+)
+Speed.#1.........:   725.1 MH/s (368.35ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 12700 (Blockchain, My Wallet)
+Speed.#1.........: 13636.8 kH/s (23.38ms) @ Accel:1024 Loops:9 Thr:128 Vec:1
+Hash.Mode........: 12800 (MS-AzureSync PBKDF2-HMAC-SHA256)
+Speed.#1.........:  4022.8 kH/s (341.49ms) @ Accel:128 Loops:99 Thr:1024 Vec:1
+Hash.Mode........: 12900 (Android FDE (Samsung DEK))
+Speed.#1.........:   147.5 kH/s (437.34ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 130 (sha1(utf16le($pass).$salt))
+Speed.#1.........:  1609.9 MH/s (331.45ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 1300 (SHA2-224)
+Speed.#1.........:  1088.6 MH/s (490.74ms) @ Accel:128 Loops:256 Thr:1024 Vec:1
+Hash.Mode........: 13000 (RAR5)
+Speed.#1.........:    18658 H/s (428.13ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 13100 (Kerberos 5, etype 23, TGS-REP)
+Speed.#1.........:   154.4 MH/s (434.19ms) @ Accel:512 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 13200 (AxCrypt 1)
+Speed.#1.........:    57814 H/s (451.62ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 13300 (AxCrypt 1 in-memory SHA1)
+Speed.#1.........:  1995.6 MH/s (266.48ms) @ Accel:2048 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 13400 (KeePass 1 (AES/Twofish) and KeePass 2 (AES))
+Speed.#1.........:    68806 H/s (315.60ms) @ Accel:32 Loops:1024 Thr:256 Vec:1
+Hash.Mode........: 13500 (PeopleSoft PS_TOKEN)
+Speed.#1.........:  1008.4 MH/s (265.34ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 13600 (WinZip)
+Speed.#1.........:  1514.5 kH/s (304.71ms) @ Accel:64 Loops:999 Thr:512 Vec:1
+Hash.Mode........: 13711 (VeraCrypt RIPEMD160 + XTS 512 bit)
+Speed.#1.........:      455 H/s (219.24ms) @ Accel:256 Loops:1000 Thr:512 Vec:1
+Hash.Mode........: 13712 (VeraCrypt RIPEMD160 + XTS 1024 bit)
+Speed.#1.........:      261 H/s (191.17ms) @ Accel:128 Loops:1000 Thr:512 Vec:1
+Hash.Mode........: 13713 (VeraCrypt RIPEMD160 + XTS 1536 bit)
+Speed.#1.........:      183 H/s (136.50ms) @ Accel:64 Loops:1000 Thr:512 Vec:1
+Hash.Mode........: 13721 (VeraCrypt SHA512 + XTS 512 bit)
+Speed.#1.........:      439 H/s (149.14ms) @ Accel:128 Loops:1000 Thr:512 Vec:1
+Hash.Mode........: 13722 (VeraCrypt SHA512 + XTS 1024 bit)
+Speed.#1.........:      214 H/s (152.67ms) @ Accel:64 Loops:1000 Thr:512 Vec:1
+Hash.Mode........: 13723 (VeraCrypt SHA512 + XTS 1536 bit)
+Speed.#1.........:      143 H/s (229.07ms) @ Accel:64 Loops:1000 Thr:512 Vec:1
+Hash.Mode........: 13731 (VeraCrypt Whirlpool + XTS 512 bit)
+Speed.#1.........:       41 H/s (200.22ms) @ Accel:64 Loops:500 Thr:256 Vec:1
+Hash.Mode........: 13732 (VeraCrypt Whirlpool + XTS 1024 bit)
+Speed.#1.........:       20 H/s (200.33ms) @ Accel:64 Loops:1000 Thr:64 Vec:1
+Hash.Mode........: 13733 (VeraCrypt Whirlpool + XTS 1536 bit)
+Speed.#1.........:       14 H/s (150.33ms) @ Accel:64 Loops:500 Thr:64 Vec:1
+Hash.Mode........: 13741 (VeraCrypt RIPEMD160 + XTS 512 bit + boot-mode)
+Speed.#1.........:      910 H/s (224.63ms) @ Accel:256 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 13742 (VeraCrypt RIPEMD160 + XTS 1024 bit + boot-mode)
+Speed.#1.........:      521 H/s (196.32ms) @ Accel:128 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 13743 (VeraCrypt RIPEMD160 + XTS 1536 bit + boot-mode)
+Speed.#1.........:      365 H/s (139.99ms) @ Accel:64 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 13751 (VeraCrypt SHA256 + XTS 512 bit)
+Speed.#1.........:      609 H/s (214.83ms) @ Accel:256 Loops:1000 Thr:512 Vec:1
+Hash.Mode........: 13752 (VeraCrypt SHA256 + XTS 1024 bit)
+Speed.#1.........:      306 H/s (213.98ms) @ Accel:128 Loops:1000 Thr:512 Vec:1
+Hash.Mode........: 13753 (VeraCrypt SHA256 + XTS 1536 bit)
+Speed.#1.........:      204 H/s (160.24ms) @ Accel:64 Loops:1000 Thr:512 Vec:1
+Hash.Mode........: 13761 (VeraCrypt SHA256 + XTS 512 bit + boot-mode)
+Speed.#1.........:     1522 H/s (220.14ms) @ Accel:256 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 13762 (VeraCrypt SHA256 + XTS 1024 bit + boot-mode)
+Speed.#1.........:      764 H/s (219.44ms) @ Accel:128 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 13763 (VeraCrypt SHA256 + XTS 1536 bit + boot-mode)
+Speed.#1.........:      510 H/s (164.41ms) @ Accel:64 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 13800 (Windows Phone 8+ PIN/password)
+Speed.#1.........:   269.6 MH/s (496.41ms) @ Accel:256 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 13900 (OpenCart)
+Speed.#1.........:   778.4 MH/s (342.71ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 140 (sha1($salt.utf16le($pass)))
+Speed.#1.........:  1821.1 MH/s (292.98ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 1400 (SHA2-256)
+Speed.#1.........:  1086.4 MH/s (245.83ms) @ Accel:256 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 14000 (DES (PT = $salt, key = $pass))
+Speed.#1.........:  1121.5 MH/s (238.45ms) @ Accel:1024 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 1410 (sha256($pass.$salt))
+Speed.#1.........:  1003.3 MH/s (266.36ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 14100 (3DES (PT = $salt, key = $pass))
+Speed.#1.........:   139.8 MH/s (7.53ms) @ Accel:512 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 1420 (sha256($salt.$pass))
+Speed.#1.........:  1006.3 MH/s (265.65ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 1430 (sha256(utf16le($pass).$salt))
+Speed.#1.........:   944.9 MH/s (282.87ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 1440 (sha256($salt.utf16le($pass)))
+Speed.#1.........:  1003.2 MH/s (266.46ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 14400 (sha1(CX))
+Speed.#1.........:   156.7 MH/s (213.84ms) @ Accel:128 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 1450 (HMAC-SHA256 (key = $pass))
+Speed.#1.........:   251.6 MH/s (266.38ms) @ Accel:64 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 14500 (Linux Kernel Crypto API (2.4))
+Speed.#1.........: 68639.7 kH/s (244.14ms) @ Accel:256 Loops:128 Thr:32 Vec:1
+Hash.Mode........: 1460 (HMAC-SHA256 (key = $salt))
+Speed.#1.........:   465.8 MH/s (288.16ms) @ Accel:256 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 1470 (sha256(utf16le($pass)))
+Speed.#1.........:  1075.9 MH/s (248.79ms) @ Accel:64 Loops:256 Thr:1024 Vec:1
+Hash.Mode........: 14700 (iTunes backup < 10.0)
+Speed.#1.........:    85123 H/s (307.41ms) @ Accel:128 Loops:256 Thr:512 Vec:1
+Hash.Mode........: 14800 (iTunes backup >= 10.0)
+Speed.#1.........:       57 H/s (462.38ms) @ Accel:256 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 14900 (Skip32 (PT = $salt, key = $pass))
+Speed.#1.........:  2262.8 MH/s (173.30ms) @ Accel:4096 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 150 (HMAC-SHA1 (key = $pass))
+Speed.#1.........:   546.1 MH/s (245.57ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 1500 (descrypt, DES (Unix), Traditional DES)
+Speed.#1.........: 76149.0 kH/s (440.00ms) @ Accel:512 Loops:64 Thr:64 Vec:1
+Hash.Mode........: 15000 (FileZilla Server >= 0.9.55)
+Speed.#1.........:   387.6 MH/s (345.01ms) @ Accel:256 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 15100 (Juniper/NetBSD sha1crypt)
+Speed.#1.........:   115.1 kH/s (301.40ms) @ Accel:128 Loops:512 Thr:512 Vec:1
+Hash.Mode........: 15200 (Blockchain, My Wallet, V2)
+Speed.#1.........:   168.7 kH/s (306.53ms) @ Accel:128 Loops:256 Thr:512 Vec:1
+Hash.Mode........: 15300 (DPAPI masterkey file v1)
+Speed.#1.........:    35542 H/s (311.56ms) @ Accel:64 Loops:512 Thr:512 Vec:1
+Hash.Mode........: 15400 (ChaCha20)
+Speed.#1.........: 68385.6 kH/s (1.36ms) @ Accel:512 Loops:256 Thr:256 Vec:1
+Hash.Mode........: 15500 (JKS Java Key Store Private Keys (SHA1))
+Speed.#1.........:  1631.8 MH/s (327.03ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 15600 (Ethereum Wallet, PBKDF2-HMAC-SHA256)
+Speed.#1.........:     2338 H/s (437.05ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 15700 (Ethereum Wallet, SCRYPT)
+Speed.#1.........:        0 H/s (3.94ms) @ Accel:1 Loops:1024 Thr:4 Vec:1
+Hash.Mode........: 15900 (DPAPI masterkey file v2)
+Speed.#1.........:    27907 H/s (291.93ms) @ Accel:8 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 160 (HMAC-SHA1 (key = $salt))
+Speed.#1.........:  1124.6 MH/s (237.47ms) @ Accel:1024 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 1600 (Apache $apr1$ MD5, md5apr1, MD5 (APR))
+Speed.#1.........:  3547.4 kH/s (474.09ms) @ Accel:128 Loops:1000 Thr:1024 Vec:1
+Hash.Mode........: 16000 (Tripcode)
+Speed.#1.........: 76195.8 kH/s (439.61ms) @ Accel:512 Loops:64 Thr:64 Vec:1
+Hash.Mode........: 16100 (TACACS+)
+Speed.#1.........:  2533.7 MH/s (210.64ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 16200 (Apple Secure Notes)
+Speed.#1.........:    30593 H/s (428.00ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 16300 (Ethereum Pre-Sale Wallet, PBKDF2-HMAC-SHA256)
+Speed.#1.........:   294.9 kH/s (426.51ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 16400 (CRAM-MD5 Dovecot)
+Speed.#1.........:  3146.3 MH/s (337.98ms) @ Accel:2048 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 16500 (JWT (JSON Web Token))
+Speed.#1.........:   147.1 MH/s (456.38ms) @ Accel:256 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 16600 (Electrum Wallet (Salt-Type 1-3))
+Speed.#1.........: 90230.7 kH/s (370.59ms) @ Accel:512 Loops:128 Thr:32 Vec:1
+Hash.Mode........: 16700 (FileVault 2)
+Speed.#1.........:    28681 H/s (455.93ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 16900 (Ansible Vault)
+Speed.#1.........:    60988 H/s (427.93ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 170 (sha1(utf16le($pass)))
+Speed.#1.........:  1997.4 MH/s (267.39ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 1700 (SHA2-512)
+Speed.#1.........:   395.2 MH/s (339.04ms) @ Accel:256 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 1710 (sha512($pass.$salt))
+Speed.#1.........:   351.0 MH/s (381.19ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 1720 (sha512($salt.$pass))
+Speed.#1.........:   351.2 MH/s (381.02ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 17200 (PKZIP (Compressed))
+Speed.#1.........:   226.2 MH/s (411.14ms) @ Accel:704 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 17210 (PKZIP (Uncompressed))
+Speed.#1.........:   153.9 MH/s (435.37ms) @ Accel:256 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 17220 (PKZIP (Compressed Multi-File))
+Speed.#1.........:   243.9 MH/s (550.48ms) @ Accel:1024 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 17225 (PKZIP (Mixed Multi-File))
+Speed.#1.........:   263.5 MH/s (508.06ms) @ Accel:1024 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 17230 (PKZIP (Mixed Multi-File Checksum-Only))
+Speed.#1.........:   435.4 MH/s (615.38ms) @ Accel:1024 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 1730 (sha512(utf16le($pass).$salt))
+Speed.#1.........:   341.6 MH/s (391.60ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 17300 (SHA3-224)
+Speed.#1.........:   427.7 MH/s (313.03ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 1740 (sha512($salt.utf16le($pass)))
+Speed.#1.........:   351.5 MH/s (380.55ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 17400 (SHA3-256)
+Speed.#1.........:   434.9 MH/s (307.66ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 1750 (HMAC-SHA512 (key = $pass))
+Speed.#1.........: 97098.4 kH/s (344.98ms) @ Accel:32 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 17500 (SHA3-384)
+Speed.#1.........:   418.0 MH/s (320.16ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 1760 (HMAC-SHA512 (key = $salt))
+Speed.#1.........:   204.2 MH/s (328.22ms) @ Accel:64 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 17600 (SHA3-512)
+Speed.#1.........:   434.7 MH/s (308.31ms) @ Accel:256 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 1770 (sha512(utf16le($pass)))
+Speed.#1.........:   391.3 MH/s (342.34ms) @ Accel:256 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 17700 (Keccak-224)
+Speed.#1.........:   424.9 MH/s (315.28ms) @ Accel:256 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 17800 (Keccak-256)
+Speed.#1.........:   433.1 MH/s (309.42ms) @ Accel:256 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 17900 (Keccak-384)
+Speed.#1.........:   418.4 MH/s (319.93ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 1800 (sha512crypt $6$, SHA512 (Unix))
+Speed.#1.........:    69189 H/s (370.35ms) @ Accel:256 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 18000 (Keccak-512)
+Speed.#1.........:   436.8 MH/s (306.44ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 18100 (TOTP (HMAC-SHA1))
+Speed.#1.........:   306.8 MH/s (435.76ms) @ Accel:512 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 18200 (Kerberos 5, etype 23, AS-REP)
+Speed.#1.........:   152.5 MH/s (439.90ms) @ Accel:512 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 18300 (Apple File System (APFS))
+Speed.#1.........:    30577 H/s (427.96ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 18400 (Open Document Format (ODF) 1.2 (SHA-256, AES))
+Speed.#1.........:     8576 H/s (311.88ms) @ Accel:64 Loops:512 Thr:512 Vec:1
+Hash.Mode........: 18500 (sha1(md5(md5($pass))))
+Speed.#1.........:   471.5 MH/s (566.78ms) @ Accel:1024 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 18600 (Open Document Format (ODF) 1.1 (SHA-1, Blowfish))
+Speed.#1.........:   361.2 kH/s (206.94ms) @ Accel:128 Loops:511 Thr:512 Vec:1
+Hash.Mode........: 18700 (Java Object hashCode())
+Speed.#1.........:   755.9 MH/s (352.68ms) @ Accel:512 Loops:64 Thr:512 Vec:1
+Hash.Mode........: 18800 (Blockchain, My Wallet, Second Password (SHA256))
+Speed.#1.........:   123.2 kH/s (422.71ms) @ Accel:32 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 18900 (Android Backup)
+Speed.#1.........:    85015 H/s (307.62ms) @ Accel:128 Loops:256 Thr:512 Vec:1
+Hash.Mode........: 19000 (QNX /etc/shadow (MD5))
+Speed.#1.........:  3228.9 kH/s (521.99ms) @ Accel:1024 Loops:1000 Thr:128 Vec:1
+Hash.Mode........: 19100 (QNX /etc/shadow (SHA256))
+Speed.#1.........:  1164.1 kH/s (1653.75ms) @ Accel:1024 Loops:1000 Thr:128 Vec:1
+Hash.Mode........: 19200 (QNX /etc/shadow (SHA512))
+Speed.#1.........:   480.6 kH/s (2092.82ms) @ Accel:512 Loops:1000 Thr:128 Vec:1
+Hash.Mode........: 19300 (sha1($salt1.$pass.$salt2))
+Speed.#1.........:   118.6 MH/s (282.52ms) @ Accel:128 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 19500 (Ruby on Rails Restful-Authentication)
+Speed.#1.........: 18104.7 kH/s (460.22ms) @ Accel:64 Loops:128 Thr:64 Vec:1
+Hash.Mode........: 19600 (Kerberos 5, etype 17, TGS-REP)
+Speed.#1.........:   408.5 kH/s (310.50ms) @ Accel:64 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 19700 (Kerberos 5, etype 18, TGS-REP)
+Speed.#1.........:   205.3 kH/s (312.97ms) @ Accel:64 Loops:512 Thr:512 Vec:1
+Hash.Mode........: 19800 (Kerberos 5, etype 17, Pre-Auth)
+Speed.#1.........:   408.7 kH/s (310.71ms) @ Accel:128 Loops:512 Thr:512 Vec:1
+Hash.Mode........: 19900 (Kerberos 5, etype 18, Pre-Auth)
+Speed.#1.........:   205.3 kH/s (313.42ms) @ Accel:64 Loops:512 Thr:512 Vec:1
+Hash.Mode........: 20 (md5($salt.$pass))
+Speed.#1.........:  2598.4 MH/s (206.17ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 200 (MySQL323)
+Speed.#1.........:  1501.1 MH/s (176.93ms) @ Accel:256 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 2000 (STDOUT)
+Speed.#1.........:  4370.1 MH/s (0.01ms) @ Accel:1024 Loops:256 Thr:512 Vec:1
+Hash.Mode........: 20011 (DiskCryptor SHA512 + XTS 512 bit)
+Speed.#1.........:   208.0 kH/s (273.55ms) @ Accel:128 Loops:62 Thr:512 Vec:1
+Hash.Mode........: 20012 (DiskCryptor SHA512 + XTS 1024 bit)
+Speed.#1.........:    98076 H/s (284.12ms) @ Accel:64 Loops:62 Thr:512 Vec:1
+Hash.Mode........: 20013 (DiskCryptor SHA512 + XTS 1536 bit)
+Speed.#1.........:    65071 H/s (425.54ms) @ Accel:64 Loops:62 Thr:512 Vec:1
+Hash.Mode........: 20200 (Python passlib pbkdf2-sha512)
+Speed.#1.........:     9037 H/s (294.51ms) @ Accel:128 Loops:64 Thr:512 Vec:1
+Hash.Mode........: 20300 (Python passlib pbkdf2-sha256)
+Speed.#1.........:    19806 H/s (458.58ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 20400 (Python passlib pbkdf2-sha1)
+Speed.#1.........:    13136 H/s (310.01ms) @ Accel:128 Loops:512 Thr:512 Vec:1
+Hash.Mode........: 20500 (PKZIP Master Key)
+Speed.#1.........:   681.2 MH/s (400.13ms) @ Accel:1024 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 20510 (PKZIP Master Key (6 byte optimization))
+Speed.#1.........:   499.7 MH/s (535.36ms) @ Accel:1024 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 20600 (Oracle Transportation Management (SHA256))
+Speed.#1.........:  1145.3 kH/s (378.94ms) @ Accel:256 Loops:124 Thr:1024 Vec:1
+Hash.Mode........: 20710 (sha256(sha256($pass).$salt))
+Speed.#1.........:   185.3 MH/s (180.64ms) @ Accel:512 Loops:128 Thr:32 Vec:1
+Hash.Mode........: 20720 (sha256($salt.sha256($pass)))
+Speed.#1.........:   173.8 MH/s (388.31ms) @ Accel:256 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 20800 (sha256(md5($pass)))
+Speed.#1.........:   966.4 MH/s (276.39ms) @ Accel:128 Loops:128 Thr:1024 Vec:1
+Hash.Mode........: 20900 (md5(sha1($pass).md5($pass).sha1($pass)))
+Speed.#1.........:   982.1 MH/s (272.05ms) @ Accel:256 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 2100 (Domain Cached Credentials 2 (DCC2), MS Cache 2)
+Speed.#1.........:   166.6 kH/s (309.93ms) @ Accel:128 Loops:512 Thr:512 Vec:1
+Hash.Mode........: 21000 (BitShares v0.x - sha512(sha512_bin(pass)))
+Speed.#1.........:   196.9 MH/s (339.98ms) @ Accel:128 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 21100 (sha1(md5($pass.$salt)))
+Speed.#1.........:  1353.6 MH/s (197.16ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 21200 (md5(sha1($salt).md5($pass)))
+Speed.#1.........:  1559.0 MH/s (342.33ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 21300 (md5($salt.sha1($salt.$pass)))
+Speed.#1.........:   486.7 MH/s (549.18ms) @ Accel:1024 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 21400 (sha256(sha256_bin($pass)))
+Speed.#1.........:   564.7 MH/s (473.06ms) @ Accel:128 Loops:128 Thr:1024 Vec:1
+Hash.Mode........: 21500 (SolarWinds Orion)
+Speed.#1.........:    32143 H/s (224.92ms) @ Accel:8 Loops:124 Thr:512 Vec:1
+Hash.Mode........: 21501 (SolarWinds Orion v2)
+Speed.#1.........:    32174 H/s (224.76ms) @ Accel:8 Loops:124 Thr:512 Vec:1
+Hash.Mode........: 21600 (Web2py pbkdf2-sha512)
+Speed.#1.........:   222.8 kH/s (256.86ms) @ Accel:64 Loops:124 Thr:512 Vec:1
+Hash.Mode........: 21700 (Electrum Wallet (Salt-Type 4))
+Speed.#1.........:    78159 H/s (277.73ms) @ Accel:128 Loops:63 Thr:512 Vec:1
+Hash.Mode........: 21800 (Electrum Wallet (Salt-Type 5))
+Speed.#1.........:    69791 H/s (283.45ms) @ Accel:512 Loops:255 Thr:32 Vec:1
+Hash.Mode........: 22000 (WPA-PBKDF2-PMKID+EAPOL)
+Speed.#1.........:   208.6 kH/s (308.20ms) @ Accel:32 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 22001 (WPA-PMK-PMKID+EAPOL)
+Speed.#1.........:    76116 H/s (0.00ms) @ Accel:1024 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 22100 (BitLocker)
+Speed.#1.........:      695 H/s (367.78ms) @ Accel:64 Loops:4096 Thr:1024 Vec:1
+Hash.Mode........: 22200 (Citrix NetScaler (SHA512))
+Speed.#1.........:   368.5 MH/s (363.17ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 22300 (sha256($salt.$pass.$salt))
+Speed.#1.........:   942.0 MH/s (283.69ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 22400 (AES Crypt (SHA256))
+Speed.#1.........:    76674 H/s (841.30ms) @ Accel:64 Loops:512 Thr:1024 Vec:1
+Hash.Mode........: 22500 (MultiBit Classic .key (MD5))
+Speed.#1.........:   218.3 MH/s (307.13ms) @ Accel:512 Loops:128 Thr:64 Vec:1
+Hash.Mode........: 22600 (Telegram Desktop < v2.1.14 (PBKDF2-HMAC-SHA1))
+Speed.#1.........:    60230 H/s (269.56ms) @ Accel:8 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 22700 (MultiBit HD (scrypt))
+Speed.#1.........:      349 H/s (71.96ms) @ Accel:16 Loops:1024 Thr:32 Vec:1
+Hash.Mode........: 22911 (RSA/DSA/EC/OpenSSH Private Keys ($0$))
+Speed.#1.........: 92334.6 kH/s (363.22ms) @ Accel:256 Loops:128 Thr:64 Vec:1
+Hash.Mode........: 22921 (RSA/DSA/EC/OpenSSH Private Keys ($6$))
+Speed.#1.........:   261.2 MH/s (512.13ms) @ Accel:512 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 22931 (RSA/DSA/EC/OpenSSH Private Keys ($1, $3$))
+Speed.#1.........:   169.7 MH/s (396.80ms) @ Accel:256 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 22941 (RSA/DSA/EC/OpenSSH Private Keys ($4$))
+Speed.#1.........:   112.2 MH/s (298.65ms) @ Accel:256 Loops:128 Thr:64 Vec:1
+Hash.Mode........: 22951 (RSA/DSA/EC/OpenSSH Private Keys ($5$))
+Speed.#1.........:   104.2 MH/s (321.49ms) @ Accel:256 Loops:128 Thr:64 Vec:1
+Hash.Mode........: 23001 (SecureZIP AES-128)
+Speed.#1.........:   251.5 MH/s (266.26ms) @ Accel:512 Loops:128 Thr:64 Vec:1
+Hash.Mode........: 23002 (SecureZIP AES-192)
+Speed.#1.........:   177.2 MH/s (377.78ms) @ Accel:128 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 23003 (SecureZIP AES-256)
+Speed.#1.........:   112.0 MH/s (299.39ms) @ Accel:512 Loops:128 Thr:32 Vec:1
+Hash.Mode........: 23100 (Apple Keychain)
+Speed.#1.........:   804.2 kH/s (274.21ms) @ Accel:256 Loops:124 Thr:512 Vec:1
+Hash.Mode........: 23200 (XMPP SCRAM PBKDF2-SHA1)
+Speed.#1.........:   408.3 kH/s (311.17ms) @ Accel:64 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 23300 (Apple iWork)
+Speed.#1.........:   418.3 kH/s (303.94ms) @ Accel:64 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 23400 (Bitwarden)
+Speed.#1.........:     6073 H/s (441.04ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 23500 (AxCrypt 2 AES-128)
+Speed.#1.........:    25436 H/s (228.56ms) @ Accel:64 Loops:124 Thr:512 Vec:1
+Hash.Mode........: 23600 (AxCrypt 2 AES-256)
+Speed.#1.........:    13414 H/s (430.06ms) @ Accel:64 Loops:124 Thr:512 Vec:1
+Hash.Mode........: 23700 (RAR3-p (Uncompressed))
+Speed.#1.........:    13851 H/s (589.69ms) @ Accel:32 Loops:16384 Thr:256 Vec:1
+Hash.Mode........: 23800 (RAR3-p (Compressed))
+Speed.#1.........:    13347 H/s (590.17ms) @ Accel:32 Loops:16384 Thr:256 Vec:1
+Hash.Mode........: 23900 (BestCrypt v3 Volume Encryption)
+Speed.#1.........:   466.7 kH/s (535.78ms) @ Accel:512 Loops:1 Thr:32 Vec:1
+Hash.Mode........: 2400 (Cisco-PIX MD5)
+Speed.#1.........:  2968.0 MH/s (358.57ms) @ Accel:8192 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 2410 (Cisco-ASA MD5)
+Speed.#1.........:  2427.1 MH/s (438.94ms) @ Accel:2048 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 24100 (MongoDB ServerKey SCRAM-SHA-1)
+Speed.#1.........:   170.1 kH/s (304.39ms) @ Accel:64 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 24200 (MongoDB ServerKey SCRAM-SHA-256)
+Speed.#1.........:    40706 H/s (427.42ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 24300 (sha1($salt.sha1($pass.$salt)))
+Speed.#1.........:   976.6 MH/s (273.39ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 24410 (PKCS#8 Private Keys (PBKDF2-HMAC-SHA1 + 3DES/AES))
+Speed.#1.........:   405.1 kH/s (312.97ms) @ Accel:64 Loops:512 Thr:512 Vec:1
+Hash.Mode........: 24420 (PKCS#8 Private Keys (PBKDF2-HMAC-SHA256 + 3DES/AES))
+Speed.#1.........:   275.1 kH/s (465.50ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 24500 (Telegram Desktop >= v2.1.14 (PBKDF2-HMAC-SHA512))
+Speed.#1.........:      733 H/s (457.51ms) @ Accel:64 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 24600 (SQLCipher)
+Speed.#1.........:    13448 H/s (310.84ms) @ Accel:64 Loops:512 Thr:512 Vec:1
+Hash.Mode........: 24700 (Stuffit5)
+Speed.#1.........:  2183.6 MH/s (244.49ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 24800 (Umbraco HMAC-SHA1)
+Speed.#1.........:   562.1 MH/s (473.59ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 24900 (Dahua Authentication MD5)
+Speed.#1.........:  2448.4 MH/s (435.08ms) @ Accel:8192 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 25000 (SNMPv3 HMAC-MD5-96/HMAC-SHA1-96)
+Speed.#1.........:    24098 H/s (337.07ms) @ Accel:8 Loops:131072 Thr:512 Vec:1
+Hash.Mode........: 25100 (SNMPv3 HMAC-MD5-96)
+Speed.#1.........:    42184 H/s (771.26ms) @ Accel:512 Loops:131072 Thr:32 Vec:1
+Hash.Mode........: 25200 (SNMPv3 HMAC-SHA1-96)
+Speed.#1.........:    40962 H/s (794.75ms) @ Accel:512 Loops:131072 Thr:32 Vec:1
+Hash.Mode........: 25300 (MS Office 2016 - SheetProtection)
+Speed.#1.........:     4629 H/s (289.50ms) @ Accel:8 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 25400 (PDF 1.4 - 1.6 (Acrobat 5 - 8) - edit password)
+Speed.#1.........:  6341.3 kH/s (50.88ms) @ Accel:1024 Loops:70 Thr:32 Vec:1
+Hash.Mode........: 25500 (Stargazer Stellar Wallet XLM)
+Speed.#1.........:   138.9 kH/s (465.74ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 25600 (bcrypt(md5($pass)) / bcryptmd5)
+Speed.#1.........:    10797 H/s (277.52ms) @ Accel:16 Loops:32 Thr:12 Vec:1
+Hash.Mode........: 25700 (MurmurHash)
+Speed.#1.........:   791.2 MH/s (336.52ms) @ Accel:512 Loops:64 Thr:512 Vec:1
+Hash.Mode........: 25800 (bcrypt(sha1($pass)) / bcryptsha1)
+Speed.#1.........:    10800 H/s (277.27ms) @ Accel:16 Loops:32 Thr:12 Vec:1
+Hash.Mode........: 25900 (KNX IP Secure - Device Authentication Code)
+Speed.#1.........:     9357 H/s (436.79ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 2600 (md5(md5($pass)))
+Speed.#1.........:  1975.7 MH/s (270.35ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 26000 (Mozilla key3.db)
+Speed.#1.........: 21225.8 kH/s (395.07ms) @ Accel:64 Loops:128 Thr:64 Vec:1
+Hash.Mode........: 26100 (Mozilla key4.db)
+Speed.#1.........:    57242 H/s (456.23ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 26200 (OpenEdge Progress Encode)
+Speed.#1.........: 22132.4 kH/s (378.58ms) @ Accel:128 Loops:64 Thr:64 Vec:1
+Hash.Mode........: 26300 (FortiGate256 (FortiOS256))
+Speed.#1.........:   424.4 MH/s (636.85ms) @ Accel:1024 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 26401 (AES-128-ECB NOKDF (PT = $salt, key = $pass))
+Speed.#1.........:   988.6 MH/s (270.73ms) @ Accel:512 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 26402 (AES-192-ECB NOKDF (PT = $salt, key = $pass))
+Speed.#1.........:   873.1 MH/s (306.46ms) @ Accel:512 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 26403 (AES-256-ECB NOKDF (PT = $salt, key = $pass))
+Speed.#1.........:   710.0 MH/s (376.98ms) @ Accel:512 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 26500 (iPhone passcode (UID key + System Keybag))
+Speed.#1.........:    11592 H/s (462.23ms) @ Accel:512 Loops:1024 Thr:32 Vec:1
+Hash.Mode........: 26700 (SNMPv3 HMAC-SHA224-128)
+Speed.#1.........:    40906 H/s (397.16ms) @ Accel:8 Loops:131072 Thr:1024 Vec:1
+Hash.Mode........: 26800 (SNMPv3 HMAC-SHA256-192)
+Speed.#1.........:    40956 H/s (396.74ms) @ Accel:8 Loops:131072 Thr:1024 Vec:1
+Hash.Mode........: 26900 (SNMPv3 HMAC-SHA384-256)
+Speed.#1.........:    37108 H/s (435.18ms) @ Accel:8 Loops:262144 Thr:512 Vec:1
+Hash.Mode........: 27000 (NetNTLMv1 / NetNTLMv1+ESS (NT))
+Speed.#1.........:  1512.0 kH/s (0.00ms) @ Accel:1024 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 27100 (NetNTLMv2 (NT))
+Speed.#1.........:  1604.8 kH/s (0.00ms) @ Accel:1024 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 27200 (Ruby on Rails Restful Auth (one round, no sitekey))
+Speed.#1.........:  1846.7 MH/s (289.08ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 27300 (SNMPv3 HMAC-SHA512-384)
+Speed.#1.........:    36974 H/s (435.96ms) @ Accel:8 Loops:262144 Thr:512 Vec:1
+Hash.Mode........: 27400 (VMware VMX (PBKDF2-HMAC-SHA1 + AES-256-CBC))
+Speed.#1.........:    85401 H/s (305.15ms) @ Accel:64 Loops:512 Thr:512 Vec:1
+Hash.Mode........: 27500 (VirtualBox (PBKDF2-HMAC-SHA256 & AES-128-XTS))
+Speed.#1.........:     2053 H/s (466.01ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 27600 (VirtualBox (PBKDF2-HMAC-SHA256 & AES-256-XTS))
+Speed.#1.........:     1617 H/s (453.29ms) @ Accel:128 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 30 (md5(utf16le($pass).$salt))
+Speed.#1.........:  2288.6 MH/s (233.16ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 300 (MySQL4.1/MySQL5)
+Speed.#1.........:  1257.4 MH/s (425.02ms) @ Accel:256 Loops:256 Thr:512 Vec:1
+Hash.Mode........: 3000 (LM)
+Speed.#1.........:   479.7 MH/s (558.94ms) @ Accel:1024 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 3100 (Oracle H: Type (Oracle 7+))
+Speed.#1.........:   165.4 MH/s (405.17ms) @ Accel:64 Loops:256 Thr:256 Vec:1
+Hash.Mode........: 3200 (bcrypt $2*$, Blowfish (Unix))
+Speed.#1.........:    10797 H/s (277.50ms) @ Accel:256 Loops:32 Thr:12 Vec:1
+Hash.Mode........: 3500 (md5(md5(md5($pass))))
+Speed.#1.........:  1447.7 MH/s (184.35ms) @ Accel:1024 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 3710 (md5($salt.md5($pass)))
+Speed.#1.........:  1706.7 MH/s (312.82ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 3800 (md5($salt.$pass.$salt))
+Speed.#1.........:  2284.6 MH/s (233.62ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 3910 (md5(md5($pass).md5($salt)))
+Speed.#1.........:  1541.7 MH/s (346.46ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 40 (md5($salt.utf16le($pass)))
+Speed.#1.........:  2593.6 MH/s (206.55ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 400 (phpass)
+Speed.#1.........:  3123.9 kH/s (274.54ms) @ Accel:128 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 4010 (md5($salt.md5($salt.$pass)))
+Speed.#1.........:  1673.8 MH/s (318.70ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 4110 (md5($salt.md5($pass.$salt)))
+Speed.#1.........:  1499.3 MH/s (355.97ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 4300 (md5(strtoupper(md5($pass))))
+Speed.#1.........:  1968.7 MH/s (271.28ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 4400 (md5(sha1($pass)))
+Speed.#1.........:  1500.1 MH/s (356.18ms) @ Accel:256 Loops:256 Thr:512 Vec:1
+Hash.Mode........: 4500 (sha1(sha1($pass)))
+Speed.#1.........:  1235.0 MH/s (432.66ms) @ Accel:128 Loops:256 Thr:1024 Vec:1
+Hash.Mode........: 4510 (sha1(sha1($pass).$salt))
+Speed.#1.........:  1087.6 MH/s (245.54ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 4520 (sha1($salt.sha1($pass)))
+Speed.#1.........:   768.7 MH/s (347.14ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 4700 (sha1(md5($pass)))
+Speed.#1.........:  1619.0 MH/s (330.09ms) @ Accel:128 Loops:256 Thr:1024 Vec:1
+Hash.Mode........: 4710 (sha1(md5($pass).$salt))
+Speed.#1.........:  1401.6 MH/s (190.30ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 4800 (iSCSI CHAP authentication, MD5(CHAP))
+Speed.#1.........:  2523.0 MH/s (212.05ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 4900 (sha1($salt.$pass.$salt))
+Speed.#1.........:  1693.0 MH/s (315.35ms) @ Accel:512 Loops:256 Thr:256 Vec:1
+Hash.Mode........: 50 (HMAC-MD5 (key = $pass))
+Speed.#1.........:  1359.8 MH/s (196.34ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 500 (md5crypt, MD5 (Unix), Cisco-IOS $1$ (MD5))
+Speed.#1.........:  3538.2 kH/s (475.25ms) @ Accel:128 Loops:1000 Thr:1024 Vec:1
+Hash.Mode........: 5000 (sha1(sha1($salt.$pass.$salt)))
+Speed.#1.........:  1042.7 MH/s (256.22ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 501 (Juniper IVE)
+Speed.#1.........:  3544.2 kH/s (475.26ms) @ Accel:128 Loops:1000 Thr:1024 Vec:1
+Hash.Mode........: 5100 (Half MD5)
+Speed.#1.........:  2860.4 MH/s (372.29ms) @ Accel:2048 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 5200 (Password Safe v3)
+Speed.#1.........:   581.8 kH/s (351.34ms) @ Accel:64 Loops:512 Thr:1024 Vec:1
+Hash.Mode........: 5300 (IKE-PSK MD5)
+Speed.#1.........:   432.9 MH/s (309.14ms) @ Accel:64 Loops:128 Thr:1024 Vec:1
+Hash.Mode........: 5400 (IKE-PSK SHA1)
+Speed.#1.........:   168.9 MH/s (396.43ms) @ Accel:128 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 5500 (NetNTLMv1 / NetNTLMv1+ESS)
+Speed.#1.........:  3184.5 MH/s (334.26ms) @ Accel:2048 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 5600 (NetNTLMv2)
+Speed.#1.........:   535.5 MH/s (250.09ms) @ Accel:256 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 5700 (Cisco-IOS type 4 (SHA256))
+Speed.#1.........:  1084.2 MH/s (246.29ms) @ Accel:256 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 5800 (Samsung Android Password/PIN)
+Speed.#1.........:  2504.1 kH/s (358.91ms) @ Accel:128 Loops:1023 Thr:512 Vec:1
+Hash.Mode........: 60 (HMAC-MD5 (key = $salt))
+Speed.#1.........:  2105.9 MH/s (253.47ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 600 (BLAKE2b-512)
+Speed.#1.........:   820.3 MH/s (325.89ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 6000 (RIPEMD-160)
+Speed.#1.........:  1595.0 MH/s (334.96ms) @ Accel:512 Loops:256 Thr:256 Vec:1
+Hash.Mode........: 6100 (Whirlpool)
+Speed.#1.........:   156.1 MH/s (429.09ms) @ Accel:256 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 6211 (TrueCrypt RIPEMD160 + XTS 512 bit)
+Speed.#1.........:   137.0 kH/s (450.50ms) @ Accel:16 Loops:512 Thr:1024 Vec:1
+Hash.Mode........: 6212 (TrueCrypt RIPEMD160 + XTS 1024 bit)
+Speed.#1.........:    76317 H/s (394.63ms) @ Accel:16 Loops:256 Thr:1024 Vec:1
+Hash.Mode........: 6213 (TrueCrypt RIPEMD160 + XTS 1536 bit)
+Speed.#1.........:    52931 H/s (280.59ms) @ Accel:8 Loops:256 Thr:1024 Vec:1
+Hash.Mode........: 6221 (TrueCrypt SHA512 + XTS 512 bit)
+Speed.#1.........:   207.9 kH/s (257.25ms) @ Accel:64 Loops:124 Thr:512 Vec:1
+Hash.Mode........: 6222 (TrueCrypt SHA512 + XTS 1024 bit)
+Speed.#1.........:    97924 H/s (284.13ms) @ Accel:64 Loops:62 Thr:512 Vec:1
+Hash.Mode........: 6223 (TrueCrypt SHA512 + XTS 1536 bit)
+Speed.#1.........:    64715 H/s (398.51ms) @ Accel:32 Loops:124 Thr:512 Vec:1
+Hash.Mode........: 6231 (TrueCrypt Whirlpool + XTS 512 bit)
+Speed.#1.........:    20176 H/s (362.15ms) @ Accel:16 Loops:124 Thr:256 Vec:1
+Hash.Mode........: 6232 (TrueCrypt Whirlpool + XTS 1024 bit)
+Speed.#1.........:    10089 H/s (356.14ms) @ Accel:8 Loops:124 Thr:256 Vec:1
+Hash.Mode........: 6233 (TrueCrypt Whirlpool + XTS 1536 bit)
+Speed.#1.........:     6718 H/s (286.05ms) @ Accel:8 Loops:62 Thr:256 Vec:1
+Hash.Mode........: 6241 (TrueCrypt RIPEMD160 + XTS 512 bit + boot-mode)
+Speed.#1.........:   259.2 kH/s (407.12ms) @ Accel:64 Loops:124 Thr:1024 Vec:1
+Hash.Mode........: 6242 (TrueCrypt RIPEMD160 + XTS 1024 bit + boot-mode)
+Speed.#1.........:   140.9 kH/s (350.71ms) @ Accel:32 Loops:124 Thr:1024 Vec:1
+Hash.Mode........: 6243 (TrueCrypt RIPEMD160 + XTS 1536 bit + boot-mode)
+Speed.#1.........:    96691 H/s (249.87ms) @ Accel:16 Loops:124 Thr:1024 Vec:1
+Hash.Mode........: 6300 (AIX {smd5})
+Speed.#1.........:  3545.7 kH/s (474.77ms) @ Accel:128 Loops:1000 Thr:1024 Vec:1
+Hash.Mode........: 6400 (AIX {ssha256})
+Speed.#1.........:  5772.8 kH/s (465.51ms) @ Accel:256 Loops:63 Thr:1024 Vec:1
+Hash.Mode........: 6500 (AIX {ssha512})
+Speed.#1.........:  2669.0 kH/s (290.52ms) @ Accel:128 Loops:63 Thr:512 Vec:1
+Hash.Mode........: 6600 (1Password, agilekeychain)
+Speed.#1.........:  1547.6 kH/s (205.49ms) @ Accel:128 Loops:499 Thr:512 Vec:1
+Hash.Mode........: 6700 (AIX {ssha1})
+Speed.#1.........: 10536.0 kH/s (78.57ms) @ Accel:256 Loops:63 Thr:512 Vec:1
+Hash.Mode........: 6800 (LastPass + LastPass sniffed)
+Speed.#1.........:  1106.0 kH/s (426.38ms) @ Accel:32 Loops:499 Thr:1024 Vec:1
+Hash.Mode........: 6900 (GOST R 34.11-94)
+Speed.#1.........:   120.2 MH/s (278.60ms) @ Accel:128 Loops:64 Thr:256 Vec:1
+Hash.Mode........: 70 (md5(utf16le($pass)))
+Speed.#1.........:  2885.6 MH/s (368.20ms) @ Accel:2048 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 7000 (FortiGate (FortiOS))
+Speed.#1.........:  1834.4 MH/s (291.06ms) @ Accel:512 Loops:256 Thr:256 Vec:1
+Hash.Mode........: 7200 (GRUB 2)
+Speed.#1.........:    22828 H/s (290.81ms) @ Accel:32 Loops:256 Thr:512 Vec:1
+Hash.Mode........: 7300 (IPMI2 RAKP HMAC-SHA1)
+Speed.#1.........:   453.8 MH/s (295.40ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 7400 (sha256crypt $5$, SHA256 (Unix))
+Speed.#1.........:   103.7 kH/s (497.96ms) @ Accel:256 Loops:64 Thr:1024 Vec:1
+Hash.Mode........: 7500 (Kerberos 5, etype 23, AS-REQ Pre-Auth)
+Speed.#1.........:   151.8 MH/s (441.75ms) @ Accel:512 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 7700 (SAP CODVN B (BCODE))
+Speed.#1.........:   985.1 MH/s (125.22ms) @ Accel:128 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 7701 (SAP CODVN B (BCODE) from RFC_READ_TABLE)
+Speed.#1.........:  1058.2 MH/s (101.59ms) @ Accel:128 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 7800 (SAP CODVN F/G (PASSCODE))
+Speed.#1.........:   332.7 MH/s (401.42ms) @ Accel:128 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 7801 (SAP CODVN F/G (PASSCODE) from RFC_READ_TABLE)
+Speed.#1.........:   328.6 MH/s (406.30ms) @ Accel:128 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 7900 (Drupal7)
+Speed.#1.........:    27627 H/s (295.54ms) @ Accel:16 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 8000 (Sybase ASE)
+Speed.#1.........:   183.1 MH/s (366.04ms) @ Accel:32 Loops:128 Thr:1024 Vec:1
+Hash.Mode........: 8100 (Citrix NetScaler (SHA1))
+Speed.#1.........:  2053.5 MH/s (260.03ms) @ Accel:1024 Loops:256 Thr:128 Vec:1
+Hash.Mode........: 8200 (1Password, cloudkeychain)
+Speed.#1.........:     5664 H/s (294.92ms) @ Accel:64 Loops:128 Thr:512 Vec:1
+Hash.Mode........: 8300 (DNSSEC (NSEC3))
+Speed.#1.........:   738.0 MH/s (361.40ms) @ Accel:512 Loops:128 Thr:256 Vec:1
+Hash.Mode........: 8400 (WBB3 (Woltlab Burning Board))
+Speed.#1.........:   445.9 MH/s (300.57ms) @ Accel:512 Loops:128 Thr:128 Vec:1
+Hash.Mode........: 8500 (RACF)
+Speed.#1.........:   412.6 MH/s (326.10ms) @ Accel:512 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 8600 (Lotus Notes/Domino 5)
+Speed.#1.........: 58055.3 kH/s (288.61ms) @ Accel:256 Loops:64 Thr:64 Vec:1
+Hash.Mode........: 8700 (Lotus Notes/Domino 6)
+Speed.#1.........: 33934.3 kH/s (493.90ms) @ Accel:8 Loops:256 Thr:512 Vec:1
+Hash.Mode........: 8800 (Android FDE <= 4.3)
+Speed.#1.........:   413.4 kH/s (306.12ms) @ Accel:64 Loops:512 Thr:512 Vec:1
+Hash.Mode........: 8900 (scrypt)
+Speed.#1.........:    57841 H/s (4.45ms) @ Accel:16 Loops:1024 Thr:32 Vec:1
+Hash.Mode........: 900 (MD4)
+Speed.#1.........:  3499.5 MH/s (303.95ms) @ Accel:1024 Loops:256 Thr:256 Vec:1
+Hash.Mode........: 9000 (Password Safe v2)
+Speed.#1.........:   229.4 kH/s (266.97ms) @ Accel:512 Loops:1000 Thr:12 Vec:1
+Hash.Mode........: 9100 (Lotus Notes/Domino 8)
+Speed.#1.........:   333.6 kH/s (303.53ms) @ Accel:64 Loops:1024 Thr:512 Vec:1
+Hash.Mode........: 9200 (Cisco-IOS $8$ (PBKDF2-SHA256))
+Speed.#1.........:    28698 H/s (455.77ms) @ Accel:16 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 9300 (Cisco-IOS $9$ (scrypt))
+Speed.#1.........:     3552 H/s (4.56ms) @ Accel:16 Loops:1024 Thr:32 Vec:1
+Hash.Mode........: 9400 (MS Office 2007)
+Speed.#1.........:    70126 H/s (302.84ms) @ Accel:64 Loops:1024 Thr:1024 Vec:1
+Hash.Mode........: 9500 (MS Office 2010)
+Speed.#1.........:    34985 H/s (303.52ms) @ Accel:128 Loops:512 Thr:1024 Vec:1
+Hash.Mode........: 9600 (MS Office 2013)
+Speed.#1.........:     4579 H/s (292.40ms) @ Accel:256 Loops:512 Thr:1024 Vec:1
+Hash.Mode........: 9700 (MS Office <= 2003 $0/$1, MD5 + RC4)
+Speed.#1.........: 87837.9 kH/s (381.39ms) @ Accel:256 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 9710 (MS Office <= 2003 $0/$1, MD5 + RC4, collider #1)
+Speed.#1.........:   191.1 MH/s (345.14ms) @ Accel:512 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 9720 (MS Office <= 2003 $0/$1, MD5 + RC4, collider #2)
+Speed.#1.........:   387.6 MH/s (345.36ms) @ Accel:1024 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 9800 (MS Office <= 2003 $3/$4, SHA1 + RC4)
+Speed.#1.........:   105.8 MH/s (316.42ms) @ Accel:256 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 9810 (MS Office <= 2003 $3, SHA1 + RC4, collider #1)
+Speed.#1.........:   185.5 MH/s (355.53ms) @ Accel:512 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 9820 (MS Office <= 2003 $3, SHA1 + RC4, collider #2)
+Speed.#1.........:   876.4 MH/s (152.53ms) @ Accel:1024 Loops:256 Thr:32 Vec:1
+Hash.Mode........: 9900 (Radmin2)
+Speed.#1.........:  2272.6 MH/s (234.96ms) @ Accel:2048 Loops:256 Thr:64 Vec:1
+Hash.Mode........: 99999 (Plaintext)
+Speed.#1.........:  3489.9 MH/s (304.80ms) @ Accel:1024 Loops:256 Thr:256 Vec:1

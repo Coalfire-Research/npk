@@ -14,7 +14,10 @@
         <div ng-if="selected_campaign" class="card-body text-center">
           <td colspan="8" class="card-body">
             <h6 class="card-text text-white" ng-if="objLength(data.nodes) < 1">
-              No status reports received. Nodes may have errored out.
+              No status reports received. Nodes may have errored out. <br>
+              <small>
+                Check the output log using the Campaign Prefix link below for diagnostics.
+              </small>
             </h6>
             <h6 class="text-white" ng-if="objLength(data.nodes) > 0">Nodes</h6>
             <div class="row" style="margin: 0px;">
@@ -46,10 +49,9 @@
                     </small>
                     </div>
                   </div>
-                  <div class="row">
-                    <div class="col-lg-2 card-body card text-warning text-center border border-dark bg-dark" style="margin-right: 10px; height: 60px; padding-top: 5px;" ng-repeat="(gpu, hashrate) in node['latest'].performance track by $index">
-                      <big>GPU {{ gpu }}</big>
-                      <small>{{ hashrate | toHs }}</small>
+                  <div class="row row-flex justify-content-center pb-5">
+                    <div class="col-lg-2 text-center text-success bg-dark border border-success m-1 pt-2 p-1" ng-repeat="(gpu, hashrate) in node['latest'].performance track by $index">
+                      {{ hashrate | toHs }}
                     </div>
                   </div>
                </div>
@@ -87,7 +89,7 @@
                   <h4 class="text-white"><small>Generation:</small> {{ manifest.instanceGeneration }}</h4>
                   <div class="text-right" style="border-right: 1px solid white; border-bottom: 1px solid white; padding-right: 8px;">
                     <small>
-                      [ {{ gpus[manifest.instanceType] }}x {{ gpuNames[manifest.instanceGeneration] }}  ] <!-- TODO: Make this reference the instance data -->
+                      [ {{ gpus[manifest.instanceType].family }} x{{ gpus[manifest.instanceType].gpu }}  ]
                     </small>
                   </div>
                   <h5 class="text-white"><small>Size:</small> {{ manifest.instanceSize }}</h5>
@@ -162,7 +164,7 @@
                 </div>
                 <div class="card-body bg-dark text-white text-left">
                   <h4 class="text-white"><small>Cracked Hashes:</small> {{ data.recovered_hashes }}</h4> 
-                  <div>
+                  <div ng-hide="first < 1">
                     <div class="badge badge-dark" data-toggle="tooltip" data-placement="left" title="" data-original-title="The amount of time between when the campaign was started and when any instance sent its first status report.">
                       <i class="fa fa-question-circle"></i>
                     </div>
@@ -193,6 +195,16 @@
                   </div>
                   <div style="border-bottom: 1px solid white;">&nbsp;</div>
                   <h5 class="text-white"><small>Success Rate:</small> {{ data.recovered_hashes / data.base.hashes * 100 | number:2 }}%</h5>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-12">
+              <div class="card bg-white shadow-none mt-3 border border-secondary-dark">
+                <div class="card-header bg-white text-dark text-left">
+                  Campaign Manifest and Outputs
+                </div>
+                <div class="card-body bg-dark text-white text-left">
+                  Campaign Prefix: <a ng-href="#/file-management/campaigns/{{ selected_campaign }}">{{ manifest.cognitoIdentityId }}/campaigns/{{ selected_campaign }}</a>
                 </div>
               </div>
             </div>
@@ -233,7 +245,7 @@
           </div>
           <div class="row" ng-show="manifest == false">
             <div class="col-lg-12">
-              <h5 class="text-white"><small>Campaign manifest could not be loaded. This likely means the campaign is more than 7 days old.</small></h6>
+              <h5 class="text-white"><small>Campaign manifest could not be loaded. It was either deleted manually or the campaign is more than 7 days old.</small></h6>
             </div>
           </div>
         </div>
@@ -266,24 +278,29 @@
                    </tr>
                    </thead>
                    <tbody>
-                     <tr ng-repeat="(id, data) in campaigns | filterObj: {deleted: false}" on-finish-render>
-                      <td><small><a href="#/campaign-management/{{ id }}">{{ id }}</a></small></td>
-                      <td><small>{{ data.startTime * 1000 | date:"MMM d @ H:mm" }}</small></td>
+                     <tr ng-repeat="campaign in campaigns | toArray | filter:{deleted: false} | orderBy:'startTime':true" on-finish-render>
+                      <td><small><a href="#/campaign-management/{{ campaign._id }}">{{ campaign._id }}</a></small></td>
+                      <td><small>{{ campaign.startTime * 1000 | date:"MMM d @ H:mm" }}</small></td>
                       <td>
-                        <span class="badge gradient-ibiza text-white shadow">
-                          {{ data.instanceType }}
-                        </span>
-                        <small>x{{ data.instanceCount }}</small>
+                        {{ campaign.instanceType }}
+                        <small>x{{ campaign.instanceCount }}</small>
                       </td>
-                      <td><small>{{ data.durationSeconds / 3600 }} Hours</small></td>
-                      <td><small>${{ data.price | number:2 }}</small></td>
-                      <td><small>{{ data.status }}</small></td>
+                      <td><small>{{ campaign.durationSeconds / 3600 }} Hours</small></td>
+                      <td><small>${{ campaign.price | number:2 }}</small></td>
                       <td>
-                        <img id="action-{{ id }}" src="assets/images/loading.gif" style="height: 10px; width: 25px; display: none;">
-                        <a id="cancel-{{ id }}" class="badge waves-effect waves-light" ng-class="[{'badge-danger': data.status == 'COMPLETED'}, {'badge-warning': data.status != 'COMPLETED'}]" ng-click="$parent.npkDB.cancelCampaign(id)">
+                          <small ng-if="!!!campaign.interrupted">
+                            {{ campaign.status }}
+                          </small>
+                          <div ng-if="!!campaign.interrupted" class="badge bg-warning">
+                            {{ campaign.interrupted == 'Spot Interruption' ? 'Interrupted: Outbid' : 'Interrupted' }}
+                          </div>
+                        </td>
+                      <td>
+                        <img id="action-{{ campaign._id }}" src="assets/images/loading.gif" style="height: 10px; width: 25px; display: none;">
+                        <a id="cancel-{{ campaign._id }}" class="badge waves-effect waves-light" ng-class="[{'badge-danger': campaign.status == 'COMPLETED'}, {'badge-warning': campaign.status != 'COMPLETED'}]" ng-click="$parent.npkDB.cancelCampaign(campaign._id)">
                           <i class="fa fa-trash-o"></i>
                           <span>
-                            {{ (data.status == "COMPLETED") ? "Delete" : "Cancel" }}
+                            {{ (campaign.status == "COMPLETED") ? "Delete" : "Cancel" }}
                           </span>
                         </a>
                       </td>

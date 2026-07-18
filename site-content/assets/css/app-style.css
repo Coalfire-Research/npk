@@ -4603,10 +4603,10 @@ form.striped-rows .form-group {
     animation: ripple .2s linear forwards;
 }
 [type=radio].with-gap:checked+label:after, [type=radio].with-gap:checked+label:before, [type=radio]:checked+label:after {
-    border: 2px solid #389af0;
+    border: 2px solid var(--gray-dark);
 }
 [type=radio].with-gap:checked+label:after, [type=radio]:checked+label:after {
-    background-color: #389af0;
+    background-color: var(--gray-dark);
     z-index: 0;
 }
 [type=radio]:checked+label:after {

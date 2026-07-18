@@ -1,0 +1,15 @@
+{
+  "name": "delete_campaign",
+  "version": "1.0.0",
+  "description": "NPK delete_campaign Lambda",
+  "main": "main.js",
+  "dependencies": {
+    "aws-sdk": "^2.599.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Brad Woodward (brad@bradwoodward.io)",
+  "license": "MIT"
+}

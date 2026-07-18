@@ -1,0 +1,59 @@
+{
+	"NVIDIA T4": {
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g4dn.xlarge": [1, 4],
+			"g4dn.12xlarge": [4, 48],
+			"g4dn.metal": [8, 96]
+		}
+	},
+	"NVIDIA A100": {
+		"quotaCode": "L-7212CCBC",
+		"instances": {
+			"p4d.24xlarge": [8, 96]
+		}
+	},
+	"NVIDIA A10G": {
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g5.xlarge": [1, 4],
+			"g5.12xlarge": [4, 96],
+			"g5.48xlarge": [8, 192]
+		}
+	},
+	"NVIDIA T4G": {
+		"architecture": "arm64",
+		"ami": "Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Amazon Linux 2023) *",
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g5g.xlarge": [1, 4],
+			"g5g.metal": [2, 64]
+		}
+	},
+	"NVIDIA L4": {
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g6.xlarge": [1, 4],
+			"g6.12xlarge": [4, 96],
+			"g6.48xlarge": [8, 192]
+		}
+	},
+	"NVIDIA L40S": {
+  		"quotaCode": "L-3819A6DF",
+  		"instances": {
+    		"g6e.xlarge": [1, 4],
+    		"g6e.12xlarge": [4, 48],
+    		"g6e.48xlarge": [8, 192]
+  		}
+	},
+	"Radeon Pro V520": {
+		"ami": "amzn2-ami-amd-hvm-*-x86_64-*",
+		"owner": "679593333241",
+		"quotaCode": "L-3819A6DF",
+		"instances": {
+			"g4ad.xlarge": [1, 4],
+			"g4ad.8xlarge": [2, 32],
+			"g4ad.16xlarge": [4, 64]
+		}
+	}
+}
